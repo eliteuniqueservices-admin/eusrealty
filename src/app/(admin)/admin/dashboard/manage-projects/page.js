@@ -1,0 +1,660 @@
+'use client';
+
+import { useState } from 'react';
+import { 
+    Plus, X, Pencil, Trash2, ChevronDown, 
+    MapPin, Calendar, Building2, CheckSquare, 
+    Square, Eye, Search, Layers 
+} from 'lucide-react';
+
+export default function ManageProjects() {
+    const [projects, setProjects] = useState([
+    {
+        id: 1,
+
+        // 🏢 BASIC INFO
+        name: 'VTP Bellissimo',
+        developer: 'VTP Realty',
+        location: 'Hinjewadi Phase 1, Pune',
+        rera: 'P52100012345',
+        possession: 'Dec 2027',
+        status: 'Under Construction',
+
+        // 📐 PROJECT DETAILS
+        landParcel: '5 Acres',
+        openSpace: '70%',
+        totalFloors: '22 Floors',
+        floorBreakdown: '2 Podium + 20 Residential',
+
+        // 🏠 CONFIGS
+        configurations: ['2BHK', '3BHK'],
+        configDetails: [
+        { type: '2BHK', price: '₹75L', carpet: '750 sqft' },
+        { type: '3BHK', price: '₹1.05Cr', carpet: '980 sqft' },
+        ],
+
+        // 🌟 EXTRA
+        description:
+        'Premium residential project located in Hinjewadi Phase 1 with excellent connectivity to IT parks and highways.',
+        amenities:
+        'Clubhouse, Swimming Pool, Gym, Children Play Area, Garden',
+        usp:
+        'High appreciation potential, close to IT hub, modern amenities',
+        launchYear: '2023',
+    }
+    ]);
+
+    const predefinedConfigs = ['1BHK', '1.5BHK', '2BHK', '2.5BHK', '3BHK', '3.5BHK', '4BHK', '5BHK'];
+    const predefinedAmenities = ['Swimming Pool', 'Gym', 'Clubhouse', 'Children Play Area', 'Garden', 'Parking', 'Security', 'Power Backup'];
+    const predefinedStatuses = ['Under Construction', 'Ready to Move', 'Pre-Launch', 'New Launch'];
+    const predefinedLocations = ['Hinjewadi Phase 1, Pune', 'Baner, Pune', 'Kalyani Nagar, Pune', 'Koregaon Park, Pune', 'Viman Nagar, Pune'];
+
+    const [selectedIds, setSelectedIds] = useState([]);
+    const [selectedProject, setSelectedProject] = useState(null);
+
+    const [showModal, setShowModal] = useState(false);
+    const [editingProject, setEditingProject] = useState(null);
+
+    const [formData, setFormData] = useState({
+        name: '', developer: '', location: '', possession: '', rera: '', status: '',
+        landParcel: '', openSpace: '', totalFloors: '', floorBreakdown: '',
+        configDetails: [], description: '', amenities: '', usp: '', launchYear: '',
+    });
+
+    const [selectedAmenities, setSelectedAmenities] = useState([]);
+    const [customAmenity, setCustomAmenity] = useState('');
+
+    // Filter State
+    const [filters, setFilters] = useState({
+        search: '', configuration: '', maxPrice: '', location: '', possession: '', status: '',
+    });
+
+    const [filteredConfigs, setFilteredConfigs] = useState(predefinedConfigs);
+    const [filteredLocations, setFilteredLocations] = useState(predefinedLocations);
+    const [filteredStatuses, setFilteredStatuses] = useState(predefinedStatuses);
+    const [showConfigAdd, setShowConfigAdd] = useState(false);
+    const [showLocationAdd, setShowLocationAdd] = useState(false);
+    const [newConfig, setNewConfig] = useState('');
+    const [newLocation, setNewLocation] = useState('');
+
+    // ✅ Compact Hybrid Number to Words Converter
+    const numberToWords = (num) => {
+        if (!num || isNaN(num)) return '';
+        const n = parseInt(num, 10);
+        if (n === 0) return 'Zero';
+
+        // 1. Spell out numbers strictly under 1,000 completely
+        if (n < 1000) {
+            const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+            const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+            
+            const formatSmall = (num) => {
+                if (num < 20) return a[num];
+                if (num < 100) return b[Math.floor(num / 10)] + (num % 10 !== 0 ? ' ' + a[num % 10] : '');
+                return a[Math.floor(num / 100)] + ' Hundred' + (num % 100 !== 0 ? ' and ' + formatSmall(num % 100) : '');
+            };
+            return formatSmall(n) + (n === 1 ? ' Rupee' : ' Rupees');
+        }
+
+        // 2. Use Digit + Denomination format for large numbers to keep it short (e.g., "65 Lakh")
+        const crore = Math.floor(n / 10000000);
+        const lakh = Math.floor((n % 10000000) / 100000);
+        const thousand = Math.floor((n % 100000) / 1000);
+        const remainder = n % 1000;
+
+        const parts = [];
+        if (crore > 0) parts.push(`${crore} Crore`);
+        if (lakh > 0) parts.push(`${lakh} Lakh`);
+        if (thousand > 0) parts.push(`${thousand} Thousand`);
+        if (remainder > 0) parts.push(`${remainder}`); // Keep remainder as digits to save space
+
+        return parts.join(' ') + ' Rupees';
+    };
+
+    // Filter Logic
+    const filteredProjects = projects.filter((project) => {
+        const searchLower = filters.search.toLowerCase();
+        const matchesSearch = filters.search === '' || 
+            project.name.toLowerCase().includes(searchLower) || 
+            project.developer.toLowerCase().includes(searchLower);
+
+        const matchesConfig = filters.configuration === '' || project.configurations.includes(filters.configuration);
+        const matchesPrice = filters.maxPrice === '' || parseInt(filters.maxPrice) >= (parseInt(project.price?.replace(/[^\d]/g, '')) || 0);
+        const matchesLocation = filters.location === '' || project.location.toLowerCase().includes(filters.location.toLowerCase());
+        const matchesPossession = filters.possession === '' || project.possession.includes(filters.possession);
+        const matchesStatus = filters.status === '' || project.status === filters.status;
+
+        return matchesSearch && matchesConfig && matchesPrice && matchesLocation && matchesPossession && matchesStatus;
+    });
+
+    const toggleSelect = (id) => {
+        setSelectedIds((prev) => prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]);
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.length === filteredProjects.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(filteredProjects.map((p) => p.id));
+        }
+    };
+
+    const handleBulkDelete = () => {
+        setProjects((prev) => prev.filter((p) => !selectedIds.includes(p.id)));
+        setSelectedIds([]);
+    };
+
+    // ---------------- FORM ----------------
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const openAddModal = () => {
+        setFormData({
+            name: '', developer: '', location: '', possession: '', rera: '', status: '',
+            landParcel: '', openSpace: '', totalFloors: '', floorBreakdown: '',
+            configDetails: [], description: '', amenities: '', usp: '', launchYear: '',
+        });
+        setSelectedAmenities([]);
+        setCustomAmenity('');
+        setEditingProject(null);
+        setShowModal(true);
+    };
+
+    const openEditModal = (project) => {
+        setFormData(project);
+        setSelectedAmenities(project.amenities ? project.amenities.split(',').map(a => a.trim()) : []);
+        setCustomAmenity('');
+        setEditingProject(project);
+        setShowModal(true);
+    };
+
+    const handleSubmit = () => {
+        if (!formData.name) return;
+
+        const amenitiesString = [...selectedAmenities, customAmenity].filter(a => a.trim()).join(', ');
+
+        if (editingProject) {
+            const updatedConfigs = formData.configDetails.map(c => c.type).filter(Boolean);
+            setProjects((prev) =>
+                prev.map((p) =>
+                p.id === editingProject.id ? { ...p, ...formData, amenities: amenitiesString, configurations: updatedConfigs.length > 0 ? updatedConfigs : p.configurations } : p
+                )
+            );
+        } else {
+            const newConfigs = formData.configDetails.map(c => c.type).filter(Boolean);
+            setProjects((prev) => [
+                ...prev,
+                {
+                ...formData,
+                amenities: amenitiesString,
+                configurations: newConfigs.length > 0 ? newConfigs : ['2BHK'],
+                id: Date.now(),
+                landParcel: formData.landParcel || '—',
+                openSpace: formData.openSpace || '—',
+                totalFloors: formData.totalFloors || '—',
+                floorBreakdown: formData.floorBreakdown || '—',
+                configDetails: formData.configDetails,
+                },
+            ]);
+        }
+        setShowModal(false);
+    };
+
+    const handleDelete = (id) => {
+        setProjects((prev) => prev.filter((p) => p.id !== id));
+    };
+
+    const handleAddConfig = () => {
+        if (newConfig.trim() && !filteredConfigs.includes(newConfig.trim())) {
+            setFilteredConfigs([...filteredConfigs, newConfig.trim()]);
+            setFilters({ ...filters, configuration: newConfig.trim() });
+            setNewConfig('');
+            setShowConfigAdd(false);
+        }
+    };
+
+    const handleAddLocation = () => {
+        if (newLocation.trim() && !filteredLocations.includes(newLocation.trim())) {
+            setFilteredLocations([...filteredLocations, newLocation.trim()]);
+            setFilters({ ...filters, location: newLocation.trim() });
+            setNewLocation('');
+            setShowLocationAdd(false);
+        }
+    };
+
+    // ---------------- UI ----------------
+    return (
+        <div className="bg-slate-50 min-h-screen p-6 md:p-8 font-sans text-slate-900">
+
+        {/* HEADER */}
+        <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mb-8 pb-6 border-b border-slate-200">
+            <div>
+                <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight mb-2">Projects</h1>
+                <p className="text-slate-500 font-medium">Manage and organize your real estate directory</p>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+            {selectedIds.length > 0 && (
+                <button
+                onClick={handleBulkDelete}
+                className="flex items-center gap-2 bg-red-50 text-red-600 px-5 py-2.5 rounded-xl font-bold hover:bg-red-100 transition border border-red-200 shadow-sm"
+                >
+                <Trash2 size={18} /> Delete ({selectedIds.length})
+                </button>
+            )}
+
+            <button
+                onClick={openAddModal}
+                className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition shadow-md shadow-blue-600/20 active:scale-95"
+            >
+                <Plus size={18} strokeWidth={3} /> Add Project
+            </button>
+            </div>
+        </div>
+
+        {/* SEARCH & FILTER PANEL */}
+        <div className="bg-white border border-slate-200 p-6 rounded-2xl mb-8 shadow-sm">
+            <div className="flex justify-between items-center mb-5">
+                <h3 className="text-lg font-bold flex items-center gap-2"><Search size={20} className="text-slate-400"/> Find Projects</h3>
+                {Object.values(filters).some(v => v !== '') && (
+                    <button
+                        onClick={() => setFilters({ search: '', configuration: '', maxPrice: '', location: '', possession: '', status: '' })}
+                        className="text-sm text-blue-600 font-bold hover:text-blue-800 transition"
+                    >
+                        Clear Filters
+                    </button>
+                )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+
+                {/* Text Search */}
+                <div className="relative col-span-1 md:col-span-2 lg:col-span-2">
+                    <input
+                        type="text"
+                        placeholder="Search by name or developer..."
+                        value={filters.search}
+                        onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                        className="w-full pl-4 pr-10 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 placeholder-slate-400 font-medium hover:border-slate-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
+                    />
+                </div>
+
+                {/* Dropdowns (Custom Styled) */}
+                <div className="relative">
+                    <select
+                        value={filters.configuration}
+                        onChange={(e) => e.target.value === 'add' ? setShowConfigAdd(true) : setFilters({ ...filters, configuration: e.target.value })}
+                        className="appearance-none cursor-pointer w-full pl-4 pr-10 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-medium hover:border-slate-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
+                    >
+                        <option value="">All Configs</option>
+                        <option value="add">+ Add Config</option>
+                        {filteredConfigs.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
+                </div>
+
+                <div className="relative mb-2">
+                    <input
+                        type="number"
+                        placeholder="Max Budget (₹)"
+                        value={filters.maxPrice}
+                        onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })}
+                        className="w-full pl-4 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 placeholder-slate-400 font-medium hover:border-slate-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
+                    />
+                    {/* ✅ Truncated single-line helper text */}
+                    {filters.maxPrice && (
+                        <p className="absolute -bottom-6 left-1 text-[11px] text-blue-600 font-bold tracking-wide uppercase whitespace-nowrap overflow-hidden text-ellipsis max-w-[95%]">
+                            {numberToWords(filters.maxPrice)}
+                        </p>
+                    )}
+                </div>
+
+                <div className="relative">
+                    <select
+                        value={filters.location}
+                        onChange={(e) => e.target.value === 'add' ? setShowLocationAdd(true) : setFilters({ ...filters, location: e.target.value })}
+                        className="appearance-none cursor-pointer w-full pl-4 pr-10 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-medium hover:border-slate-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-ellipsis"
+                    >
+                        <option value="">All Locations</option>
+                        <option value="add">+ Add Location</option>
+                        {filteredLocations.map(l => <option key={l} value={l}>{l}</option>)}
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
+                </div>
+
+                <div className="relative">
+                    <select
+                        value={filters.status}
+                        onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                        className="appearance-none cursor-pointer w-full pl-4 pr-10 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-medium hover:border-slate-300 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
+                    >
+                        <option value="">All Statuses</option>
+                        {filteredStatuses.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
+                </div>
+
+            </div>
+        </div>
+
+        {/* ADD MODALS FOR DROPDOWNS */}
+        {showConfigAdd && (
+            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[60]">
+                <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl animate-in zoom-in-95 duration-200">
+                    <h3 className="text-xl font-black mb-4">Add Configuration</h3>
+                    <input type="text" placeholder="e.g., 6BHK" value={newConfig} onChange={(e) => setNewConfig(e.target.value)} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                    <div className="flex gap-3">
+                        <button onClick={() => { setShowConfigAdd(false); setNewConfig(''); }} className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition">Cancel</button>
+                        <button onClick={handleAddConfig} className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-md shadow-blue-600/20 hover:bg-blue-700 transition">Add</button>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {showLocationAdd && (
+            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[60]">
+                <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl animate-in zoom-in-95 duration-200">
+                    <h3 className="text-xl font-black mb-4">Add Location</h3>
+                    <input type="text" placeholder="e.g., Wakad, Pune" value={newLocation} onChange={(e) => setNewLocation(e.target.value)} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                    <div className="flex gap-3">
+                        <button onClick={() => { setShowLocationAdd(false); setNewLocation(''); }} className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition">Cancel</button>
+                        <button onClick={handleAddLocation} className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-md shadow-blue-600/20 hover:bg-blue-700 transition">Add</button>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {/* LIST VIEW */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            {/* List Header */}
+            <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
+                <div className="flex items-center gap-3">
+                    <button onClick={toggleSelectAll} className="text-slate-400 hover:text-blue-600 transition p-1">
+                        {selectedIds.length === filteredProjects.length && filteredProjects.length > 0 ? (
+                            <CheckSquare size={22} className="text-blue-600" />
+                        ) : (
+                            <Square size={22} />
+                        )}
+                    </button>
+                    <span className="font-bold text-slate-700">
+                        {filteredProjects.length} {filteredProjects.length === 1 ? 'Project' : 'Projects'} Found
+                    </span>
+                </div>
+            </div>
+
+            {/* List Body */}
+            <div className="flex flex-col divide-y divide-slate-100">
+                {filteredProjects.map((p) => (
+                    <div 
+                        key={p.id} 
+                        className={`group flex flex-col lg:flex-row lg:items-center gap-6 p-5 transition-all hover:bg-slate-50/80 ${selectedIds.includes(p.id) ? 'bg-blue-50/30' : ''}`}
+                    >
+                        {/* 1. Checkbox & Identity */}
+                        <div className="flex items-start gap-4 flex-1">
+                            <button onClick={() => toggleSelect(p.id)} className="mt-1 text-slate-300 hover:text-blue-600 transition">
+                                {selectedIds.includes(p.id) ? <CheckSquare size={22} className="text-blue-600" /> : <Square size={22} />}
+                            </button>
+                            <div>
+                                <h2 className="font-bold text-lg text-slate-900 group-hover:text-blue-600 transition-colors cursor-pointer" onClick={() => setSelectedProject(p)}>
+                                    {p.name}
+                                </h2>
+                                <div className="flex items-center gap-2 text-sm font-medium text-slate-500 mt-1">
+                                    <Building2 size={14} className="text-slate-400"/> {p.developer}
+                                </div>
+                                <div className="flex items-center gap-2 text-sm text-slate-500 mt-1">
+                                    <MapPin size={14} className="text-slate-400"/> {p.location}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 2. Key Specs */}
+                        <div className="flex-1 grid grid-cols-2 lg:grid-cols-3 gap-4 text-sm border-l-0 lg:border-l border-slate-200 lg:pl-6">
+                            <div>
+                                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Status</p>
+                                <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold border ${
+                                    p.status === 'Under Construction' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                    p.status === 'Ready to Move' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                    p.status === 'Pre-Launch' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                                    'bg-slate-50 text-slate-700 border-slate-200'
+                                }`}>
+                                    {p.status || 'N/A'}
+                                </span>
+                            </div>
+                            <div>
+                                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1 flex items-center gap-1"><Calendar size={12}/> Possession</p>
+                                <p className="font-semibold text-slate-800">{p.possession}</p>
+                            </div>
+                            <div className="col-span-2 lg:col-span-1 mt-2 lg:mt-0">
+                                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1 flex items-center gap-1"><Layers size={12}/> Configurations</p>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                    {p.configurations.map(c => (
+                                        <span key={c} className="bg-slate-100 text-slate-600 text-[11px] font-bold px-2 py-0.5 rounded-md">{c}</span>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 3. Actions */}
+                        <div className="flex items-center gap-2 lg:justify-end border-t lg:border-t-0 border-slate-100 pt-4 lg:pt-0">
+                            <button onClick={() => setSelectedProject(p)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition tooltip" title="View Details">
+                                <Eye size={18} />
+                            </button>
+                            <button onClick={() => openEditModal(p)} className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition" title="Edit">
+                                <Pencil size={18} />
+                            </button>
+                            <button onClick={() => handleDelete(p.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete">
+                                <Trash2 size={18} />
+                            </button>
+                        </div>
+                    </div>
+                ))}
+
+                {/* Empty State */}
+                {filteredProjects.length === 0 && (
+                    <div className="text-center py-24 bg-slate-50/50">
+                        <Search size={48} className="mx-auto text-slate-300 mb-4" />
+                        <p className="text-slate-900 font-black text-xl mb-2">No projects found</p>
+                        <p className="text-slate-500 font-medium max-w-sm mx-auto">Try adjusting your filters or search terms to find what you're looking for.</p>
+                    </div>
+                )}
+            </div>
+        </div>
+
+        {/* ADD / EDIT MODAL */}
+        {showModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white w-full max-w-4xl rounded-[2rem] p-8 max-h-[90vh] overflow-y-auto shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+                {/* Modal Header */}
+                <div className="flex justify-between items-center mb-8 sticky top-0 bg-white/90 backdrop-blur-md pb-4 border-b border-slate-100 z-10">
+                    <div>
+                        <h2 className="text-2xl font-black text-slate-900">{editingProject ? 'Edit Project' : 'Add New Project'}</h2>
+                        <p className="text-slate-500 font-medium mt-1">Complete the details below to publish the project.</p>
+                    </div>
+                    <button onClick={() => setShowModal(false)} className="bg-slate-100 p-2 text-slate-500 hover:bg-slate-200 hover:text-slate-800 rounded-full transition">
+                        <X size={20} strokeWidth={3} />
+                    </button>
+                </div>
+
+                <div className="space-y-10">
+                    {/* BASIC INFO */}
+                    <section>
+                        <h3 className="font-bold text-lg text-slate-900 mb-4 flex items-center gap-2"><Building2 size={20} className="text-blue-600"/> Basic Information</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input name="name" placeholder="Project Name *" onChange={handleChange} value={formData.name} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                            <input name="developer" placeholder="Developer Name" onChange={handleChange} value={formData.developer} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                            <input name="location" placeholder="Location" onChange={handleChange} value={formData.location} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                            <input name="rera" placeholder="RERA Number" onChange={handleChange} value={formData.rera} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium font-mono" />
+                            <input name="possession" placeholder="Possession Date" onChange={handleChange} value={formData.possession} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                            <div className="relative">
+                                <select name="status" onChange={handleChange} value={formData.status} className="appearance-none w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium cursor-pointer">
+                                    <option value="">Select Status</option>
+                                    {filteredStatuses.map(status => <option key={status} value={status}>{status}</option>)}
+                                </select>
+                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* PROJECT DETAILS */}
+                    <section>
+                        <h3 className="font-bold text-lg text-slate-900 mb-4 flex items-center gap-2"><Layers size={20} className="text-blue-600"/> Project Specs</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input name="landParcel" placeholder="Land Parcel (e.g., 5 Acres)" onChange={handleChange} value={formData.landParcel} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                            <input name="openSpace" placeholder="Open Space (e.g., 70%)" onChange={handleChange} value={formData.openSpace} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                            <input name="totalFloors" placeholder="Total Floors" onChange={handleChange} value={formData.totalFloors} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                            <input name="floorBreakdown" placeholder="Floor Breakdown (e.g., 2 Podium + 20 Floor)" onChange={handleChange} value={formData.floorBreakdown} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                        </div>
+                    </section>
+
+                    {/* CONFIGURATIONS */}
+                    <section>
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="font-bold text-lg text-slate-900">Configurations</h3>
+                            <button onClick={() => setFormData({ ...formData, configDetails: [...(formData.configDetails || []), { type: '', carpet: '', price: '' }] })} className="text-sm font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition">
+                                + Add Row
+                            </button>
+                        </div>
+                        <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            {formData.configDetails?.length === 0 && <p className="text-sm text-slate-500 font-medium text-center py-2">No configurations added yet.</p>}
+                            {formData.configDetails?.map((config, index) => (
+                                <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-3 relative">
+                                    <div className="relative">
+                                        <select
+                                            value={config.type}
+                                            onChange={(e) => {
+                                                const updated = [...formData.configDetails];
+                                                updated[index].type = e.target.value;
+                                                setFormData({ ...formData, configDetails: updated });
+                                            }}
+                                            className="appearance-none w-full p-3.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium cursor-pointer"
+                                        >
+                                            <option value="">Select Type</option>
+                                            {predefinedConfigs.map(type => <option key={type} value={type}>{type}</option>)}
+                                        </select>
+                                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                                    </div>
+                                    <input placeholder="Carpet Area (sqft)" value={config.carpet} onChange={(e) => { const updated = [...formData.configDetails]; updated[index].carpet = e.target.value; setFormData({ ...formData, configDetails: updated }); }} className="p-3.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                                    <input placeholder="Price (e.g., ₹75L)" value={config.price} onChange={(e) => { const updated = [...formData.configDetails]; updated[index].price = e.target.value; setFormData({ ...formData, configDetails: updated }); }} className="p-3.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* AMENITIES */}
+                    <section>
+                        <h3 className="font-bold text-lg text-slate-900 mb-4">Amenities & Features</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 p-5 bg-slate-50 rounded-xl border border-slate-200">
+                            {predefinedAmenities.map(amenity => (
+                                <label key={amenity} className="flex items-center gap-2 cursor-pointer group">
+                                    <div className={`w-5 h-5 rounded flex items-center justify-center border transition ${selectedAmenities.includes(amenity) ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-300 group-hover:border-blue-400'}`}>
+                                        {selectedAmenities.includes(amenity) && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"/></svg>}
+                                    </div>
+                                    <input type="checkbox" className="hidden" checked={selectedAmenities.includes(amenity)} onChange={(e) => setSelectedAmenities(e.target.checked ? [...selectedAmenities, amenity] : selectedAmenities.filter(a => a !== amenity))} />
+                                    <span className="text-sm font-medium text-slate-700">{amenity}</span>
+                                </label>
+                            ))}
+                        </div>
+                        <div className="flex gap-2">
+                            <input placeholder="Type custom amenity..." value={customAmenity} onChange={(e) => setCustomAmenity(e.target.value)} className="flex-1 p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                            <button onClick={() => { if (customAmenity.trim() && !selectedAmenities.includes(customAmenity.trim())) { setSelectedAmenities([...selectedAmenities, customAmenity.trim()]); setCustomAmenity(''); } }} className="px-6 py-3.5 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition">Add</button>
+                        </div>
+                        {selectedAmenities.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-4">
+                                {selectedAmenities.map(amenity => (
+                                    <span key={amenity} className="flex items-center gap-1.5 bg-blue-50 border border-blue-100 text-blue-700 px-3 py-1.5 rounded-lg text-sm font-bold">
+                                        {amenity}
+                                        <button onClick={() => setSelectedAmenities(selectedAmenities.filter(a => a !== amenity))} className="text-blue-400 hover:text-blue-800 bg-white rounded-full p-0.5"><X size={12} strokeWidth={3} /></button>
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                    </section>
+
+                    {/* EXTRA TEXT */}
+                    <section>
+                        <h3 className="font-bold text-lg text-slate-900 mb-4">Marketing Info</h3>
+                        <textarea name="description" placeholder="Project Description" onChange={handleChange} value={formData.description} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl mb-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium min-h-[120px]" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input name="usp" placeholder="Highlights / USP" onChange={handleChange} value={formData.usp} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                            <input name="launchYear" placeholder="Launch Year" onChange={handleChange} value={formData.launchYear} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                        </div>
+                    </section>
+                </div>
+
+                {/* MODAL ACTIONS */}
+                <div className="flex justify-end gap-3 mt-10 pt-6 border-t border-slate-200 sticky bottom-0 bg-white">
+                    <button onClick={() => setShowModal(false)} className="px-8 py-3.5 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition">Cancel</button>
+                    <button onClick={handleSubmit} className="px-10 py-3.5 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-600/30 hover:bg-blue-700 transition active:scale-95">
+                        {editingProject ? 'Save Changes' : 'Publish Project'}
+                    </button>
+                </div>
+            </div>
+        </div>
+        )}
+
+        {/* DETAILS MODAL (Read-Only) */}
+        {selectedProject && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white w-full max-w-3xl rounded-[2rem] p-8 max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-200">
+                <div className="flex justify-between items-start mb-8 pb-6 border-b border-slate-100">
+                    <div>
+                        <div className="flex items-center gap-3 mb-2">
+                            <h2 className="text-3xl font-black text-slate-900">{selectedProject.name}</h2>
+                            <span className="bg-blue-50 text-blue-600 font-bold px-3 py-1 rounded-lg text-xs uppercase tracking-wide border border-blue-100">{selectedProject.status}</span>
+                        </div>
+                        <p className="text-slate-600 font-bold flex items-center gap-2"><Building2 size={16}/> {selectedProject.developer}</p>
+                        <p className="text-slate-500 font-medium text-sm mt-1 flex items-center gap-2"><MapPin size={16}/> {selectedProject.location}</p>
+                    </div>
+                    <button onClick={() => setSelectedProject(null)} className="bg-slate-100 p-2 text-slate-500 hover:bg-slate-200 hover:text-slate-800 rounded-full transition">
+                        <X size={20} strokeWidth={3} />
+                    </button>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div><p className="text-slate-400 text-xs font-bold uppercase mb-1">Possession</p><p className="font-bold text-slate-900">{selectedProject.possession}</p></div>
+                    <div><p className="text-slate-400 text-xs font-bold uppercase mb-1">RERA</p><p className="font-mono font-bold text-slate-900">{selectedProject.rera}</p></div>
+                    <div><p className="text-slate-400 text-xs font-bold uppercase mb-1">Land Area</p><p className="font-bold text-slate-900">{selectedProject.landParcel}</p></div>
+                    <div><p className="text-slate-400 text-xs font-bold uppercase mb-1">Total Floors</p><p className="font-bold text-slate-900">{selectedProject.totalFloors}</p></div>
+                </div>
+
+                <div className="mb-8">
+                    <h3 className="font-bold text-lg text-slate-900 mb-4">Configurations</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {selectedProject.configDetails?.map((c, i) => (
+                            <div key={i} className="flex justify-between items-center p-4 border border-slate-200 rounded-xl hover:border-blue-200 hover:shadow-sm transition bg-white">
+                                <div>
+                                    <p className="font-black text-slate-900">{c.type}</p>
+                                    <p className="text-sm text-slate-500 font-medium mt-0.5">{c.carpet}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-0.5">Starting At</p>
+                                    <p className="font-black text-blue-600 text-lg">{c.price}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {selectedProject.description && (
+                    <div className="mb-8 pb-8 border-b border-slate-100">
+                        <h3 className="font-bold text-lg text-slate-900 mb-2">About the Project</h3>
+                        <p className="text-slate-600 font-medium leading-relaxed">{selectedProject.description}</p>
+                    </div>
+                )}
+
+                {selectedProject.amenities && (
+                    <div className="mb-8">
+                        <h3 className="font-bold text-lg text-slate-900 mb-4">World Class Amenities</h3>
+                        <div className="flex flex-wrap gap-2">
+                            {selectedProject.amenities.split(',').map((item, i) => (
+                                <span key={i} className="text-sm bg-white border border-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl shadow-sm">{item.trim()}</span>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+        )}
+        </div>
+    );
+}
