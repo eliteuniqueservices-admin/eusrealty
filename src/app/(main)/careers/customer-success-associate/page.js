@@ -9,92 +9,110 @@ import {
   ArrowLeft,
   Building2,
   Users,
-  Handshake
+  Handshake,
+  ArrowRight,
+  Star
 } from "lucide-react";
 
 export default function CustomerSuccessAssociate() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 py-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+    <main className="min-h-screen bg-[#FDFDFD] py-16 px-4 sm:px-6 lg:px-8 selection:bg-amber-500 selection:text-white font-sans text-slate-900 relative overflow-hidden">
+      
+      {/* Background Styling */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-slate-200/30 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute top-40 right-1/4 w-96 h-96 bg-amber-100/20 rounded-full blur-[100px] pointer-events-none" />
+
+      <div className="max-w-4xl mx-auto relative z-10">
 
         {/* Back Button */}
         <a
           href="/careers"
-          className="flex items-center gap-2 text-gray-600 font-medium mb-12 hover:text-blue-700 transition-colors duration-200 group"
+          className="inline-flex items-center gap-2 text-slate-500 font-bold mb-10 hover:text-amber-600 transition-colors duration-300 group tracking-wide text-sm"
         >
-          <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+          <div className="p-2 rounded-full bg-white border border-slate-200 shadow-sm group-hover:border-amber-200 transition-colors">
+            <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+          </div>
           Back to Careers
         </a>
 
         {/* Job Card */}
-        <div className="bg-white rounded-2xl p-8 sm:p-12 shadow-lg border border-gray-200">
+        <div className="bg-white rounded-[2.5rem] p-8 sm:p-12 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.05)] border border-slate-100 relative">
+          
+          {/* Top Decorative Line */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1.5 bg-amber-500 rounded-b-full"></div>
 
           {/* Department */}
-          <div className="flex items-center mb-8">
-            <span className="text-xs font-bold tracking-widest uppercase text-blue-700 bg-blue-100 px-4 py-2 rounded-lg">
+          <div className="flex items-center mb-8 mt-2">
+            <span className="text-xs font-bold tracking-widest uppercase text-slate-800 bg-slate-50 border border-slate-200 px-4 py-2 rounded-full shadow-sm">
               CRM Department
             </span>
           </div>
 
           {/* Title */}
-          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mt-2 mb-8">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-950 mt-2 mb-10 tracking-tight leading-[1.1]">
             Customer Success Associate
           </h1>
 
-          {/* Job Meta */}
-          <div className="grid sm:grid-cols-2 gap-6 mb-10 pb-10 border-b border-gray-200">
-            <div className="flex items-center gap-3 text-gray-700">
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <MapPin size={20} className="text-blue-600" />
+          {/* Job Meta Details */}
+          <div className="grid sm:grid-cols-2 gap-6 mb-12 pb-12 border-b border-slate-100">
+            <div className="flex items-center gap-4 text-slate-700 group">
+              <div className="w-12 h-12 flex items-center justify-center bg-slate-50 border border-slate-100 rounded-2xl group-hover:bg-slate-950 group-hover:text-amber-400 transition-colors duration-300">
+                <MapPin size={20} className="text-amber-500 group-hover:text-amber-400 transition-colors" />
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Location</p>
-                <p className="font-medium">Pune, Maharashtra</p>
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-0.5">Location</p>
+                <p className="font-bold text-slate-900">Pune, Maharashtra</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 text-gray-700">
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <Briefcase size={20} className="text-blue-600" />
+            
+            <div className="flex items-center gap-4 text-slate-700 group">
+              <div className="w-12 h-12 flex items-center justify-center bg-slate-50 border border-slate-100 rounded-2xl group-hover:bg-slate-950 group-hover:text-amber-400 transition-colors duration-300">
+                <Briefcase size={20} className="text-amber-500 group-hover:text-amber-400 transition-colors" />
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Employment Type</p>
-                <p className="font-medium">Full-time</p>
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-0.5">Employment</p>
+                <p className="font-bold text-slate-900">Full-time</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 text-gray-700">
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <Calendar size={20} className="text-blue-600" />
+            
+            <div className="flex items-center gap-4 text-slate-700 group">
+              <div className="w-12 h-12 flex items-center justify-center bg-slate-50 border border-slate-100 rounded-2xl group-hover:bg-slate-950 group-hover:text-amber-400 transition-colors duration-300">
+                <Calendar size={20} className="text-amber-500 group-hover:text-amber-400 transition-colors" />
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Posted</p>
-                <p className="font-medium">12 March 2026</p>
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-0.5">Posted</p>
+                <p className="font-bold text-slate-900">12 March 2026</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 text-gray-700">
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <Clock size={20} className="text-blue-600" />
+            
+            <div className="flex items-center gap-4 text-slate-700 group">
+              <div className="w-12 h-12 flex items-center justify-center bg-slate-50 border border-slate-100 rounded-2xl group-hover:bg-slate-950 group-hover:text-amber-400 transition-colors duration-300">
+                <Clock size={20} className="text-amber-500 group-hover:text-amber-400 transition-colors" />
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Expires</p>
-                <p className="font-medium">12 April 2026</p>
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-0.5">Expires</p>
+                <p className="font-bold text-slate-900">12 April 2026</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 text-gray-700">
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <Building2 size={20} className="text-blue-600" />
+            
+            <div className="flex items-center gap-4 text-slate-700 group">
+              <div className="w-12 h-12 flex items-center justify-center bg-slate-50 border border-slate-100 rounded-2xl group-hover:bg-slate-950 group-hover:text-amber-400 transition-colors duration-300">
+                <Building2 size={20} className="text-amber-500 group-hover:text-amber-400 transition-colors" />
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Office</p>
-                <p className="font-medium">Tathawade HQ</p>
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-0.5">Office</p>
+                <p className="font-bold text-slate-900">Tathawade HQ</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-50 rounded-lg">
-                <Handshake size={20} className="text-green-600" />
+            
+            <div className="flex items-center gap-4 text-slate-700 group">
+              <div className="w-12 h-12 flex items-center justify-center bg-amber-50 border border-amber-100 rounded-2xl group-hover:bg-amber-500 group-hover:text-slate-950 transition-colors duration-300">
+                <Handshake size={20} className="text-amber-600 group-hover:text-slate-950 transition-colors" />
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Compensation</p>
-                <p className="font-medium text-green-700">Fixed + Performance Bonus</p>
+                <p className="text-xs text-amber-600/70 font-bold uppercase tracking-widest mb-0.5">Compensation</p>
+                <p className="font-bold text-amber-600">Fixed + Bonus</p>
               </div>
             </div>
           </div>
@@ -103,40 +121,40 @@ export default function CustomerSuccessAssociate() {
 
             {/* Overview */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                <div className="w-1 h-8 bg-blue-600 rounded-full"></div>
-                Job Overview
+              <h2 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3 tracking-tight">
+                <div className="w-1.5 h-8 bg-amber-500 rounded-full"></div>
+                Role Overview
               </h2>
-              <p className="text-gray-700 leading-relaxed text-lg">
-                Eus Realty is looking for a Customer Success Associate to
-                manage client relationships throughout the property buying
-                journey. You will ensure that customers receive a seamless
-                experience from inquiry to property booking while maintaining
-                strong communication between buyers, sales teams, and developers.
+              <p className="text-slate-500 leading-relaxed text-lg font-light">
+                Eus Realty is looking for a highly driven Customer Success Associate to
+                manage client relationships throughout the luxury property buying
+                journey. You will ensure that clients receive a flawless, premium
+                experience from inquiry to registration while maintaining
+                strong communication between buyers, our sales force, and top-tier developers.
               </p>
             </div>
 
             {/* Responsibilities */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                <div className="w-1 h-8 bg-blue-600 rounded-full"></div>
+              <h2 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3 tracking-tight">
+                <div className="w-1.5 h-8 bg-amber-500 rounded-full"></div>
                 Key Responsibilities
               </h2>
               <ul className="space-y-4">
                 {[
-                  "Manage incoming customer inquiries and assist them through the property buying process",
-                  "Maintain regular follow-ups with potential and existing clients",
-                  "Coordinate between the sales team and customers for site visits and documentation",
-                  "Maintain and update customer data within the CRM system",
-                  "Ensure high levels of customer satisfaction and engagement",
-                  "Resolve customer queries related to projects, bookings, and documentation"
+                  "Manage incoming VIP customer inquiries and assist them through the property buying process.",
+                  "Maintain regular, professional follow-ups with potential and existing clients.",
+                  "Coordinate seamlessly between the sales team and customers for site visits and legal documentation.",
+                  "Maintain and update customer portfolios within our proprietary CRM system.",
+                  "Ensure highest levels of customer satisfaction and engagement to drive referrals.",
+                  "Resolve customer queries related to premium projects, bookings, and compliance documents."
                 ].map((item, index) => (
-                  <li key={index} className="flex gap-4 text-gray-700">
+                  <li key={index} className="flex gap-4 text-slate-600 font-light text-lg">
                     <CheckCircle2
-                      size={20}
-                      className="text-blue-600 mt-0.5 shrink-0"
+                      size={22}
+                      className="text-amber-500 mt-0.5 shrink-0"
                     />
-                    <span className="font-medium">{item}</span>
+                    <span>{item}</span>
                   </li>
                 ))}
               </ul>
@@ -144,24 +162,24 @@ export default function CustomerSuccessAssociate() {
 
             {/* Requirements */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                <div className="w-1 h-8 bg-blue-600 rounded-full"></div>
+              <h2 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3 tracking-tight">
+                <div className="w-1.5 h-8 bg-amber-500 rounded-full"></div>
                 Requirements
               </h2>
               <ul className="space-y-4">
                 {[
-                  "0–2 years experience in customer support, CRM, or client handling",
-                  "Excellent communication and interpersonal skills",
-                  "Strong organizational and multitasking ability",
-                  "Comfortable using CRM tools and spreadsheets",
-                  "Graduate in any discipline preferred"
+                  "0–2 years experience in customer support, CRM, or high-end client handling.",
+                  "Impeccable communication and interpersonal skills.",
+                  "Strong organizational and multitasking ability in a fast-paced environment.",
+                  "Comfortable utilizing modern CRM tools and analytics dashboards.",
+                  "Graduate in any discipline preferred."
                 ].map((item, index) => (
-                  <li key={index} className="flex gap-4 text-gray-700">
+                  <li key={index} className="flex gap-4 text-slate-600 font-light text-lg">
                     <CheckCircle2
-                      size={20}
-                      className="text-blue-600 mt-0.5 shrink-0"
+                      size={22}
+                      className="text-amber-500 mt-0.5 shrink-0"
                     />
-                    <span className="font-medium">{item}</span>
+                    <span>{item}</span>
                   </li>
                 ))}
               </ul>
@@ -169,24 +187,24 @@ export default function CustomerSuccessAssociate() {
 
             {/* Benefits */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                <div className="w-1 h-8 bg-blue-600 rounded-full"></div>
+              <h2 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3 tracking-tight">
+                <div className="w-1.5 h-8 bg-amber-500 rounded-full"></div>
                 Benefits & Perks
               </h2>
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid sm:grid-cols-2 gap-5">
                 {[
-                  "Competitive fixed salary",
-                  "Performance-based bonuses",
-                  "Professional growth opportunities",
-                  "Training in real estate CRM and sales process",
-                  "Supportive and collaborative work environment"
+                  "Competitive fixed salary package",
+                  "Aggressive performance-based bonuses",
+                  "Fast-tracked professional growth",
+                  "Advanced real estate CRM training",
+                  "Elite, collaborative work environment"
                 ].map((item, index) => (
-                  <div key={index} className="flex gap-3 text-gray-700">
-                    <CheckCircle2
-                      size={20}
-                      className="text-green-600 mt-0.5 shrink-0"
+                  <div key={index} className="flex gap-3 text-slate-600 font-light text-lg items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <Star
+                      size={18}
+                      className="text-amber-500 shrink-0 fill-amber-500"
                     />
-                    <span className="font-medium">{item}</span>
+                    <span>{item}</span>
                   </div>
                 ))}
               </div>
@@ -194,17 +212,24 @@ export default function CustomerSuccessAssociate() {
           </div>
 
           {/* CTA */}
-          <div className="mt-14 pt-10 border-t border-gray-200">
-            <p className="text-gray-600 text-sm font-medium mb-6">Ready to apply?</p>
+          <div className="mt-16 pt-12 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div>
+              <h3 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">Ready to join the elite?</h3>
+              <p className="text-slate-500 font-light">Send your resume and a brief cover letter.</p>
+            </div>
+            
+            {/* PRIMARY BUTTON: "Building Rise" Animation */}
             <a
               href="https://mail.google.com/mail/?view=cm&fs=1&to=eliteuniqueservices@gmail.com&su=Application%20for%20Customer%20Success%20Associate"
-              className="inline-block bg-blue-600 text-white px-8 py-4 rounded-lg font-bold hover:bg-blue-700 transition-colors duration-200 shadow-md hover:shadow-lg"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative overflow-hidden inline-flex bg-slate-950 text-white px-10 py-5 rounded-2xl font-bold group tracking-wide text-center border border-slate-800 shadow-xl w-full sm:w-auto"
             >
-              Apply Now
+              <span className="absolute inset-0 w-full h-full bg-amber-500 origin-bottom transform scale-y-0 transition-transform duration-300 ease-out group-hover:scale-y-100" />
+              <span className="relative z-10 flex items-center justify-center gap-3 group-hover:text-slate-950 transition-colors duration-300 w-full">
+                Apply Now <ArrowRight size={18} className="text-amber-400 group-hover:text-slate-950 transition-colors" />
+              </span>
             </a>
-            <p className="text-gray-500 text-sm mt-4">
-              Send your resume and a brief cover letter to our careers team.
-            </p>
           </div>
 
         </div>

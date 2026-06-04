@@ -134,52 +134,64 @@ export default function AuthPage() {
   };
 
   return (
-    <main className="min-h-screen grid lg:grid-cols-2 bg-gradient-to-br from-sky-50 via-white to-slate-100 selection:bg-blue-100">
-      <section className="hidden lg:flex relative min-h-screen bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-900">
+    <main className="min-h-screen grid lg:grid-cols-2 bg-[#FDFDFD] selection:bg-amber-500 selection:text-white font-sans text-slate-900">
+      
+      {/* LEFT SECTION (IMAGE & BRANDING) */}
+      <section className="hidden lg:flex relative min-h-screen bg-slate-950 overflow-hidden">
         <Image
           src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80"
-          alt="Modern Architecture"
+          alt="Luxury Architecture"
           fill
-          className="object-cover"
+          className="object-cover opacity-80"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
+        
+        {/* Subtle animated blurs */}
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-amber-500/10 blur-[100px] rounded-full translate-x-1/4 translate-y-1/4 animate-[spin_20s_linear_infinite]" />
+
         <div className="relative z-10 flex flex-col justify-end p-20 pb-28">
           <Reveal>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-500/25 backdrop-blur-md border border-blue-500/30 rounded-full text-blue-300 text-xs font-black uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/5 backdrop-blur-md border border-white/10 rounded-full text-amber-400 text-xs font-bold uppercase tracking-widest shadow-lg">
               <Sparkles size={14} />
-              <span>Real Estate Intelligence</span>
+              <span>Exclusive Access</span>
             </div>
-            <h2 className="text-6xl font-black text-white leading-tight mt-4">
-              {mode === 'login' ? 'Welcome back to the elite.' : 'Join the future of realty.'}
+            <h2 className="text-6xl font-black text-white leading-[1.1] mt-5 tracking-tight">
+              {mode === 'login' ? 'Welcome back to the elite.' : 'Join the future of real estate.'}
             </h2>
-            <p className="text-xl text-gray-200/90 leading-relaxed font-light max-w-xl mt-3">
-              Enterprise-grade portfolio management with advanced listing analytics and secure access.
+            <p className="text-xl text-slate-300 leading-relaxed font-light max-w-xl mt-4">
+              Enterprise-grade portfolio management with advanced luxury listing analytics and secure access.
             </p>
           </Reveal>
         </div>
       </section>
 
-      <section className="flex flex-col relative px-8 py-12 md:px-24 justify-center">
-        <div className="w-full max-w-2xl mx-auto">
-          <div className="mb-6">
+      {/* RIGHT SECTION (FORM) */}
+      <section className="flex flex-col relative px-6 py-12 md:px-16 lg:px-24 justify-center bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:24px_24px]">
+        <div className="w-full max-w-xl mx-auto relative z-10">
+          
+          <div className="mb-8">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors font-semibold text-sm"
+              className="inline-flex items-center gap-2 text-slate-500 font-bold hover:text-amber-600 transition-colors duration-300 group tracking-wide text-sm"
             >
-              <div className="p-2 rounded-full bg-white/90 border border-gray-200 shadow-sm">
-                <ArrowLeft size={18} />
+              <div className="p-2 rounded-full bg-white border border-slate-200 shadow-sm group-hover:border-amber-200 transition-colors">
+                <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
               </div>
               Back to Home
             </Link>
           </div>
 
-          <div className="bg-white/85 backdrop-blur-lg border border-slate-200 ring-1 ring-slate-100 shadow-[0_22px_80px_rgba(15,23,42,0.18)] rounded-3xl p-10 md:p-12">
+          <div className="bg-white/80 backdrop-blur-xl border border-slate-100 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.05)] rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden">
+            
+            {/* Top Decorative Line */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1.5 bg-amber-500 rounded-b-full"></div>
+
             <Reveal key={mode}>
-              <div className="mb-8">
-                <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-2 tracking-tight">
+              <div className="mb-10 mt-2">
+                <h2 className="text-4xl md:text-5xl font-black text-slate-950 mb-3 tracking-tight">
                   {mode === 'login' ? 'Sign In' : 'Create Account'}
                 </h2>
-                <p className="text-slate-500 font-medium text-sm md:text-base">
+                <p className="text-slate-500 font-light text-base md:text-lg">
                   {mode === 'login'
                     ? 'Access your customized real estate dashboard.'
                     : 'Create a secure enterprise account to continue.'}
@@ -189,14 +201,14 @@ export default function AuthPage() {
 
             {mode === 'login' && (
               <Reveal delay={0.05}>
-                <div className="flex bg-slate-100/80 p-1.5 rounded-2xl mb-8 border border-slate-200">
+                <div className="flex bg-slate-50 p-1.5 rounded-2xl mb-8 border border-slate-100">
                   <button
                     type="button"
                     onClick={() => { setLoginType('user'); setFeedback(''); }}
                     className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${
                       loginType === 'user' 
-                        ? 'bg-white shadow-sm text-blue-600 ring-1 ring-slate-200' 
-                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                        ? 'bg-white shadow-sm text-slate-900 border border-slate-200' 
+                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
                     }`}
                   >
                     User Login
@@ -206,8 +218,8 @@ export default function AuthPage() {
                     onClick={() => { setLoginType('admin'); setFeedback(''); }}
                     className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${
                       loginType === 'admin' 
-                        ? 'bg-white shadow-sm text-blue-600 ring-1 ring-slate-200' 
-                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                        ? 'bg-white shadow-sm text-slate-900 border border-slate-200' 
+                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
                     }`}
                   >
                     Admin Login
@@ -219,7 +231,7 @@ export default function AuthPage() {
             <Reveal delay={0.1}>
               <button
                 type="button"
-                className="w-full flex items-center justify-center gap-3 border border-slate-200 py-4 rounded-2xl font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-[0.98] mb-7 cursor-pointer"
+                className="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 py-4 rounded-2xl font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-[0.98] mb-8 cursor-pointer shadow-sm hover:shadow-md"
               >
                 <Chrome size={20} className="text-red-500" />
                 Continue with Google
@@ -228,9 +240,9 @@ export default function AuthPage() {
 
             <div className="relative mb-8">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200" />
+                <div className="w-full border-t border-slate-100" />
               </div>
-              <span className="relative px-6 bg-white text-xs text-slate-400 font-black uppercase tracking-widest">
+              <span className="relative px-6 bg-white text-xs text-slate-400 font-bold uppercase tracking-widest block w-fit mx-auto">
                 Or use credentials
               </span>
             </div>
@@ -241,33 +253,33 @@ export default function AuthPage() {
                 <Reveal delay={0.1}>
                   <div className="grid md:grid-cols-2 gap-5">
                     <div className="space-y-1.5">
-                      <label className="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">
+                      <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">
                         Full Name
                       </label>
-                      <div className="relative">
-                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                      <div className="relative group/input">
+                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/input:text-amber-500 transition-colors" size={18} />
                         <input
                           value={fullName}
                           onChange={(e) => setFullName(e.target.value)}
                           type="text"
                           placeholder="John Doe"
-                          className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:border-blue-600 focus:bg-white transition-all"
+                          className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 focus:bg-white transition-all font-medium text-sm"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">
+                      <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">
                         Username
                       </label>
-                      <div className="relative">
-                        <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                      <div className="relative group/input">
+                        <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/input:text-amber-500 transition-colors" size={18} />
                         <input
                           value={username}
                           onChange={(e) => setUsername(e.target.value)}
                           type="text"
                           placeholder="johndoe99"
-                          className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:border-blue-600 focus:bg-white transition-all"
+                          className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 focus:bg-white transition-all font-medium text-sm"
                         />
                       </div>
                     </div>
@@ -278,17 +290,17 @@ export default function AuthPage() {
               {mode === 'login' && (
                 <Reveal delay={0.1}>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">
+                    <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">
                       {loginType === 'admin' ? 'Admin Username' : 'Username'}
                     </label>
-                    <div className="relative">
-                      <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <div className="relative group/input">
+                      <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/input:text-amber-500 transition-colors" size={18} />
                       <input
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         type="text"
                         placeholder={loginType === 'admin' ? 'admin' : 'your_username'}
-                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:border-blue-600 focus:bg-white transition-all"
+                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 focus:bg-white transition-all font-medium text-sm"
                       />
                     </div>
                   </div>
@@ -298,17 +310,17 @@ export default function AuthPage() {
               {mode === 'register' && (
                 <Reveal delay={0.2}>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">
+                    <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">
                       Email Address
                     </label>
-                    <div className="relative">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <div className="relative group/input">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/input:text-amber-500 transition-colors" size={18} />
                       <input
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         type="email"
                         placeholder="abc@xyz.com"
-                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:border-blue-600 focus:bg-white transition-all"
+                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 focus:bg-white transition-all font-medium text-sm"
                       />
                     </div>
                     
@@ -319,7 +331,7 @@ export default function AuthPage() {
                           id="newsletter"
                           checked={receiveUpdates}
                           onChange={(e) => setReceiveUpdates(e.target.checked)}
-                          className="peer w-5 h-5 cursor-pointer appearance-none rounded-md border-2 border-slate-300 checked:border-blue-600 checked:bg-blue-600 transition-all"
+                          className="peer w-5 h-5 cursor-pointer appearance-none rounded-md border-2 border-slate-300 checked:border-amber-500 checked:bg-amber-500 transition-all"
                         />
                         <Check size={14} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" />
                       </div>
@@ -334,24 +346,24 @@ export default function AuthPage() {
               {mode === 'register' && (
                 <Reveal delay={0.3}>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">
+                    <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">
                       Mobile Number
                     </label>
                     <div className="flex flex-col sm:flex-row gap-2">
                       <div className="flex flex-1 gap-2">
                         
-                        {/* CUSTOM DROPDOWN UI - Slimmed down width */}
-                        <div className="relative w-[90px] shrink-0">
+                        {/* CUSTOM DROPDOWN UI */}
+                        <div className="relative w-[100px] shrink-0">
                           <button
                             type="button"
                             disabled={isPhoneVerified}
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className={`w-full flex items-center justify-between px-3 py-4 bg-slate-50 border-2 rounded-2xl outline-none transition-all font-bold text-slate-700 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${
-                              isDropdownOpen ? 'border-blue-600 bg-white' : 'border-transparent focus:border-blue-600 focus:bg-white'
+                            className={`w-full h-full flex items-center justify-between px-3 py-4 bg-slate-50 border rounded-2xl outline-none transition-all font-bold text-slate-700 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${
+                              isDropdownOpen ? 'border-amber-500 bg-white ring-2 ring-amber-500/20' : 'border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:bg-white'
                             }`}
                           >
                             <span className="tracking-wide text-sm">{countryCode}</span>
-                            <ChevronDown size={14} className={`text-slate-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                            <ChevronDown size={14} className={`text-slate-400 transition-transform ${isDropdownOpen ? 'rotate-180 text-amber-500' : ''}`} />
                           </button>
 
                           {isDropdownOpen && !isPhoneVerified && (
@@ -366,11 +378,11 @@ export default function AuthPage() {
                                     type="button"
                                     onClick={() => { setCountryCode('+91'); setIsDropdownOpen(false); }}
                                     className={`w-full text-left px-5 py-3 text-sm font-semibold transition-colors hover:bg-slate-50 flex justify-between items-center ${
-                                      countryCode === '+91' ? 'text-blue-600 bg-blue-50/50' : 'text-slate-700'
+                                      countryCode === '+91' ? 'text-amber-600 bg-amber-50/50' : 'text-slate-700'
                                     }`}
                                   >
                                     <span>India</span>
-                                    <span className={`${countryCode === '+91' ? 'text-blue-600' : 'text-slate-400'}`}>+91</span>
+                                    <span className={`${countryCode === '+91' ? 'text-amber-600' : 'text-slate-400'}`}>+91</span>
                                   </button>
                                   
                                   <div className="h-px bg-slate-100 my-1 mx-4" />
@@ -381,11 +393,11 @@ export default function AuthPage() {
                                       type="button"
                                       onClick={() => { setCountryCode(country.code); setIsDropdownOpen(false); }}
                                       className={`w-full text-left px-5 py-3 text-sm font-medium transition-colors hover:bg-slate-50 flex justify-between items-center ${
-                                        countryCode === country.code ? 'text-blue-600 bg-blue-50/50 font-semibold' : 'text-slate-600'
+                                        countryCode === country.code ? 'text-amber-600 bg-amber-50/50 font-semibold' : 'text-slate-600'
                                       }`}
                                     >
                                       <span className="truncate pr-3">{country.name}</span>
-                                      <span className={`shrink-0 ${countryCode === country.code ? 'text-blue-600' : 'text-slate-400'}`}>
+                                      <span className={`shrink-0 ${countryCode === country.code ? 'text-amber-600' : 'text-slate-400'}`}>
                                         {country.code}
                                       </span>
                                     </button>
@@ -396,16 +408,16 @@ export default function AuthPage() {
                           )}
                         </div>
                         
-                        {/* Phone Input - Expands due to flex-1 and slimmer sibling */}
-                        <div className="relative flex-1">
-                          <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        {/* Phone Input */}
+                        <div className="relative flex-1 group/input">
+                          <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/input:text-amber-500 transition-colors" size={18} />
                           <input
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
                             disabled={isPhoneVerified}
                             type="tel"
                             placeholder="555-0000"
-                            className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:border-blue-600 focus:bg-white transition-all disabled:opacity-60"
+                            className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 focus:bg-white transition-all disabled:opacity-60 font-medium text-sm"
                           />
                         </div>
                       </div>
@@ -414,12 +426,12 @@ export default function AuthPage() {
                         <button
                           type="button"
                           onClick={handleVerifyPhone}
-                          className="px-6 py-4 sm:py-0 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
+                          className="px-6 py-4 sm:py-0 bg-slate-950 text-white font-bold rounded-2xl hover:bg-slate-800 transition-colors cursor-pointer shrink-0 border border-slate-800"
                         >
                           Verify
                         </button>
                       ) : (
-                        <div className="px-5 py-4 sm:py-0 flex items-center justify-center gap-2 bg-emerald-50 text-emerald-600 font-bold border-2 border-emerald-200 rounded-2xl shrink-0">
+                        <div className="px-5 py-4 sm:py-0 flex items-center justify-center gap-2 bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 rounded-2xl shrink-0">
                           <CheckCircle2 size={18} />
                           Verified
                         </div>
@@ -433,13 +445,13 @@ export default function AuthPage() {
                           value={otp}
                           onChange={(e) => setOtp(e.target.value)}
                           placeholder="Enter 4-digit OTP"
-                          className="flex-1 px-4 py-3 bg-white border-2 border-blue-200 rounded-xl outline-none focus:border-blue-600 transition-all text-center tracking-widest font-bold"
+                          className="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all text-center tracking-widest font-bold text-slate-900"
                           maxLength={4}
                         />
                         <button
                           type="button"
                           onClick={handleConfirmOtp}
-                          className="px-6 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors cursor-pointer"
+                          className="px-6 bg-slate-950 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
                         >
                           Confirm
                         </button>
@@ -452,21 +464,21 @@ export default function AuthPage() {
               {/* Password */}
               <Reveal delay={mode === 'register' ? 0.4 : 0.2}>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-black uppercase tracking-wider text-slate-400 ml-1">Password</label>
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Password</label>
+                  <div className="relative group/input">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/input:text-amber-500 transition-colors" size={18} />
                     <input
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       type="password"
                       placeholder="••••••••"
-                      className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-transparent rounded-2xl outline-none focus:border-blue-600 focus:bg-white transition-all"
+                      className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 focus:bg-white transition-all font-medium text-sm"
                     />
                   </div>
                   
                   {mode === 'login' && (
                     <div className="text-right pt-1">
-                      <Link href="#" className="text-sm font-bold text-blue-600 hover:text-blue-700 hover:underline transition-all cursor-pointer">
+                      <Link href="#" className="text-sm font-bold text-amber-600 hover:text-amber-700 hover:underline transition-all cursor-pointer">
                         Forgot Password?
                       </Link>
                     </div>
@@ -478,32 +490,36 @@ export default function AuthPage() {
                 <div
                   className={`text-sm font-semibold p-3 rounded-lg ${
                     feedback.includes('successful') || feedback.includes('Verified') || feedback.includes('Welcome')
-                      ? 'bg-emerald-50 text-emerald-700' 
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' 
                       : feedback.includes('OTP') && !feedback.includes('Invalid')
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'bg-red-50 text-red-600'
-                  } text-center`}
+                      ? 'bg-slate-50 text-slate-700 border border-slate-200'
+                      : 'bg-red-50 text-red-600 border border-red-100'
+                  } text-center mt-2`}
                 >
                   {feedback}
                 </div>
               )}
 
+              {/* PRIMARY BUTTON: "Building Rise" Animation */}
               <Reveal delay={mode === 'register' ? 0.5 : 0.3}>
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-slate-900 to-blue-600 text-white font-black py-5 rounded-2xl shadow-xl hover:from-blue-700 hover:to-slate-800 transition-all flex items-center justify-center gap-3 group cursor-pointer"
+                  className="relative overflow-hidden w-full bg-slate-950 text-white font-bold py-5 rounded-2xl group shadow-xl tracking-wide text-center border border-slate-800 mt-2 cursor-pointer"
                 >
-                  {mode === 'login' 
-                    ? (loginType === 'admin' ? 'Sign In as Admin' : 'Sign In') 
-                    : 'Create Account'}
-                  <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                  <span className="absolute inset-0 w-full h-full bg-amber-500 origin-bottom transform scale-y-0 transition-transform duration-300 ease-out group-hover:scale-y-100" />
+                  <span className="relative z-10 flex items-center justify-center gap-3 group-hover:text-slate-950 transition-colors duration-300">
+                    {mode === 'login' 
+                      ? (loginType === 'admin' ? 'Sign In as Admin' : 'Sign In') 
+                      : 'Create Account'}
+                    <ArrowRight size={20} className="text-amber-400 group-hover:text-slate-950 transition-colors" />
+                  </span>
                 </button>
               </Reveal>
             </form>
 
             <Reveal delay={mode === 'register' ? 0.6 : 0.4}>
-              <div className="mt-10 pt-8 border-t border-slate-200 text-center space-y-4">
-                <p className="text-slate-500 font-medium">
+              <div className="mt-10 pt-8 border-t border-slate-100 text-center space-y-4">
+                <p className="text-slate-500 font-light">
                   {mode === 'login' ? 'New to EUS Realty?' : 'Already have an account?'}
                   <br />
                   <button
@@ -515,17 +531,11 @@ export default function AuthPage() {
                       setPassword('');
                       setIsDropdownOpen(false); 
                     }}
-                    className="text-blue-600 font-black hover:text-blue-800 hover:underline transition-all mt-1.5 cursor-pointer"
+                    className="text-amber-600 font-bold hover:text-amber-700 hover:underline transition-all mt-1.5 cursor-pointer tracking-wide"
                   >
                     {mode === 'login' ? 'Register Now' : 'Login to Account'}
                   </button>
                 </p>
-
-                <div className="block pt-2">
-                  <Link href="/careers" className="text-sm font-bold text-slate-400 hover:text-slate-900 transition-colors cursor-pointer">
-                    Join our team →
-                  </Link>
-                </div>
               </div>
             </Reveal>
           </div>
