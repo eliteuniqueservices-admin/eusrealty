@@ -1,4 +1,3 @@
-import CustomCursor from '@/components/CustomCursor';
 import "./globals.css";
 import WhatsAppChat from "@/components/WhatsAppChat";
 
@@ -12,6 +11,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         {children}
+        <WhatsAppChat />
       </body>
     </html>
   );

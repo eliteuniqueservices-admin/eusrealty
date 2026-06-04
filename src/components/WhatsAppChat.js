@@ -12,7 +12,7 @@ const INTENTS = [
   {
     id: "greet",
     keywords: ["hi", "hello", "hey", "namaste", "hii", "helo", "howdy", "good morning", "good evening", "good afternoon", "start"],
-    answer: "Hello! 😊 Great to connect with you. I'm Aria, your EusRealty AI assistant.\n\nI can help you explore properties, check prices, arrange site visits, or connect you with our team. What would you like to do?",
+    answer: "Hello! 😊 Great to connect with you. I'm Vision, your EusRealty AI assistant.\n\nI can help you explore properties, check prices, arrange site visits, or connect you with our team. What would you like to do?",
     chips: ["🏢 Show me properties", "💰 What's the pricing?", "🗓️ Book a site visit", "📋 Request a callback"],
     waMsg: null,
   },
@@ -506,7 +506,7 @@ export default function WhatsAppChat() {
                           </div>
                           <div>
                             <p className="text-[12px] font-bold text-gray-800">Request a Callback</p>
-                            <p className="text-[10px] text-gray-400">We'll call within 30 mins</p>
+                            <p className="text-[10px] text-gray-400">We'll call within 15 mins</p>
                           </div>
                         </div>
                         <LeadFormCard phoneNumber={phoneNumber} onSubmitted={handleLeadSubmitted} />
