@@ -1,5 +1,6 @@
 import CustomCursor from '@/components/CustomCursor';
 import "./globals.css";
+import WhatsAppChat from "@/components/WhatsAppChat";
 
 export const metadata = {
   title: "EusRealty | Premium Real Estate",
@@ -11,7 +12,6 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         {children}
-        <CustomCursor />
       </body>
     </html>
   );
