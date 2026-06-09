@@ -3,8 +3,25 @@ import PropertyCard from '@/components/PropertyCard';
 import Reveal from '@/components/Reveal';
 import SectionWrapper from "@/components/SectionWrapper";
 import Link from 'next/link';
+import dbConnect from '@/lib/mongodb';
+import Property from '@/models/Property';
 
-export default function Home() {
+export const dynamic = 'force-dynamic';
+
+export default async function Home() {
+  let featuredProjects = [];
+  try {
+    await dbConnect();
+    // Fetch up to 4 latest properties to feature on the homepage
+    featuredProjects = await Property.find({}).sort({ createdAt: -1 }).limit(4);
+  } catch (error) {
+    console.error("Failed to load featured properties from database:", error.message);
+    // When using dummy credentials, show placeholder data so UI doesn't look empty
+    featuredProjects = [
+      { _id: 'dummy1', name: "Omega Retreat (Phase 2)", location: "Wakad, Pune", images: ["/uploads/1780739194019-Omega-Retreat-Phase-2.jpg"], configDetails: [{price: "2.5 Cr"}] },
+      { _id: 'dummy2', name: "Lara Solitaire", location: "Baner, Pune", images: ["/uploads/1780825436591-Lara-Solitaire.avif"], configDetails: [{price: "4.2 Cr"}] },
+    ];
+  }
   return (
     <main className="min-h-screen bg-[#FDFDFD] selection:bg-amber-500 selection:text-white overflow-x-hidden font-sans text-slate-900">
       
@@ -16,12 +33,21 @@ export default function Home() {
           <div className="absolute top-40 right-1/4 w-72 h-72 md:w-96 md:h-96 bg-amber-100/40 rounded-full blur-[100px] md:blur-[120px] mix-blend-multiply animate-[pulse_10s_ease-in-out_infinite_reverse]" />
 
           <Reveal>
-            <div className="group relative inline-flex items-center gap-3 bg-white/60 backdrop-blur-md border border-slate-200 text-slate-800 px-4 py-2 md:px-5 md:py-2.5 rounded-full text-xs md:text-sm font-semibold mb-8 md:mb-10 shadow-sm cursor-pointer hover:bg-white transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-0.5">
-              <span className="flex h-5 w-5 md:h-6 md:w-6 items-center justify-center rounded-full bg-amber-500 text-white shadow-inner group-hover:scale-110 transition-transform duration-300">
-                <Star size={10} className="fill-white md:w-3 md:h-3" />
-              </span>
-              <span className="tracking-wide">Authorized Channel Partner | RERA Registered</span>
-              <ChevronRight size={16} className="text-amber-500 group-hover:translate-x-1 transition-transform" />
+            <div className="group relative inline-flex items-center justify-center mb-8 md:mb-10 p-[2px] rounded-full overflow-hidden cursor-pointer hover:-translate-y-0.5 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/20">
+              {/* Spinning conic gradient for the light border */}
+              <div 
+                className="absolute w-[300%] h-[300%] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg,transparent_0%,#f59e0b_30%,transparent_50%)] animate-spin" 
+                style={{ animationDuration: '4s' }}
+              />
+              
+              {/* Inner content container masking the center */}
+              <div className="relative inline-flex items-center gap-3 bg-white/95 backdrop-blur-xl text-slate-800 px-4 py-2 md:px-5 md:py-2.5 rounded-full text-xs md:text-sm font-semibold w-full h-full transition-colors duration-300 hover:bg-white">
+                <span className="flex h-5 w-5 md:h-6 md:w-6 items-center justify-center rounded-full bg-amber-500 text-white shadow-inner group-hover:scale-110 transition-transform duration-300">
+                  <Star size={10} className="fill-white md:w-3 md:h-3" />
+                </span>
+                <span className="tracking-wide">Authorized Channel Partner | RERA Registered</span>
+                <ChevronRight size={16} className="text-amber-500 group-hover:translate-x-1 transition-transform" />
+              </div>
             </div>
           </Reveal>
 
@@ -110,12 +136,12 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             <Reveal delay={0.1}>
               <div className="transform transition duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-slate-200/50 rounded-3xl h-full">
-                <PropertyCard title="Eus Heights" location="Pimpri-Chinchwad, Pune" price="2.5 Cr" beds="3" baths="3" area="1450" />
+                <PropertyCard title="Omega Retreat (Phase 2)" location="Wakad, Pune" price="2.5 Cr" beds="3" baths="3" area="1450" image="/uploads/1780739194019-Omega-Retreat-Phase-2.jpg" />
               </div>
             </Reveal>
             <Reveal delay={0.2}>
               <div className="transform transition duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-slate-200/50 rounded-3xl h-full">
-                <PropertyCard title="The Azure Wing" location="Baner, Pune" price="4.2 Cr" beds="4" baths="4" area="2100" />
+                <PropertyCard title="Lara Solitaire" location="Baner, Pune" price="4.2 Cr" beds="4" baths="4" area="2100" image="/uploads/1780825436591-Lara-Solitaire.avif" />
               </div>
             </Reveal>
             <Reveal delay={0.3}>
@@ -155,16 +181,15 @@ export default function Home() {
             </Reveal>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-              {[
-                { name: "Emerald Bay", loc: "Wakad", price: "1.1 Cr" },
-                { name: "The Grand", loc: "Hinjewadi", price: "3.2 Cr" },
-                { name: "Urban Oasis", loc: "Kharadi", price: "6.5 Cr" },
-                { name: "Silicon Valley", loc: "Magarpatta", price: "85 L" },
-              ].map((project, i) => (
-                <Reveal key={i} delay={i * 0.1}>
+              {featuredProjects.length > 0 ? featuredProjects.map((project, i) => (
+                <Reveal key={project._id.toString()} delay={i * 0.1}>
                   <div className="group bg-white/[0.02] border border-white/[0.05] p-3 md:p-4 rounded-[1.5rem] md:rounded-[2rem] hover:border-amber-500/50 transition-all duration-300 cursor-pointer overflow-hidden relative">
                     <div className="h-40 md:h-48 bg-slate-900 rounded-xl md:rounded-2xl mb-4 md:mb-5 overflow-hidden relative border border-slate-800">
-                      <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900 group-hover:scale-105 transition-transform duration-700 ease-out" />
+                      {project.images?.[0] ? (
+                        <img src={project.images[0]} alt={project.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
+                      ) : (
+                        <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900 group-hover:scale-105 transition-transform duration-700 ease-out" />
+                      )}
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-slate-950/20 backdrop-blur-sm">
                         <div className="w-10 h-10 md:w-12 md:h-12 bg-amber-500 rounded-full flex items-center justify-center text-slate-950 shadow-lg transform scale-50 group-hover:scale-100 transition-transform duration-300">
                            <Play size={20} className="ml-1" fill="currentColor" />
@@ -173,15 +198,23 @@ export default function Home() {
                     </div>
                     <div className="px-2 relative z-10">
                       <h4 className="text-lg md:text-xl font-bold text-white mb-1 group-hover:text-amber-400 transition-colors">{project.name}</h4>
-                      <p className="text-slate-400 text-xs md:text-sm mb-3 md:mb-4">{project.loc}</p>
+                      <p className="text-slate-400 text-xs md:text-sm mb-3 md:mb-4">{project.location}</p>
                       <div className="flex items-center justify-between border-t border-white/5 pt-3">
-                        <p className="text-slate-300 font-medium text-sm">From <span className="text-amber-400 font-bold">₹{project.price}</span></p>
+                        <p className="text-slate-300 font-medium text-sm">
+                          {project.configDetails && project.configDetails[0] ? (
+                            <>From <span className="text-amber-400 font-bold">{project.configDetails[0].price}</span></>
+                          ) : (
+                            <span className="text-amber-400 font-bold">Contact for Price</span>
+                          )}
+                        </p>
                         <ArrowRight size={16} className="text-slate-500 group-hover:text-amber-400 group-hover:-rotate-45 transition-all" />
                       </div>
                     </div>
                   </div>
                 </Reveal>
-              ))}
+              )) : (
+                <div className="col-span-full text-center text-slate-500 py-10">No projects published yet.</div>
+              )}
             </div>
           </div>
         </section>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
     Plus, X, Pencil, Trash2, ChevronDown, 
     MapPin, Calendar, Building2, CheckSquare, 
@@ -8,41 +8,8 @@ import {
 } from 'lucide-react';
 
 export default function ManageProjects() {
-    const [projects, setProjects] = useState([
-    {
-        id: 1,
-
-        // 🏢 BASIC INFO
-        name: 'VTP Bellissimo',
-        developer: 'VTP Realty',
-        location: 'Hinjewadi Phase 1, Pune',
-        rera: 'P52100012345',
-        possession: 'Dec 2027',
-        status: 'Under Construction',
-
-        // 📐 PROJECT DETAILS
-        landParcel: '5 Acres',
-        openSpace: '70%',
-        totalFloors: '22 Floors',
-        floorBreakdown: '2 Podium + 20 Residential',
-
-        // 🏠 CONFIGS
-        configurations: ['2BHK', '3BHK'],
-        configDetails: [
-        { type: '2BHK', price: '₹75L', carpet: '750 sqft' },
-        { type: '3BHK', price: '₹1.05Cr', carpet: '980 sqft' },
-        ],
-
-        // 🌟 EXTRA
-        description:
-        'Premium residential project located in Hinjewadi Phase 1 with excellent connectivity to IT parks and highways.',
-        amenities:
-        'Clubhouse, Swimming Pool, Gym, Children Play Area, Garden',
-        usp:
-        'High appreciation potential, close to IT hub, modern amenities',
-        launchYear: '2023',
-    }
-    ]);
+    const [projects, setProjects] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     const predefinedConfigs = ['1BHK', '1.5BHK', '2BHK', '2.5BHK', '3BHK', '3.5BHK', '4BHK', '5BHK'];
     const predefinedAmenities = ['Swimming Pool', 'Gym', 'Clubhouse', 'Children Play Area', 'Garden', 'Parking', 'Security', 'Power Backup'];
@@ -59,7 +26,28 @@ export default function ManageProjects() {
         name: '', developer: '', location: '', possession: '', rera: '', status: '',
         landParcel: '', openSpace: '', totalFloors: '', floorBreakdown: '',
         configDetails: [], description: '', amenities: '', usp: '', launchYear: '',
+        images: [],
     });
+
+    useEffect(() => {
+        fetchProjects();
+    }, []);
+
+    const fetchProjects = async () => {
+        try {
+            setLoading(true);
+            const res = await fetch('/api/properties');
+            if (res.ok) {
+                const data = await res.json();
+                // Map _id to id for local state compatibility
+                setProjects(data.map(p => ({...p, id: p._id})));
+            }
+        } catch (error) {
+            console.error("Failed to load projects", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const [selectedAmenities, setSelectedAmenities] = useState([]);
     const [customAmenity, setCustomAmenity] = useState('');
@@ -139,7 +127,10 @@ export default function ManageProjects() {
         }
     };
 
-    const handleBulkDelete = () => {
+    const handleBulkDelete = async () => {
+        for (const id of selectedIds) {
+            await fetch(`/api/properties/${id}`, { method: 'DELETE' });
+        }
         setProjects((prev) => prev.filter((p) => !selectedIds.includes(p.id)));
         setSelectedIds([]);
     };
@@ -154,6 +145,7 @@ export default function ManageProjects() {
             name: '', developer: '', location: '', possession: '', rera: '', status: '',
             landParcel: '', openSpace: '', totalFloors: '', floorBreakdown: '',
             configDetails: [], description: '', amenities: '', usp: '', launchYear: '',
+            images: [],
         });
         setSelectedAmenities([]);
         setCustomAmenity('');
@@ -162,47 +154,74 @@ export default function ManageProjects() {
     };
 
     const openEditModal = (project) => {
-        setFormData(project);
+        setFormData({
+            ...project,
+            images: project.images || [],
+        });
         setSelectedAmenities(project.amenities ? project.amenities.split(',').map(a => a.trim()) : []);
         setCustomAmenity('');
         setEditingProject(project);
         setShowModal(true);
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!formData.name) return;
 
         const amenitiesString = [...selectedAmenities, customAmenity].filter(a => a.trim()).join(', ');
+        const updatedConfigs = formData.configDetails.map(c => c.type).filter(Boolean);
+
+        const payload = {
+            ...formData,
+            amenities: amenitiesString,
+            configurations: updatedConfigs.length > 0 ? updatedConfigs : (formData.configurations || ['2BHK']),
+            landParcel: formData.landParcel || '—',
+            openSpace: formData.openSpace || '—',
+            totalFloors: formData.totalFloors || '—',
+            floorBreakdown: formData.floorBreakdown || '—',
+        };
 
         if (editingProject) {
-            const updatedConfigs = formData.configDetails.map(c => c.type).filter(Boolean);
-            setProjects((prev) =>
-                prev.map((p) =>
-                p.id === editingProject.id ? { ...p, ...formData, amenities: amenitiesString, configurations: updatedConfigs.length > 0 ? updatedConfigs : p.configurations } : p
-                )
-            );
+            try {
+                const res = await fetch(`/api/properties/${editingProject.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    const updated = await res.json();
+                    setProjects(prev => prev.map(p => p.id === editingProject.id ? { ...updated, id: updated._id } : p));
+                }
+            } catch (error) {
+                console.error("Failed to update project", error);
+            }
         } else {
-            const newConfigs = formData.configDetails.map(c => c.type).filter(Boolean);
-            setProjects((prev) => [
-                ...prev,
-                {
-                ...formData,
-                amenities: amenitiesString,
-                configurations: newConfigs.length > 0 ? newConfigs : ['2BHK'],
-                id: Date.now(),
-                landParcel: formData.landParcel || '—',
-                openSpace: formData.openSpace || '—',
-                totalFloors: formData.totalFloors || '—',
-                floorBreakdown: formData.floorBreakdown || '—',
-                configDetails: formData.configDetails,
-                },
-            ]);
+            try {
+                const res = await fetch('/api/properties', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    const created = await res.json();
+                    setProjects(prev => [{...created, id: created._id}, ...prev]);
+                }
+            } catch (error) {
+                console.error("Failed to create project", error);
+            }
         }
         setShowModal(false);
     };
 
-    const handleDelete = (id) => {
-        setProjects((prev) => prev.filter((p) => p.id !== id));
+    const handleDelete = async (id) => {
+        if (!confirm("Are you sure you want to delete this property?")) return;
+        try {
+            const res = await fetch(`/api/properties/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                setProjects((prev) => prev.filter((p) => p.id !== id));
+            }
+        } catch (error) {
+            console.error("Failed to delete project", error);
+        }
     };
 
     const handleAddConfig = () => {
@@ -383,6 +402,9 @@ export default function ManageProjects() {
             </div>
 
             {/* List Body */}
+            {loading ? (
+                <div className="p-10 text-center text-slate-500 font-bold">Loading projects...</div>
+            ) : (
             <div className="flex flex-col divide-y divide-slate-100">
                 {filteredProjects.map((p) => (
                     <div 
@@ -450,7 +472,7 @@ export default function ManageProjects() {
                 ))}
 
                 {/* Empty State */}
-                {filteredProjects.length === 0 && (
+                {filteredProjects.length === 0 && !loading && (
                     <div className="text-center py-24 bg-slate-50/50">
                         <Search size={48} className="mx-auto text-slate-300 mb-4" />
                         <p className="text-slate-900 font-black text-xl mb-2">No projects found</p>
@@ -458,6 +480,7 @@ export default function ManageProjects() {
                     </div>
                 )}
             </div>
+            )}
         </div>
 
         {/* ADD / EDIT MODAL */}
@@ -579,6 +602,60 @@ export default function ManageProjects() {
                             <input name="launchYear" placeholder="Launch Year" onChange={handleChange} value={formData.launchYear} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
                         </div>
                     </section>
+
+                    {/* PROJECT IMAGE */}
+                    <section>
+                        <h3 className="font-bold text-lg text-slate-900 mb-4 flex items-center gap-2">🖼️ Project Cover Image</h3>
+                        <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center gap-6">
+                            <div className="w-40 h-28 bg-white border border-slate-200 rounded-xl overflow-hidden flex items-center justify-center relative flex-shrink-0 shadow-inner">
+                                {formData.images?.[0] ? (
+                                    <img src={formData.images[0]} alt="Preview" className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="text-xs text-slate-400 font-medium">No image uploaded</span>
+                                )}
+                            </div>
+                            <div className="flex-1 w-full space-y-2">
+                                <p className="text-xs text-slate-500 font-semibold">Upload a high-quality cover image for the property listing. Supports PNG, JPG, or WEBP.</p>
+                                <div className="flex items-center gap-3">
+                                    <input 
+                                        type="file" 
+                                        accept="image/*"
+                                        onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+                                            const uploadFormData = new FormData();
+                                            uploadFormData.append('file', file);
+                                            try {
+                                                const res = await fetch('/api/upload', {
+                                                    method: 'POST',
+                                                    body: uploadFormData
+                                                });
+                                                if (res.ok) {
+                                                    const result = await res.json();
+                                                    setFormData(prev => ({ ...prev, images: [result.url] }));
+                                                } else {
+                                                    alert("Failed to upload image");
+                                                }
+                                            } catch (err) {
+                                                console.error(err);
+                                                alert("Upload error");
+                                            }
+                                        }}
+                                        className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all cursor-pointer"
+                                    />
+                                    {formData.images?.[0] && (
+                                        <button 
+                                            type="button"
+                                            onClick={() => setFormData(prev => ({ ...prev, images: [] }))}
+                                            className="px-4 py-2 bg-red-50 text-red-600 rounded-xl text-xs font-bold hover:bg-red-100 transition"
+                                        >
+                                            Remove
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                 </div>
 
                 {/* MODAL ACTIONS */}
@@ -609,6 +686,12 @@ export default function ManageProjects() {
                         <X size={20} strokeWidth={3} />
                     </button>
                 </div>
+
+                {selectedProject.images?.[0] && (
+                    <div className="w-full h-64 rounded-2xl overflow-hidden mb-6 bg-slate-100 shadow-sm border border-slate-200">
+                        <img src={selectedProject.images[0]} alt={selectedProject.name} className="w-full h-full object-cover" />
+                    </div>
+                )}
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-100">
                     <div><p className="text-slate-400 text-xs font-bold uppercase mb-1">Possession</p><p className="font-bold text-slate-900">{selectedProject.possession}</p></div>

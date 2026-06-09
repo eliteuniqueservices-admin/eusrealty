@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import PropertyCard from '@/components/PropertyCard';
 import Reveal from '@/components/Reveal';
 import { 
@@ -8,34 +8,23 @@ import {
   Clock, X, ChevronDown, Star, ArrowRight, Bath, Maximize
 } from 'lucide-react';
 
-// --- 1. STATIC DATA ---
-const allProperties = [
-  { id: 1, title: "Eus Heights", location: "Baner", price: "2.5 Cr", priceVal: 2.5, bhk: "3", baths: "3", area: "1450", type: "Apartments", status: "Ready to Move", possession: "Immediate" },
-  { id: 2, title: "The Azure Wing", location: "Balewadi", price: "4.2 Cr", priceVal: 4.2, bhk: "4", baths: "4", area: "2100", type: "Apartments", status: "Under Construction", possession: "Dec 2026" },
-  { id: 3, title: "Skyline Villas", location: "Wakad", price: "8.9 Cr", priceVal: 8.9, bhk: "5", baths: "6", area: "4500", type: "Villas", status: "Ready to Move", possession: "Immediate" },
-  { id: 4, title: "Marina Bay Estates", location: "Hinjewadi", price: "1.5 Cr", priceVal: 1.5, bhk: "2", baths: "2", area: "1200", type: "Apartments", status: "Under Construction", possession: "Mar 2027" },
-  { id: 5, title: "Green Valley", location: "Bavdhan", price: "1.2 Cr", priceVal: 1.2, bhk: "2", baths: "2", area: "950", type: "Apartments", status: "Ready to Move", possession: "Immediate" },
-  { id: 6, title: "The Penthouse", location: "Kothrud", price: "15.0 Cr", priceVal: 15.0, bhk: "5", baths: "7", area: "5500", type: "Penthouses", status: "Ready to Move", possession: "Immediate" },
-  { id: 7, title: "Oasis Gardens", location: "Tathawade", price: "3.5 Cr", priceVal: 3.5, bhk: "3", baths: "3", area: "1600", type: "Apartments", status: "Under Construction", possession: "Jan 2027" },
-  { id: 8, title: "Tech Park Residences", location: "Mahalunge", price: "1.8 Cr", priceVal: 1.8, bhk: "2", baths: "2", area: "1100", type: "Apartments", status: "Ready to Move", possession: "Immediate" },
-];
-
-const locations = ["All", ...new Set(allProperties.map(p => p.location))];
-const propertyTypes = ["All", "Apartments", "Villas", "Penthouses"];
-const bhkOptions = ["All", "2", "3", "4", "5"];
-const statusOptions = ["All", "Ready to Move", "Under Construction"];
+const defaultPropertyTypes = ["All", "Apartments", "Villas", "Penthouses", "Plots", "Commercial"];
+const bhkOptions = ["All", "1", "2", "3", "4", "5", "5+"];
+const statusOptions = ["All", "Ready to Move", "Under Construction", "New Launch", "Pre-Launch"];
 const possessionOptions = ["Any Time", "Within 6 Months", "Within 1 Year", "2027 & Beyond"];
 
 const priceRanges = [
   { label: "All Prices", min: 0, max: 100 },
-  { label: "Under 2 Cr", min: 0, max: 2 },
+  { label: "Under 1 Cr", min: 0, max: 1 },
+  { label: "1 Cr - 2 Cr", min: 1, max: 2 },
   { label: "2 Cr - 5 Cr", min: 2, max: 5 },
-  { label: "5 Cr - 10 Cr", min: 5, max: 10 },
-  { label: "Above 10 Cr", min: 10, max: 100 },
+  { label: "Above 5 Cr", min: 5, max: 100 },
 ];
 
 export default function PropertiesPage() {
   // --- 2. STATE MANAGEMENT ---
+  const [allProperties, setAllProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState("grid");
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -48,6 +37,109 @@ export default function PropertiesPage() {
     priceRange: "All Prices",
     possession: "Any Time"
   });
+
+  const locations = useMemo(() => ["All", ...new Set(allProperties.map(p => p.location).filter(Boolean))], [allProperties]);
+  const propertyTypes = useMemo(() => ["All", ...new Set(allProperties.map(p => p.type).filter(Boolean))], [allProperties]);
+
+  // Fetch from Database
+  useEffect(() => {
+    async function fetchProperties() {
+      try {
+        const res = await fetch('/api/properties');
+        if (!res.ok) throw new Error('Failed to fetch');
+        const data = await res.json();
+        
+        // Map backend DB fields to UI expectation
+        const mappedData = data.map(dbProp => {
+          // Parse price for numeric filtering
+          let priceVal = 0;
+          let priceStr = "On Request";
+          let area = "N/A";
+          let bhk = dbProp.bhkDetails?.[0] || "1";
+          
+          if (dbProp.configDetails && dbProp.configDetails.length > 0) {
+             priceStr = dbProp.configDetails[0].price || priceStr;
+             area = dbProp.configDetails[0].carpetArea || area;
+             bhk = dbProp.configDetails[0].bhk || bhk;
+             
+             // Extract numeric value from "1.5 Cr", "85 L"
+             if (priceStr.toLowerCase().includes('cr')) {
+               priceVal = parseFloat(priceStr) || 0;
+             } else if (priceStr.toLowerCase().includes('l')) {
+               priceVal = (parseFloat(priceStr) || 0) / 100;
+             }
+          }
+          
+          return {
+            id: dbProp._id,
+            title: dbProp.name,
+            location: dbProp.location,
+            price: priceStr,
+            priceVal: priceVal,
+            bhk: String(bhk).replace(/[^0-9]/g, ''), // just extract number
+            baths: "N/A", // Not stored in DB currently
+            area: area,
+            type: dbProp.propertyType || "Apartments",
+            status: dbProp.status,
+            possession: "Immediate", // Defaulting since it's not stored in DB
+            image: dbProp.images?.[0] || null
+          };
+        });
+        setAllProperties(mappedData);
+      } catch (err) {
+        console.error("Error loading properties:", err);
+        // Fallback placeholder data if DB connection is offline
+        const placeholderData = [
+          {
+            id: 'dummy1',
+            title: "Omega Retreat (Phase 2)",
+            location: "Wakad, Pune",
+            price: "2.5 Cr",
+            priceVal: 2.5,
+            bhk: "3",
+            baths: "3",
+            area: "1450",
+            type: "Apartments",
+            status: "Ready to Move",
+            possession: "Immediate",
+            image: "/uploads/1780739194019-Omega-Retreat-Phase-2.jpg"
+          },
+          {
+            id: 'dummy2',
+            title: "Lara Solitaire",
+            location: "Baner, Pune",
+            price: "4.2 Cr",
+            priceVal: 4.2,
+            bhk: "4",
+            baths: "4",
+            area: "2100",
+            type: "Apartments",
+            status: "Under Construction",
+            possession: "Within 6 Months",
+            image: "/uploads/1780825436591-Lara-Solitaire.avif"
+          },
+          {
+            id: 'dummy3',
+            title: "Skyline Villas",
+            location: "Koregaon Park, Pune",
+            price: "8.9 Cr",
+            priceVal: 8.9,
+            bhk: "5",
+            baths: "6",
+            area: "4500",
+            type: "Villas",
+            status: "New Launch",
+            possession: "2027 & Beyond",
+            image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80"
+          }
+        ];
+        setAllProperties(placeholderData);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProperties();
+  }, []);
 
   // --- 3. OPTIMIZED HANDLERS ---
   const updateFilter = useCallback((key, value) => {
@@ -367,7 +459,7 @@ export default function PropertiesPage() {
                     {/* Image Area placeholder */}
                     <div className="w-full md:w-80 h-64 rounded-2xl bg-slate-100 relative overflow-hidden flex-shrink-0">
                       <img 
-                        src={`https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80`} 
+                        src={prop.image || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80"} 
                         alt={prop.title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
                       />

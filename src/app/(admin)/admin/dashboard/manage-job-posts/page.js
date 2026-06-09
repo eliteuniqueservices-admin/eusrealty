@@ -1,5 +1,5 @@
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { 
   Plus, Edit3, Trash2, MapPin, Briefcase, 
   IndianRupee, Clock, X, ChevronDown, 
@@ -17,43 +17,43 @@ export default function ManageJobPosts() {
   const [modalMode, setModalMode] = useState('add');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
-  
-  // Advanced Mock Data
-  const [jobs, setJobs] = useState([
-    { 
-      id: 1, title: "Senior Relationship Manager", department: "Sales", location: "Wakad, Pune", 
-      salary: "₹8L - ₹12L PA", type: "Full Time", mode: "On-site", experience: "Mid-Level (3-5 Yrs)",
-      status: "Active", applicants: 42, postedDate: "2026-04-01", deadline: "2026-05-01",
-      skills: ["B2B Sales", "Negotiation", "Real Estate"], description: "Looking for an experienced closer to manage premium client portfolios..."
-    },
-    { 
-      id: 2, title: "Digital Marketing Strategist", department: "Marketing", location: "Baner, Pune", 
-      salary: "₹6L - ₹9L PA", type: "Full Time", mode: "Hybrid", experience: "Junior (1-3 Yrs)",
-      status: "Active", applicants: 128, postedDate: "2026-04-10", deadline: "2026-04-30",
-      skills: ["SEO", "Meta Ads", "Google Analytics"], description: "Drive lead generation campaigns across Meta and Google ecosystems..."
-    },
-    { 
-      id: 3, title: "Customer Success Associate", department: "Customer Success", location: "Hinjewadi, Pune", 
-      salary: "₹3L - ₹5L PA", type: "Full Time", mode: "Remote", experience: "Fresher (0-1 Yrs)",
-      status: "Closed", applicants: 85, postedDate: "2026-03-15", deadline: "2026-03-31",
-      skills: ["Communication", "CRM", "Problem Solving"], description: "Handle post-sales client onboarding and documentation processes..."
-    },
-  ]);
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Form State
   const [formData, setFormData] = useState({
-    id: null, title: '', department: DEPARTMENTS[0], location: '', salary: '', 
+    _id: null, title: '', department: DEPARTMENTS[0], location: '', salary: '', 
     type: WORK_TYPES[0], mode: WORK_MODES[0], experience: EXPERIENCE_LEVELS[0], 
     status: 'Active', deadline: '', description: '', skills: []
   });
   const [skillInput, setSkillInput] = useState('');
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch('/api/job-posts?all=true');
+      if (!res.ok) throw new Error('Failed to fetch job postings');
+      const jobsData = await res.json();
+      
+      setJobs(jobsData);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   // Derived Metrics
   const metrics = useMemo(() => ({
     total: jobs.length,
     active: jobs.filter(j => j.status === 'Active').length,
     closed: jobs.filter(j => j.status === 'Closed').length,
-    totalApplicants: jobs.reduce((sum, j) => sum + j.applicants, 0)
   }), [jobs]);
 
   // Filters
@@ -65,14 +65,34 @@ export default function ManageJobPosts() {
     });
   }, [jobs, searchQuery, statusFilter]);
 
+
   // Handlers
-  const toggleStatus = (id) => {
-    setJobs(jobs.map(job => job.id === id ? { ...job, status: job.status === 'Active' ? 'Closed' : 'Active' } : job));
+  const toggleStatus = async (job) => {
+    try {
+      const newStatus = job.status === 'Active' ? 'Closed' : 'Active';
+      const res = await fetch(`/api/job-posts/${job._id || job.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (!res.ok) throw new Error('Failed to update job status');
+      fetchData();
+    } catch (err) {
+      alert(err.message);
+    }
   };
 
-  const handleDelete = (id) => {
-    if(confirm('Are you sure you want to delete this job posting?')) {
-      setJobs(jobs.filter(j => j.id !== id));
+  const handleDelete = async (jobId) => {
+    if (confirm('Are you sure you want to delete this job posting?')) {
+      try {
+        const res = await fetch(`/api/job-posts/${jobId}`, {
+          method: 'DELETE'
+        });
+        if (!res.ok) throw new Error('Failed to delete job posting');
+        fetchData();
+      } catch (err) {
+        alert(err.message);
+      }
     }
   };
 
@@ -82,7 +102,7 @@ export default function ManageJobPosts() {
       setFormData(job);
     } else {
       setFormData({ 
-        id: null, title: '', department: DEPARTMENTS[0], location: '', salary: '', 
+        _id: null, title: '', department: DEPARTMENTS[0], location: '', salary: '', 
         type: WORK_TYPES[0], mode: WORK_MODES[0], experience: EXPERIENCE_LEVELS[0], 
         status: 'Active', deadline: '', description: '', skills: [] 
       });
@@ -101,19 +121,34 @@ export default function ManageJobPosts() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (modalMode === 'add') {
-      setJobs([{ 
-        ...formData, 
-        id: Date.now(), 
-        applicants: 0, 
-        postedDate: new Date().toISOString().split('T')[0] 
-      }, ...jobs]);
-    } else {
-      setJobs(jobs.map(j => j.id === formData.id ? formData : j));
+    try {
+      const isEdit = modalMode === 'edit';
+      const url = isEdit ? `/api/job-posts/${formData._id}` : '/api/job-posts';
+      const method = isEdit ? 'PUT' : 'POST';
+      
+      const payload = { ...formData };
+      if (!isEdit) {
+        delete payload._id;
+      }
+      
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Failed to save job post');
+      }
+      
+      setIsModalOpen(false);
+      fetchData();
+    } catch (err) {
+      alert(err.message);
     }
-    setIsModalOpen(false);
   };
 
   return (
@@ -138,7 +173,7 @@ export default function ManageJobPosts() {
           </div>
 
           {/* Metric Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
               <div className="p-3 bg-blue-50 text-blue-600 rounded-xl"><Briefcase size={24}/></div>
               <div><p className="text-sm font-bold text-slate-500">Total Postings</p><p className="text-2xl font-black text-slate-900">{metrics.total}</p></div>
@@ -150,10 +185,6 @@ export default function ManageJobPosts() {
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
               <div className="p-3 bg-slate-100 text-slate-600 rounded-xl"><PauseCircle size={24}/></div>
               <div><p className="text-sm font-bold text-slate-500">Closed Jobs</p><p className="text-2xl font-black text-slate-900">{metrics.closed}</p></div>
-            </div>
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-              <div className="p-3 bg-purple-50 text-purple-600 rounded-xl"><Users size={24}/></div>
-              <div><p className="text-sm font-bold text-slate-500">Total Applicants</p><p className="text-2xl font-black text-slate-900">{metrics.totalApplicants}</p></div>
             </div>
           </div>
         </header>
@@ -182,14 +213,24 @@ export default function ManageJobPosts() {
 
         {/* --- JOB CARDS GRID --- */}
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredJobs.length === 0 ? (
+          {loading ? (
+             <div className="col-span-full py-20 text-center text-slate-500 bg-white rounded-2xl border border-slate-200">
+               <Briefcase size={48} className="mx-auto mb-4 text-slate-300 animate-pulse"/>
+               <p className="font-bold text-lg text-slate-700">Loading job postings...</p>
+             </div>
+          ) : error ? (
+             <div className="col-span-full py-20 text-center text-red-500 bg-white rounded-2xl border border-slate-200">
+               <p className="font-bold text-lg">Error loading job postings</p>
+               <p className="text-sm mt-1">{error}</p>
+             </div>
+          ) : filteredJobs.length === 0 ? (
              <div className="col-span-full py-20 text-center text-slate-500 bg-white rounded-2xl border border-dashed border-slate-300">
                <Briefcase size={48} className="mx-auto mb-4 text-slate-300"/>
                <p className="font-bold text-lg text-slate-700">No jobs found</p>
                <p className="text-sm mt-1">Adjust your search or create a new posting.</p>
              </div>
           ) : filteredJobs.map((job) => (
-            <div key={job.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300 flex flex-col group">
+            <div key={job._id || job.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300 flex flex-col group">
               
               {/* Card Header */}
               <div className="p-6 pb-4 border-b border-slate-100 flex-1">
@@ -200,7 +241,7 @@ export default function ManageJobPosts() {
                   </span>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button onClick={() => openModal('edit', job)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="Edit Job"><Edit3 size={16}/></button>
-                    <button onClick={() => handleDelete(job.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete Job"><Trash2 size={16}/></button>
+                    <button onClick={() => handleDelete(job._id || job.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Delete Job"><Trash2 size={16}/></button>
                   </div>
                 </div>
 
@@ -239,18 +280,13 @@ export default function ManageJobPosts() {
               <div className="p-4 bg-slate-50 rounded-b-2xl border-t border-slate-100 flex items-center justify-between">
                 <div className="flex gap-4">
                   <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Applicants</p>
-                    <p className="text-lg font-black text-blue-600 flex items-center gap-1"><Users size={16}/> {job.applicants}</p>
-                  </div>
-                  <div className="w-px h-8 bg-slate-200 my-auto"></div>
-                  <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Deadline</p>
                     <p className="text-sm font-bold text-slate-700 mt-1 flex items-center gap-1"><Calendar size={14}/> {job.deadline || 'Open'}</p>
                   </div>
                 </div>
                 
                 <button 
-                  onClick={() => toggleStatus(job.id)}
+                  onClick={() => toggleStatus(job)}
                   className={`p-2.5 rounded-xl transition-all shadow-sm ${job.status === 'Active' ? 'bg-white text-red-600 hover:bg-red-50 border border-slate-200' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
                   title={job.status === 'Active' ? 'Close Job Posting' : 'Re-open Job Posting'}
                 >

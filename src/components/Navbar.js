@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { UserCircle, Menu, X, ChevronRight } from 'lucide-react';
+import { Menu, X, ChevronRight } from 'lucide-react';
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -73,21 +73,6 @@ export default function Navbar() {
             </Link>
           ))}
           
-          {/* Action Buttons Group (Desktop) */}
-          <div className="flex items-center gap-4 pl-4 border-l border-slate-200">        
-            {/* Primary Button: "Building Rise" Animation */}
-            <Link 
-              href="/login" 
-              className="relative overflow-hidden flex items-center gap-2 bg-slate-950 text-white font-bold transition-all py-2.5 px-6 rounded-full tracking-wide group shadow-md hover:shadow-xl hover:shadow-slate-900/10 hover:scale-105"
-            >
-              <span className="absolute inset-0 w-full h-full bg-amber-500 origin-bottom transform scale-y-0 transition-transform duration-300 ease-out group-hover:scale-y-100" />
-              <span className="relative z-10 flex items-center gap-2 group-hover:text-slate-950 transition-colors duration-300">
-                <UserCircle size={18} />
-                {/* Renamed to Login */}
-                <span>Login</span>
-              </span>
-            </Link>
-          </div>
         </div>
 
         {/* Mobile Menu Toggle Button */}
@@ -122,22 +107,6 @@ export default function Navbar() {
             </Link>
           ))}
           
-          <div className="pt-8 mt-auto pb-12">
-            <Link 
-              href="/login" 
-              onClick={closeMenu}
-              className={`relative overflow-hidden flex items-center justify-center gap-3 w-full bg-slate-950 text-white py-5 px-6 rounded-2xl font-bold text-lg shadow-xl group transition-all duration-500 delay-300 ${
-                isMobileMenuOpen ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-              }`}
-            >
-              <span className="absolute inset-0 w-full h-full bg-amber-500 origin-bottom transform scale-y-0 transition-transform duration-300 ease-out group-hover:scale-y-100" />
-              <span className="relative z-10 flex items-center gap-2 group-hover:text-slate-950 transition-colors duration-300">
-                <UserCircle size={22} />
-                {/* Renamed to Login */}
-                <span>Login</span>
-              </span>
-            </Link>
-          </div>
         </div>
       </div>
     </nav>

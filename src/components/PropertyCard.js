@@ -1,6 +1,7 @@
 import { BedDouble, Bath, Maximize, MapPin, ArrowRight } from 'lucide-react';
 
-export default function PropertyCard({ title, location, price, beds, baths, area, image }) {
+export default function PropertyCard({ title, location, price, beds, bhk, baths, area, image }) {
+  const displayBeds = beds || bhk;
   return (
     <div className="group flex flex-col bg-white h-full overflow-hidden border border-slate-100 rounded-3xl">
       
@@ -33,7 +34,7 @@ export default function PropertyCard({ title, location, price, beds, baths, area
         <div className="grid grid-cols-3 gap-2 py-5 border-y border-slate-100 mb-6">
           <div className="flex flex-col items-center justify-center gap-1.5 text-slate-600 border-r border-slate-100">
             <BedDouble size={20} className="text-slate-400 mb-1" />
-            <span className="font-bold text-slate-900 text-sm">{beds} BHK</span>
+            <span className="font-bold text-slate-900 text-sm">{displayBeds} BHK</span>
           </div>
           <div className="flex flex-col items-center justify-center gap-1.5 text-slate-600 border-r border-slate-100">
             <Bath size={20} className="text-slate-400 mb-1" />

@@ -17,25 +17,99 @@ export default function CareersPage() {
   const [filterDept, setFilterDept] = useState('All');
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
-  const [mounted, setMounted] = useState(false); // <-- NEW: State to check if client has loaded
+  const [mounted, setMounted] = useState(false);
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [applyForm, setApplyForm] = useState({ name: '', email: '', phone: '', experience: '' });
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  const jobs = [
-    { id: 1, title: "Relationship Manager", dept: "Sales", type: "Full-time", location: "Baner/Wakad", salary: "₹8L Base + 20% Commission", link: "/careers/relationship-manager", tags: ["High Commission", "Fast Growth"] },
-    { id: 2, title: "Digital Marketing Executive", dept: "Growth", type: "Full-time", location: "Tathawade", salary: "₹6L Fixed + Performance", link: "/careers/digital-marketing-executive", tags: ["Fresher Friendly", "Tech-Driven"] },
-    { id: 3, title: "Sourcing Manager", dept: "Inventory", type: "Full-time", location: "West Pune", salary: "₹10L + High Incentives", link: "/careers/sourcing-manager", tags: ["High Commission", "Leadership"] },
-    { id: 4, title: "Customer Success Associate", dept: "CRM", type: "Full-time", location: "Pune", salary: "₹5L Fixed", link: "/careers/customer-success-associate", tags: ["Stable", "Growth"] }
-  ];
+  const fetchJobs = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch('/api/job-posts');
+      if (!res.ok) throw new Error('Failed to fetch job postings');
+      const data = await res.json();
+      setJobs(data);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchJobs();
+  }, []);
 
   const filteredJobs = useMemo(() => {
-    return jobs.filter(job => 
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (filterDept === 'All' || job.dept === filterDept)
-    );
-  }, [searchTerm, filterDept]);
+    return jobs.filter(job => {
+      const title = job.title || '';
+      const department = job.department || job.dept || '';
+      const matchesSearch = title.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesDept = filterDept === 'All' || department.toLowerCase() === filterDept.toLowerCase();
+      return matchesSearch && matchesDept;
+    });
+  }, [searchTerm, filterDept, jobs]);
+
+  const departmentsList = useMemo(() => {
+    const depts = new Set(jobs.map(j => j.department || j.dept).filter(Boolean));
+    return ['All', ...Array.from(depts)];
+  }, [jobs]);
 
   const handleQuickApply = (job) => {
     setSelectedJob(job);
     setShowApplyModal(true);
+  };
+
+  const handleSubmitApplication = async (e) => {
+    e.preventDefault();
+    try {
+      setSubmitting(true);
+      
+      let resumeUrl = '';
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        const uploadRes = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+        if (!uploadRes.ok) throw new Error('Failed to upload resume');
+        const uploadData = await uploadRes.json();
+        resumeUrl = uploadData.url;
+      }
+      
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: applyForm.name,
+          email: applyForm.email,
+          phone: applyForm.phone,
+          objective: 'Career Inquiry',
+          position: selectedJob?.title,
+          message: `Experience: ${applyForm.experience || 'Fresher'}.\nResume Link: ${window.location.origin}${resumeUrl}`,
+          source: 'Careers Portal Quick Apply'
+        })
+      });
+      
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Failed to submit application');
+      }
+      
+      alert('Application submitted successfully!');
+      setApplyForm({ name: '', email: '', phone: '', experience: '' });
+      setSelectedFile(null);
+      setShowApplyModal(false);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // --- Ensure the portal only renders on the client side to prevent Next.js errors ---
@@ -97,30 +171,34 @@ export default function CareersPage() {
 
             <form 
               className="space-y-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                alert('Application Simulated (Hook this up to your API later!)');
-                setShowApplyModal(false);
-              }}
+              onSubmit={handleSubmitApplication}
             >
               <div>
                 <label className="text-xs font-bold text-slate-600 mb-1.5 block tracking-wide">Full Name</label>
-                <input type="text" required placeholder="John Doe" className="w-full bg-slate-50 rounded-xl px-4 py-3.5 text-slate-900 font-medium border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 focus:bg-white transition-all" />
+                <input type="text" required placeholder="John Doe" value={applyForm.name} onChange={e => setApplyForm({ ...applyForm, name: e.target.value })} className="w-full bg-slate-50 rounded-xl px-4 py-3.5 text-slate-900 font-medium border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 focus:bg-white transition-all" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-600 mb-1.5 block tracking-wide">Email Address</label>
+                <input type="email" required placeholder="john@example.com" value={applyForm.email} onChange={e => setApplyForm({ ...applyForm, email: e.target.value })} className="w-full bg-slate-50 rounded-xl px-4 py-3.5 text-slate-900 font-medium border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 focus:bg-white transition-all" />
               </div>
               <div>
                 <label className="text-xs font-bold text-slate-600 mb-1.5 block tracking-wide">Phone Number</label>
-                <input type="tel" required placeholder="+91" className="w-full bg-slate-50 rounded-xl px-4 py-3.5 text-slate-900 font-medium border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 focus:bg-white transition-all" />
+                <input type="tel" required placeholder="+91" value={applyForm.phone} onChange={e => setApplyForm({ ...applyForm, phone: e.target.value })} className="w-full bg-slate-50 rounded-xl px-4 py-3.5 text-slate-900 font-medium border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 focus:bg-white transition-all" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-600 mb-1.5 block tracking-wide">Experience (e.g. Fresher, 2 Years)</label>
+                <input type="text" required placeholder="Fresher" value={applyForm.experience} onChange={e => setApplyForm({ ...applyForm, experience: e.target.value })} className="w-full bg-slate-50 rounded-xl px-4 py-3.5 text-slate-900 font-medium border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 focus:bg-white transition-all" />
               </div>
               <div>
                 <label className="text-xs font-bold text-slate-600 mb-1.5 block tracking-wide">Resume (PDF)</label>
-                <input type="file" required accept=".pdf,.doc,.docx" className="w-full bg-slate-50 rounded-xl px-4 py-3 text-sm text-slate-600 border border-slate-200 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-slate-950 file:text-white hover:file:bg-slate-800 transition-all cursor-pointer" />
+                <input type="file" required accept=".pdf,.doc,.docx" onChange={e => setSelectedFile(e.target.files[0])} className="w-full bg-slate-50 rounded-xl px-4 py-3 text-sm text-slate-600 border border-slate-200 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-slate-950 file:text-white hover:file:bg-slate-800 transition-all cursor-pointer" />
               </div>
               
               <div className="pt-4 flex flex-col sm:flex-row gap-3">
-                <button type="submit" className="relative overflow-hidden flex-1 bg-slate-950 text-white px-6 py-4 rounded-xl font-bold group tracking-wide text-center border border-slate-800">
+                <button type="submit" disabled={submitting} className="relative overflow-hidden flex-1 bg-slate-950 text-white px-6 py-4 rounded-xl font-bold group tracking-wide text-center border border-slate-800 disabled:opacity-50">
                   <span className="absolute inset-0 w-full h-full bg-amber-500 origin-bottom transform scale-y-0 transition-transform duration-300 ease-out group-hover:scale-y-100" />
                   <span className="relative z-10 block group-hover:text-slate-950 transition-colors duration-300">
-                    Submit
+                    {submitting ? 'Submitting...' : 'Submit'}
                   </span>
                 </button>
 
@@ -329,68 +407,80 @@ export default function CareersPage() {
                 onChange={(e) => setFilterDept(e.target.value)} 
                 className="sm:w-64 bg-slate-50 px-5 py-3 text-slate-900 font-medium border border-slate-200 focus:outline-none focus:border-amber-500 rounded-2xl cursor-pointer"
               >
-                <option value="All">All Departments</option>
-                <option value="Sales">Sales</option>
-                <option value="Growth">Growth</option>
-                <option value="Inventory">Inventory</option>
-                <option value="CRM">CRM</option>
+                {departmentsList.map(dept => (
+                  <option key={dept} value={dept}>{dept === 'All' ? 'All Departments' : dept}</option>
+                ))}
               </select>
             </div>
 
             {/* Job List */}
             <div className="space-y-6">
-              {filteredJobs.length > 0 ? (
-                filteredJobs.map((job, index) => (
-                  <Reveal key={job.id} delay={index * 0.05}>
-                    <div className="group bg-white border border-slate-200 p-8 md:p-10 rounded-[2.5rem] flex flex-col md:flex-row md:items-center justify-between hover:border-amber-500/40 hover:shadow-[0_20px_40px_-15px_rgba(15,23,42,0.05)] transition-all duration-500">
-                      <div className="space-y-4">
-                        <span className="inline-block text-xs font-bold uppercase tracking-widest text-slate-800 bg-slate-100 border border-slate-200 px-4 py-1.5 rounded-full">
-                          {job.dept}
-                        </span>
-                        <h3 className="text-2xl md:text-3xl font-black text-slate-900 group-hover:text-amber-600 transition-colors tracking-tight">{job.title}</h3>
-                        
-                        <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium text-slate-600">
-                          <span className="flex items-center gap-2"><MapPin size={16} className="text-amber-500" /> {job.location}</span>
-                          <span className="flex items-center gap-2"><Briefcase size={16} className="text-slate-400" /> {job.type}</span>
-                          <span className="flex items-center gap-2 text-slate-900 font-bold bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-lg">
-                            💰 {job.salary}
+              {loading ? (
+                <div className="text-center py-20 bg-white rounded-[2.5rem] border border-slate-200 shadow-sm">
+                  <p className="text-slate-500 font-light text-lg animate-pulse">Loading active job openings...</p>
+                </div>
+              ) : error ? (
+                <div className="text-center py-20 bg-white rounded-[2.5rem] border border-slate-200 shadow-sm">
+                  <p className="text-red-500 font-light text-lg">Error loading job postings: {error}</p>
+                </div>
+              ) : filteredJobs.length > 0 ? (
+                filteredJobs.map((job, index) => {
+                  const tags = job.skills || job.tags || [];
+                  return (
+                    <Reveal key={job._id || job.id} delay={index * 0.05}>
+                      <div className="group bg-white border border-slate-200 p-8 md:p-10 rounded-[2.5rem] flex flex-col md:flex-row md:items-center justify-between hover:border-amber-500/40 hover:shadow-[0_20px_40px_-15px_rgba(15,23,42,0.05)] transition-all duration-500">
+                        <div className="space-y-4">
+                          <span className="inline-block text-xs font-bold uppercase tracking-widest text-slate-800 bg-slate-100 border border-slate-200 px-4 py-1.5 rounded-full">
+                            {job.department || job.dept}
                           </span>
-                        </div>
-                        
-                        <div className="flex flex-wrap gap-2 pt-2">
-                          {job.tags.map((tag, i) => (
-                            <span key={i} className="bg-slate-50 border border-slate-100 text-slate-500 px-3 py-1 rounded-lg text-xs font-bold tracking-wide">
-                              {tag}
+                          <h3 className="text-2xl md:text-3xl font-black text-slate-900 group-hover:text-amber-600 transition-colors tracking-tight">{job.title}</h3>
+                          
+                          <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium text-slate-600">
+                            <span className="flex items-center gap-2"><MapPin size={16} className="text-amber-500" /> {job.location}</span>
+                            <span className="flex items-center gap-2"><Briefcase size={16} className="text-slate-400" /> {job.type}</span>
+                            <span className="flex items-center gap-2 text-slate-900 font-bold bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-lg">
+                              💰 {job.salary}
                             </span>
-                          ))}
+                          </div>
+                          
+                          {tags.length > 0 && (
+                            <div className="flex flex-wrap gap-2 pt-2">
+                              {tags.map((tag, i) => (
+                                <span key={i} className="bg-slate-50 border border-slate-100 text-slate-500 px-3 py-1 rounded-lg text-xs font-bold tracking-wide">
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="mt-8 md:mt-0 flex flex-col sm:flex-row gap-4 md:shrink-0">
+                          <button 
+                            type="button"
+                            onClick={() => handleQuickApply(job)}
+                            className="relative overflow-hidden flex items-center justify-center bg-white text-slate-900 border border-slate-200 px-8 py-4 rounded-xl font-bold group/btn tracking-wide shadow-sm"
+                          >
+                            <span className="absolute inset-0 w-full h-full bg-slate-50 origin-left transform scale-x-0 transition-transform duration-300 ease-out group-hover/btn:scale-x-100" />
+                            <span className="relative z-10 flex items-center gap-2 transition-colors duration-300">
+                              Details <ArrowRight size={18} className="text-slate-400 group-hover/btn:text-amber-500 group-hover/btn:translate-x-1 transition-all" />
+                            </span>
+                          </button>
+
+                          <button 
+                            type="button"
+                            onClick={() => handleQuickApply(job)} 
+                            className="relative overflow-hidden bg-slate-950 text-white px-8 py-4 rounded-xl font-bold group/btn shadow-md tracking-wide text-center border border-slate-800 z-10"
+                          >
+                            <span className="absolute inset-0 w-full h-full bg-amber-500 origin-bottom transform scale-y-0 transition-transform duration-300 ease-out group-hover/btn:scale-y-100" />
+                            <span className="relative z-10 block group-hover/btn:text-slate-950 transition-colors duration-300">
+                              Quick Apply
+                            </span>
+                          </button>
                         </div>
                       </div>
-                      
-                      <div className="mt-8 md:mt-0 flex flex-col sm:flex-row gap-4 md:shrink-0">
-                        <a 
-                          href={job.link} 
-                          className="relative overflow-hidden flex items-center justify-center bg-white text-slate-900 border border-slate-200 px-8 py-4 rounded-xl font-bold group/btn tracking-wide shadow-sm"
-                        >
-                          <span className="absolute inset-0 w-full h-full bg-slate-50 origin-left transform scale-x-0 transition-transform duration-300 ease-out group-hover/btn:scale-x-100" />
-                          <span className="relative z-10 flex items-center gap-2 transition-colors duration-300">
-                            Details <ArrowRight size={18} className="text-slate-400 group-hover/btn:text-amber-500 group-hover/btn:translate-x-1 transition-all" />
-                          </span>
-                        </a>
-
-                        <button 
-                          type="button"
-                          onClick={() => handleQuickApply(job)} 
-                          className="relative overflow-hidden bg-slate-950 text-white px-8 py-4 rounded-xl font-bold group/btn shadow-md tracking-wide text-center border border-slate-800 z-10"
-                        >
-                          <span className="absolute inset-0 w-full h-full bg-amber-500 origin-bottom transform scale-y-0 transition-transform duration-300 ease-out group-hover/btn:scale-y-100" />
-                          <span className="relative z-10 block group-hover/btn:text-slate-950 transition-colors duration-300">
-                            Quick Apply
-                          </span>
-                        </button>
-                      </div>
-                    </div>
-                  </Reveal>
-                ))
+                    </Reveal>
+                  );
+                })
               ) : (
                 <div className="text-center py-20 bg-white rounded-[2.5rem] border border-slate-200 shadow-sm">
                   <p className="text-slate-500 font-light text-lg">No positions found matching your search.</p>
