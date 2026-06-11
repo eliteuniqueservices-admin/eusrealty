@@ -88,11 +88,31 @@ export default function Footer() {
     footerRef.current.style.setProperty('--spotlight-y', `${y}px`);
   };
 
-  const handleCopyEmail = (e) => {
+  const handleCopyEmail = async (e) => {
     e.preventDefault();
-    navigator.clipboard.writeText('eliteuniqueservices@gmail.com');
-    setCopiedEmail(true);
-    setTimeout(() => setCopiedEmail(false), 2500);
+    const email = 'eliteuniqueservices@gmail.com';
+    
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(email);
+      } else {
+        // Fallback for older browsers or non-secure HTTP contexts
+        const textArea = document.createElement("textarea");
+        textArea.value = email;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopiedEmail(true);
+      setTimeout(() => setCopiedEmail(false), 2500);
+    } catch (err) {
+      console.error("Failed to copy email: ", err);
+    }
   };
 
   const handleSubscribe = (e) => {
