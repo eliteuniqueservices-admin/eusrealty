@@ -527,7 +527,7 @@ export default function ManageProjects() {
                             <input name="developer" placeholder="Developer Name" onChange={handleChange} value={formData.developer} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
                             <input name="location" placeholder="Location" onChange={handleChange} value={formData.location} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
                             <input name="rera" placeholder="RERA Number" onChange={handleChange} value={formData.rera} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium font-mono" />
-                            <input name="possession" placeholder="Possession Date" onChange={handleChange} value={formData.possession} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                            <input type="date" name="possession" placeholder="Possession Date" onChange={handleChange} value={formData.possession} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-500" />
                             <div className="relative">
                                 <select name="status" onChange={handleChange} value={formData.status} className="appearance-none w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium cursor-pointer">
                                     <option value="">Select Status</option>
@@ -542,8 +542,14 @@ export default function ManageProjects() {
                     <section>
                         <h3 className="font-bold text-lg text-slate-900 mb-4 flex items-center gap-2"><Layers size={20} className="text-blue-600"/> Project Specs</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <input name="landParcel" placeholder="Land Parcel (e.g., 5 Acres)" onChange={handleChange} value={formData.landParcel} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
-                            <input name="openSpace" placeholder="Open Space (e.g., 70%)" onChange={handleChange} value={formData.openSpace} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                            <div className="relative">
+                                <input type="number" name="landParcel" placeholder="Land Parcel" onChange={handleChange} value={formData.landParcel} className="w-full p-3.5 pr-16 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm pointer-events-none">Acres</span>
+                            </div>
+                            <div className="relative">
+                                <input type="number" name="openSpace" placeholder="Open Space" onChange={handleChange} value={formData.openSpace} className="w-full p-3.5 pr-12 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm pointer-events-none">%</span>
+                            </div>
                             <input name="totalFloors" placeholder="Total Floors" onChange={handleChange} value={formData.totalFloors} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
                             <input name="floorBreakdown" placeholder="Floor Breakdown (e.g., 2 Podium + 20 Floor)" onChange={handleChange} value={formData.floorBreakdown} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
                         </div>
@@ -577,7 +583,14 @@ export default function ManageProjects() {
                                         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
                                     </div>
                                     <input placeholder="Carpet Area (sqft)" value={config.carpet} onChange={(e) => { const updated = [...formData.configDetails]; updated[index].carpet = e.target.value; setFormData({ ...formData, configDetails: updated }); }} className="p-3.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
-                                    <input placeholder="Price (e.g., ₹75L)" value={config.price} onChange={(e) => { const updated = [...formData.configDetails]; updated[index].price = e.target.value; setFormData({ ...formData, configDetails: updated }); }} className="p-3.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                                    <div className="relative mb-5 md:mb-0">
+                                        <input type="number" placeholder="Price (Numeric)" value={config.price} onChange={(e) => { const updated = [...formData.configDetails]; updated[index].price = e.target.value; setFormData({ ...formData, configDetails: updated }); }} className="w-full p-3.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                                        {config.price && (
+                                            <p className="absolute -bottom-5 left-1 text-[11px] text-blue-600 font-bold tracking-wide uppercase whitespace-nowrap overflow-hidden text-ellipsis max-w-[95%]">
+                                                {numberToWords(config.price)}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                             ))}
                         </div>
