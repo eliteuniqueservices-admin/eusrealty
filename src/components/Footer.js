@@ -1,7 +1,9 @@
 'use client';
 
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
 import Reveal from '@/components/Reveal';
 import { 
   Facebook, 
@@ -13,66 +15,157 @@ import {
   Mail, 
   ArrowUp, 
   ShieldCheck,
-  ArrowRight
+  ArrowRight,
+  CheckCircle2,
+  Copy,
+  ExternalLink
 } from 'lucide-react';
 
+// Magnetic button wrapper using framer-motion
+function MagneticSocial({ children, link, label }) {
+  const ref = useRef(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const springConfig = { damping: 15, stiffness: 150, mass: 0.1 };
+  const springX = useSpring(x, springConfig);
+  const springY = useSpring(y, springConfig);
+
+  const handleMouseMove = (e) => {
+    const { clientX, clientY } = e;
+    const rect = ref.current?.getBoundingClientRect();
+    if (!rect) return;
+    const dx = clientX - (rect.left + rect.width / 2);
+    const dy = clientY - (rect.top + rect.height / 2);
+    // Limit translation distance
+    x.set(dx * 0.35);
+    y.set(dy * 0.35);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.a
+      ref={ref}
+      href={link}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={label}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ x: springX, y: springY }}
+      whileHover={{ scale: 1.15 }}
+      whileTap={{ scale: 0.95 }}
+      className="w-11 h-11 rounded-full bg-white/[0.02] flex items-center justify-center text-slate-400 hover:bg-amber-500 hover:text-slate-950 transition-colors duration-300 border border-white/[0.05] hover:border-amber-500 shadow-md shadow-black/30"
+    >
+      <motion.div>{children}</motion.div>
+    </motion.a>
+  );
+}
+
 export default function Footer() {
+  const footerRef = useRef(null);
+  
+  // States for interactive components
+  const [isHovered, setIsHovered] = useState(false);
+  const [copiedEmail, setCopiedEmail] = useState(false);
+  const [emailInput, setEmailInput] = useState('');
+  const [isSubscribed, setIsSubscribed] = useState(false);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  return (
-    <footer className="relative bg-slate-950 text-white pt-16 pb-8 overflow-hidden border-t border-slate-900">
-      {/* Subtle Luxury Background Glows */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-amber-500/10 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-slate-800/50 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/4 pointer-events-none" />
+  const handleMouseMove = (e) => {
+    const rect = footerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    footerRef.current.style.setProperty('--spotlight-x', `${x}px`);
+    footerRef.current.style.setProperty('--spotlight-y', `${y}px`);
+  };
 
-      {/* Expanded Max-Width to push elements to the edges */}
-      <div className="max-w-[90rem] mx-auto px-8 md:px-12 relative z-10">
+  const handleCopyEmail = (e) => {
+    e.preventDefault();
+    navigator.clipboard.writeText('eliteuniqueservices@gmail.com');
+    setCopiedEmail(true);
+    setTimeout(() => setCopiedEmail(false), 2500);
+  };
+
+  const handleSubscribe = (e) => {
+    e.preventDefault();
+    if (!emailInput) return;
+    setIsSubscribed(true);
+    setEmailInput('');
+  };
+
+  return (
+    <footer 
+      ref={footerRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="relative bg-slate-950 text-white pt-24 pb-12 overflow-hidden border-t border-slate-900 select-none"
+    >
+      {/* Dynamic Cursor Spotlight Glow */}
+      <div 
+        className="absolute inset-0 pointer-events-none z-0 transition-opacity duration-700 ease-out"
+        style={{
+          background: 'radial-gradient(circle 500px at var(--spotlight-x, 0px) var(--spotlight-y, 0px), rgba(245, 158, 11, 0.06) 0%, transparent 60%)',
+          opacity: isHovered ? 1 : 0,
+        }}
+      />
+
+      {/* Grid Overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none z-0" />
+
+      {/* Decorative Branding Backdrop */}
+      <div className="absolute bottom-[-1%] left-1/2 -translate-x-1/2 select-none pointer-events-none text-[clamp(4rem,10vw,12rem)] font-black text-white/[0.015] tracking-[-0.03em] uppercase text-center font-sans z-0 font-outfit">
+        EusRealty
+      </div>
+
+      <div className="max-w-[90rem] mx-auto px-6 sm:px-12 relative z-10">
         <Reveal>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16 mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-16 mb-20">
             
-            {/* --- COLUMN 1: BRANDING & SOCIAL --- */}
-            <div className="space-y-8 lg:pr-8">
+            {/* ── COLUMN 1: BRANDING & SOCIAL (Span 4) ── */}
+            <div className="lg:col-span-4 space-y-8 lg:pr-8">
               <div>
-                <h2 className="text-3xl font-black tracking-tighter mb-4 flex items-center gap-1">
+                <h2 className="text-3xl font-black tracking-tighter mb-4 flex items-center gap-1 font-outfit">
                   EUS<span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-500">REALTY</span>
                 </h2>
                 <p className="text-slate-400 font-light leading-relaxed text-sm">
-                  Your trusted authorized channel partner for West Pune. Revolutionizing real estate through transparency and direct builder-to-buyer connections.
+                  Your trusted authorized channel partner for West Pune. Revolutionizing real estate through direct builder-to-buyer connections, 100% verified legal clarity, and transparent advisory.
                 </p>
               </div>
               
-              <div className="flex gap-3">
+              {/* Magnetic Social Icons */}
+              <div className="flex gap-3 pt-2">
                 {[
-                  { icon: <Facebook size={18} />, link: "https://www.facebook.com/share/1C4Vt5oHLD/", label: "Facebook" },
-                  { icon: <Instagram size={18} />, link: "https://www.instagram.com/eus.pune?igsh=MXE5dHh4cHl4N2g4eQ==", label: "Instagram" },
-                  { icon: <Linkedin size={18} />, link: "https://www.linkedin.com/company/elite-unique-services/", label: "LinkedIn" },
-                  { icon: <Youtube size={18} />, link: "https://www.youtube.com/@Elite_Unique_Services", label: "YouTube" },
+                  { icon: <Facebook size={19} />, link: "https://www.facebook.com/share/1C4Vt5oHLD/", label: "Facebook" },
+                  { icon: <Instagram size={19} />, link: "https://www.instagram.com/eus.pune?igsh=MXE5dHh4cHl4N2g4eQ==", label: "Instagram" },
+                  { icon: <Linkedin size={19} />, link: "https://www.linkedin.com/company/elite-unique-services/", label: "LinkedIn" },
+                  { icon: <Youtube size={19} />, link: "https://www.youtube.com/@Elite_Unique_Services", label: "YouTube" },
                 ].map((social, i) => (
-                  <a 
-                    key={i} 
-                    href={social.link} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    aria-label={social.label}
-                    className="w-10 h-10 rounded-full bg-white/[0.02] flex items-center justify-center text-slate-400 hover:bg-amber-500 hover:text-slate-950 transition-all duration-300 border border-white/[0.05] hover:border-amber-500 hover:-translate-y-1 hover:shadow-lg hover:shadow-amber-500/20"
-                  >
+                  <MagneticSocial key={i} link={social.link} label={social.label}>
                     {social.icon}
-                  </a>
+                  </MagneticSocial>
                 ))}
               </div>
             </div>
 
-            {/* --- COLUMN 2: QUICK LINKS --- */}
-            <div className="lg:pl-8">
-              <h4 className="text-lg font-bold text-slate-100 mb-6 tracking-wide">
-                Quick Navigation
+            {/* ── COLUMN 2: QUICK NAVIGATION (Span 2) ── */}
+            <div className="lg:col-span-2">
+              <h4 className="text-xs font-black text-amber-500 mb-6 uppercase tracking-[0.2em] font-outfit">
+                Navigation
               </h4>
-              <ul className="space-y-3 font-medium">
+              <ul className="space-y-4 font-semibold">
                 {[
                   { name: 'Home', href: '/' },
-                  { name: 'Premium Properties', href: '/properties' },
+                  { name: 'Properties', href: '/properties' },
                   { name: 'About Us', href: '/about' },
                   { name: 'ROI Calculator', href: '/calculator' },
                   { name: 'Careers', href: '/careers' },
@@ -81,120 +174,173 @@ export default function Footer() {
                   <li key={item.name}>
                     <Link
                       href={item.href}
-                      className="text-slate-400 hover:text-amber-400 text-sm flex items-center gap-2 transition-all duration-300 group"
+                      className="text-slate-400 hover:text-amber-400 text-sm flex items-center gap-2.5 transition-all duration-300 group"
                     >
-                      <ArrowRight size={14} className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-amber-500" />
-                      <span className="-ml-6 group-hover:ml-0 transition-all">{item.name}</span>
+                      <ArrowRight size={13} className="opacity-0 -translate-x-2.5 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-amber-500" />
+                      <span className="group-hover:translate-x-0.5 transition-transform">{item.name}</span>
                     </Link>
                   </li>
                 ))}
               </ul>
             </div>
 
-            {/* --- COLUMN 3: CONTACT & OFFICE --- */}
-            <div className="lg:pl-4">
-              <h4 className="text-lg font-bold text-slate-100 mb-6 tracking-wide">Corporate Office</h4>
-              <ul className="space-y-5">
-                {/* Address */}
+            {/* ── COLUMN 3: CORPORATE CONTACTS (Span 3) ── */}
+            <div className="lg:col-span-3">
+              <h4 className="text-xs font-black text-amber-500 mb-6 uppercase tracking-[0.2em] font-outfit">
+                Headquarters
+              </h4>
+              <ul className="space-y-6">
+                {/* Location */}
                 <li className="flex gap-4 group items-start">
-                  <MapPin className="text-amber-500 shrink-0 mt-1" size={18} />
+                  <div className="w-9 h-9 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center text-amber-500 group-hover:bg-amber-500 group-hover:text-slate-950 transition-colors duration-300 shrink-0">
+                    <MapPin size={16} />
+                  </div>
                   <a
                     href="https://maps.app.goo.gl/WoghyaNgYaQ9AZfm7"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-block text-sm text-slate-400 leading-relaxed font-light transform origin-left transition-all duration-300 group-hover:scale-110 group-hover:text-amber-400"
+                    className="text-sm text-slate-400 leading-relaxed font-light hover:text-white transition-colors pt-1"
                   >
-                    Office No. 424-427, Vardhamaan Moonstone, <br />
+                    Office 424-427, Vardhamaan Moonstone, <br />
                     Tathawade, Pune - 411033
+                    <span className="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-amber-500/80 uppercase tracking-widest mt-1.5 block group-hover:text-amber-400">
+                      View on Maps <ExternalLink size={8} />
+                    </span>
                   </a>
                 </li>
-                {/* Phone */}
-                <li className="flex items-center gap-4 group">
-                  <Phone className="text-amber-500 shrink-0" size={18} />
+
+                {/* Telephone */}
+                <li className="flex gap-4 group items-center">
+                  <div className="w-9 h-9 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center text-amber-500 group-hover:bg-amber-500 group-hover:text-slate-950 transition-colors duration-300 shrink-0">
+                    <Phone size={16} />
+                  </div>
                   <a 
                     href="tel:+917620733613" 
-                    className="inline-block text-sm text-slate-400 font-medium transform origin-left transition-all duration-300 group-hover:scale-110 group-hover:text-amber-400"
+                    className="text-sm text-slate-400 font-bold hover:text-white transition-colors"
                   >
                     +91 7620733613
                   </a>
                 </li>
-                {/* Email */}
-                <li className="flex items-center gap-4 group">
-                  <Mail className="text-amber-500 shrink-0" size={18} />
-                  <a
-                    href="https://mail.google.com/mail/?view=cm&fs=1&to=eliteuniqueservices@gmail.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block text-sm text-slate-400 font-light break-all transform origin-left transition-all duration-300 group-hover:scale-110 group-hover:text-amber-400"
-                  >
-                    eliteuniqueservices@gmail.com
-                  </a>
+
+                {/* Copiable Email Address */}
+                <li className="flex gap-4 group items-center relative">
+                  <div className="w-9 h-9 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center text-amber-500 group-hover:bg-amber-500 group-hover:text-slate-950 transition-colors duration-300 shrink-0">
+                    <Mail size={16} />
+                  </div>
+                  <div className="flex flex-col">
+                    <a
+                      href="#"
+                      onClick={handleCopyEmail}
+                      className="text-sm text-slate-400 font-light hover:text-white transition-colors truncate max-w-[190px] xs:max-w-none flex items-center gap-1.5"
+                    >
+                      eliteuniqueservices@gmail.com
+                      <Copy size={12} className="text-slate-500 group-hover:text-amber-500 transition-colors" />
+                    </a>
+                    <span className="text-[10px] text-slate-500 font-bold mt-0.5 uppercase tracking-wide">
+                      Click to copy email
+                    </span>
+                  </div>
+
+                  {/* Copy Alert Tag */}
+                  {copiedEmail && (
+                    <div className="absolute top-[-30px] left-14 bg-emerald-500 text-slate-950 text-[10px] font-extrabold px-2.5 py-1 rounded-md shadow-md animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      Email Copied!
+                    </div>
+                  )}
                 </li>
               </ul>
             </div>
 
-            {/* --- COLUMN 4: NEWSLETTER --- */}
-            <div className="bg-slate-900/50 p-8 rounded-3xl border border-slate-800 shadow-inner lg:ml-auto w-full max-w-sm">
-              <h4 className="text-lg font-bold text-slate-100 mb-2 tracking-wide">Stay Informed</h4>
-              <p className="text-xs text-slate-400 mb-6 font-light">Get exclusive weekly updates on new West Pune property launches and market trends.</p>
-              <form className="flex flex-col gap-3" onSubmit={(e) => e.preventDefault()}>
-                <input 
-                  type="email" 
-                  placeholder="Email Address" 
-                  required
-                  className="w-full bg-slate-950 border border-slate-800 px-4 py-3.5 rounded-xl text-sm text-white outline-none focus:border-amber-500 transition-all placeholder:text-slate-600"
-                />
-                <button 
-                  type="submit"
-                  className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3.5 rounded-xl text-sm transition-all shadow-lg shadow-amber-900/20 active:scale-95 flex justify-center items-center gap-2"
-                >
-                  Subscribe
-                </button>
-              </form>
+            {/* ── COLUMN 4: NEWSLETTER / TRUST (Span 3) ── */}
+            <div className="lg:col-span-3">
+              <div className="bg-white/[0.02] p-8 rounded-[2rem] border border-white/[0.06] shadow-xl relative overflow-hidden h-full flex flex-col justify-between">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 blur-xl rounded-full" />
+                
+                <div>
+                  <h4 className="text-base font-black text-slate-100 mb-2 tracking-wide font-outfit">Stay Vetted</h4>
+                  <p className="text-xs text-slate-400 mb-6 font-light leading-relaxed">Join our private list to receive early pre-launch property notifications in West Pune.</p>
+                </div>
+
+                {isSubscribed ? (
+                  <div className="flex flex-col items-center text-center p-5 bg-amber-500/10 border border-amber-500/20 rounded-2xl animate-in fade-in zoom-in-95 duration-500">
+                    <CheckCircle2 size={24} className="text-amber-500 mb-2" />
+                    <h5 className="font-extrabold text-white text-xs uppercase tracking-wider">Subscription Confirmed</h5>
+                    <p className="text-[10px] text-slate-400 font-light mt-1">Check your inbox for exclusive updates.</p>
+                  </div>
+                ) : (
+                  <form className="flex flex-col gap-3" onSubmit={handleSubscribe}>
+                    <input 
+                      type="email" 
+                      value={emailInput}
+                      onChange={(e) => setEmailInput(e.target.value)}
+                      placeholder="Email Address" 
+                      required
+                      className="w-full bg-slate-950 border border-white/5 px-4 py-3.5 rounded-xl text-xs text-white outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20 transition-all placeholder:text-slate-700 font-medium"
+                    />
+                    <button 
+                      type="submit"
+                      className="relative overflow-hidden w-full bg-amber-500 text-slate-950 font-black py-3.5 rounded-xl text-xs uppercase tracking-widest shadow-lg transition-transform active:scale-[0.97] group/sub"
+                    >
+                      <span className="absolute inset-0 bg-white origin-bottom scale-y-0 group-hover/sub:scale-y-100 transition-transform duration-300 ease-out" />
+                      <span className="relative z-10 flex items-center justify-center gap-2 group-hover/sub:text-slate-950 transition-colors">
+                        Subscribe
+                        <ArrowRight size={13} className="group-hover/sub:translate-x-0.5 transition-transform" />
+                      </span>
+                    </button>
+                  </form>
+                )}
+              </div>
             </div>
 
           </div>
         </Reveal>
 
-        {/* --- BOTTOM SECTION: RERA & LEGAL --- */}
-        <div className="pt-8 border-t border-slate-800 flex flex-col lg:flex-row justify-between items-center gap-8">
+        {/* ── BOTTOM ROW: RERA & LEGALS ── */}
+        <div className="pt-8 border-t border-white/5 flex flex-col lg:flex-row justify-between items-center gap-8 z-10 relative">
           
-          {/* QR & RERA Info */}
+          {/* RERA Scanning Widget */}
           <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left w-full lg:w-auto">
-            <div className="bg-white p-1 rounded-lg shrink-0">
+            {/* Glass QR Container with Animated Laser scan line */}
+            <div className="relative overflow-hidden w-20 h-20 bg-white p-1 rounded-xl shrink-0 flex items-center justify-center border border-white/10 shadow-lg">
               <Image
                 src="/MahaRERA QR_CODE.png"
                 alt="MahaRERA QR Code"
-                width={80}
-                height={80}
+                width={72}
+                height={72}
                 className="rounded-md object-contain"
               />
+              {/* Scan Line Laser */}
+              <div className="absolute left-0 right-0 h-[2px] bg-emerald-400 shadow-[0_0_8px_#34d399] animate-scan pointer-events-none" />
             </div>
+            
             <div className="flex flex-col gap-3">
-              <div className="inline-flex items-center justify-center sm:justify-start gap-2 bg-slate-900 border border-slate-800 px-4 py-2 rounded-full w-fit mx-auto sm:mx-0">
-                <ShieldCheck className="text-amber-500" size={16} />
-                <span className="text-[11px] font-bold tracking-widest text-amber-500/90 uppercase">
+              <div className="inline-flex items-center justify-center sm:justify-start gap-2 bg-slate-900 border border-white/5 px-4.5 py-1.5 rounded-full w-fit mx-auto sm:mx-0">
+                <ShieldCheck className="text-amber-500 animate-pulse" size={15} />
+                <span className="text-[11px] font-black tracking-widest text-amber-500 uppercase">
                   MahaRERA: A041262501741
                 </span>
               </div>
-              <p className="text-slate-500 text-[11px] max-w-md font-light leading-relaxed">
-                <strong className="font-semibold text-slate-400">EusRealty is a registered real estate agent.</strong> Property details are provided by developers and subject to change. Verify RERA numbers before investing.
+              <p className="text-slate-500 text-[11px] max-w-lg font-light leading-relaxed">
+                <strong className="font-bold text-slate-400">EusRealty is an authorized channel partner.</strong> Property descriptions, prices, and layouts are verified directly against developer database filings. MahaRERA registration is required before any financial transaction.
               </p>
             </div>
           </div>
 
-          {/* Copyright & Scroll to Top */}
+          {/* Legal and Top Actions */}
           <div className="flex flex-col-reverse sm:flex-row items-center gap-6 w-full lg:w-auto justify-between lg:justify-end">
-            <div className="text-slate-500 text-xs font-medium">
+            <div className="text-slate-500 text-xs font-semibold">
               © 2026 EusRealty. All rights reserved.
             </div>
-            <button 
+            
+            <motion.button 
               onClick={scrollToTop}
+              whileHover={{ y: -4, scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               aria-label="Scroll to top"
-              className="p-3.5 rounded-full bg-white/[0.02] border border-white/[0.05] text-slate-400 hover:bg-amber-500 hover:text-slate-950 hover:border-amber-500 transition-all duration-300 group shadow-lg"
+              className="p-3.5 rounded-full bg-white/[0.02] border border-white/[0.05] text-slate-400 hover:bg-amber-500 hover:text-slate-950 hover:border-amber-500 transition-colors shadow-lg shadow-black/30 group"
             >
-              <ArrowUp size={18} className="group-hover:-translate-y-1 transition-transform" />
-            </button>
+              <ArrowUp size={18} className="group-hover:-translate-y-0.5 transition-transform" />
+            </motion.button>
           </div>
 
         </div>

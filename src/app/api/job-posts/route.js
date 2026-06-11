@@ -59,7 +59,8 @@ export const GET = auth(async function GET(req) {
     
     // If requesting all (including closed ones), verify authentication
     if (all) {
-      if (!req.auth || !['admin', 'hr'].includes(req.auth.user?.role)) {
+      const role = req.auth?.user?.role || req.auth?.role;
+      if (!req.auth || !['admin', 'hr'].includes(role)) {
         return NextResponse.json({ error: 'Unauthorized to view all postings' }, { status: 401 });
       }
       query = {};
@@ -76,12 +77,9 @@ export const GET = auth(async function GET(req) {
 
 export const POST = auth(async function POST(req) {
   try {
-    if (!req.auth) {
+    const role = req.auth?.user?.role || req.auth?.role;
+    if (!req.auth || !['admin', 'hr'].includes(role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    const role = req.auth.user?.role;
-    if (!['admin', 'hr'].includes(role)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     
     await dbConnect();

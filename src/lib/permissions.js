@@ -19,6 +19,7 @@ export const ROUTE_PERMISSIONS = {
   '/admin/dashboard/properties': ['admin'],
   '/admin/dashboard/settings': ['admin'],
   '/admin/dashboard/manage-job-posts': ['admin'],
+  '/admin/dashboard/chat-leads': ['admin'],
 };
 
 export function hasPermission(role, module, action) {
@@ -36,6 +37,8 @@ export function getNavItems(role) {
     { name: 'Overview', href: '/admin/dashboard', icon: 'LayoutDashboard', roles: ['admin'] },
     { name: 'Properties', href: '/admin/dashboard/properties', icon: 'Building2', roles: ['admin'] },
     { name: 'Job Posts', href: '/admin/dashboard/manage-job-posts', icon: 'Briefcase', roles: ['admin'] },
+    { name: 'Applications', href: '/admin/dashboard/job-applications', icon: 'Users', roles: ['admin'] },
+    { name: 'Chat Leads', href: '/admin/dashboard/chat-leads', icon: 'MessageSquare', roles: ['admin'] },
     { name: 'Settings', href: '/admin/dashboard/settings', icon: 'Settings', roles: ['admin'] },
   ];
 }

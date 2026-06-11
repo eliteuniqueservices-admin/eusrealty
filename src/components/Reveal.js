@@ -68,7 +68,7 @@ const Reveal = forwardRef(({
     // 2. Base States
     const baseInitial = {
       opacity,
-      filter: blur ? "blur(12px)" : "blur(0px)",
+      filter: blur ? "blur(5px)" : "blur(0px)",
     };
 
     const baseAnimate = {
@@ -157,7 +157,7 @@ const Reveal = forwardRef(({
     return (
       <MotionComponent
         ref={ref}
-        className={className}
+        className={`${className} will-animate`.trim()}
         variants={containerVariants}
         initial="hidden"
         whileInView="show"
@@ -168,7 +168,7 @@ const Reveal = forwardRef(({
           if (!isValidElement(child)) return child;
           // Wrap valid React elements in a motion div to apply item variants
           return (
-            <motion.div variants={itemVariants} transition={getAnimationStates.transition}>
+            <motion.div className="will-animate" variants={itemVariants} transition={getAnimationStates.transition}>
               {child}
             </motion.div>
           );
@@ -181,7 +181,7 @@ const Reveal = forwardRef(({
   return (
     <MotionComponent
       ref={ref}
-      className={className}
+      className={`${className} will-animate`.trim()}
       initial={getAnimationStates.initial}
       whileInView={getAnimationStates.animate}
       viewport={viewportConfig}

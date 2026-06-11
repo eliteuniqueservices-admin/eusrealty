@@ -1,71 +1,495 @@
-import { BedDouble, Bath, Maximize, MapPin, ArrowRight } from 'lucide-react';
+"use client";
 
-export default function PropertyCard({ title, location, price, beds, bhk, baths, area, image }) {
-  const displayBeds = beds || bhk;
+import { useRef, useState, useEffect } from "react";
+import {
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  AnimatePresence,
+} from "framer-motion";
+import {
+  BedDouble,
+  Bath,
+  Maximize,
+  MapPin,
+  ArrowUpRight,
+  Sparkles,
+  TrendingUp,
+  Eye,
+  Heart,
+  Shield,
+  Zap,
+} from "lucide-react";
+
+/* ─────────────────────────────────────────────────────────────
+   ANIMATED NUMBER COUNTER  (counts up from 0 to value on mount)
+───────────────────────────────────────────────────────────── */
+function AnimatedCounter({ value, duration = 1.4, suffix = "" }) {
+  const [display, setDisplay] = useState(0);
+  const raf = useRef(null);
+
+  useEffect(() => {
+    const start = performance.now();
+    const numeric = parseFloat(String(value).replace(/[^0-9.]/g, "")) || 0;
+
+    const step = (now) => {
+      const elapsed = (now - start) / 1000;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(Math.round(eased * numeric));
+      if (progress < 1) raf.current = requestAnimationFrame(step);
+    };
+
+    raf.current = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf.current);
+  }, [value, duration]);
+
   return (
-    <div className="group flex flex-col bg-white h-full overflow-hidden border border-slate-100 rounded-3xl">
-      
-      {/* --- Image Container --- */}
-      <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-slate-100">
-        <img 
-          src={image || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80"} 
-          alt={title}
-          loading="lazy"
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
+    <span>
+      {display}
+      {suffix}
+    </span>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   MODULE-LEVEL PARTICLE SEED DATA
+
+   Math.random() is called here — at module evaluation time — not inside
+   any component or hook. This is the only approach that fully satisfies
+   the react-hooks/purity ESLint rule, which forbids impure calls anywhere
+   within a component function body (including useMemo callbacks).
+
+   Values are computed once when the JS bundle is first parsed and are
+   then reused as immutable constants for the lifetime of the session.
+───────────────────────────────────────────────────────────── */
+const PARTICLE_SEEDS = Object.freeze(
+  Array.from({ length: 12 }, (_, i) => ({
+    id: i,
+    x: 10 + Math.random() * 80,
+    delay: Math.random() * 0.6,
+    size: 2 + Math.random() * 3,
+    duration: 1.2 + Math.random() * 0.8,
+  }))
+);
+
+/* ─────────────────────────────────────────────────────────────
+   FLOATING PARTICLES   (gold sparkle dots that drift upward)
+───────────────────────────────────────────────────────────── */
+function Particles({ active }) {
+  return (
+    <AnimatePresence>
+      {active &&
+        PARTICLE_SEEDS.map((p) => (
+          <motion.span
+            key={p.id}
+            initial={{ opacity: 0, y: 0, x: `${p.x}%`, scale: 0 }}
+            animate={{ opacity: [0, 1, 0], y: -60, scale: [0, 1, 0] }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: p.duration, delay: p.delay, ease: "easeOut" }}
+            style={{
+              position: "absolute",
+              bottom: 0,
+              width: p.size,
+              height: p.size,
+              borderRadius: "50%",
+              background: "radial-gradient(circle, #fbbf24, #f59e0b)",
+              boxShadow: "0 0 6px 2px rgba(251,191,36,0.6)",
+              pointerEvents: "none",
+              zIndex: 50,
+            }}
+          />
+        ))}
+    </AnimatePresence>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   MAIN PROPERTY CARD
+───────────────────────────────────────────────────────────── */
+export default function PropertyCard({
+  title,
+  location,
+  price,
+  beds,
+  bhk,
+  baths,
+  area,
+  image,
+  badge = "Premium",
+  roi = "14.2",
+  views = "2.4k",
+  isNew = false,
+}) {
+  const displayBeds = beds || bhk;
+  const cardRef = useRef(null);
+  const [hovered, setHovered] = useState(false);
+  const [liked, setLiked] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [particles, setParticles] = useState(false);
+
+  /* ── 3-D Magnetic Tilt via Framer Motion Values ── */
+  const rawX = useMotionValue(0);
+  const rawY = useMotionValue(0);
+  const rotateX = useSpring(useTransform(rawY, [-0.5, 0.5], [14, -14]), {
+    stiffness: 200,
+    damping: 22,
+  });
+  const rotateY = useSpring(useTransform(rawX, [-0.5, 0.5], [-14, 14]), {
+    stiffness: 200,
+    damping: 22,
+  });
+
+  /* ── Shine / Specular highlight position ── */
+  const shineX = useSpring(useTransform(rawX, [-0.5, 0.5], [-50, 150]), {
+    stiffness: 180,
+    damping: 20,
+  });
+  const shineY = useSpring(useTransform(rawY, [-0.5, 0.5], [-50, 150]), {
+    stiffness: 180,
+    damping: 20,
+  });
+
+  const handleMouseMove = (e) => {
+    const rect = cardRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    rawX.set((e.clientX - rect.left) / rect.width - 0.5);
+    rawY.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+
+  const handleMouseLeave = () => {
+    rawX.set(0);
+    rawY.set(0);
+    setHovered(false);
+  };
+
+  const handleLike = (e) => {
+    e.stopPropagation();
+    setLiked((p) => !p);
+    if (!liked) {
+      setParticles(true);
+      setTimeout(() => setParticles(false), 1500);
+    }
+  };
+
+  return (
+    <div style={{ perspective: "1200px" }} className="relative h-full">
+      {/* ── OUTER GLOW RING (animates on hover) ── */}
+      <motion.div
+        animate={hovered ? { opacity: 1, scale: 1.03 } : { opacity: 0, scale: 1 }}
+        transition={{ duration: 0.4 }}
+        className="absolute inset-0 rounded-[2rem] pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse at 50% 0%, rgba(251,191,36,0.35) 0%, transparent 70%)",
+          filter: "blur(20px)",
+          zIndex: -1,
+        }}
+      />
+
+      {/* ── CARD WRAPPER  (3D tilt host) ── */}
+      <motion.div
+        ref={cardRef}
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        onMouseMove={handleMouseMove}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={handleMouseLeave}
+        className="relative flex flex-col bg-white rounded-[2rem] overflow-hidden border border-slate-100/80 h-full cursor-pointer select-none"
+        whileHover={{ boxShadow: "0 40px 80px -20px rgba(15,23,42,0.2), 0 0 0 1px rgba(251,191,36,0.2)" }}
+        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+      >
+
+        {/* ── SPECULAR SHINE LAYER ── */}
+        <motion.div
+          style={{
+            background: useTransform(
+              [shineX, shineY],
+              ([sx, sy]) =>
+                `radial-gradient(circle at ${sx}% ${sy}%, rgba(255,255,255,0.18) 0%, transparent 55%)`
+            ),
+            pointerEvents: "none",
+            zIndex: 40,
+          }}
+          className="absolute inset-0 rounded-[2rem]"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-      </div>
 
-      {/* --- Content Container --- */}
-      <div className="px-6 sm:px-8 pt-8 pb-8 flex flex-col flex-1">
-        
-        {/* Location & Title */}
-        <div className="mb-auto">
-          <div className="flex items-center gap-1.5 text-slate-500 mb-3 font-medium">
-            <MapPin size={16} className="text-amber-500" />
-            <span className="text-sm tracking-wide">{location}</span>
+        {/* ════════════════════════════════════════
+            IMAGE AREA
+        ════════════════════════════════════════ */}
+        <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-slate-100 flex-shrink-0">
+          {/* Property image with parallax-zoom */}
+          <motion.img
+            src={
+              image ||
+              "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80"
+            }
+            alt={title}
+            loading="lazy"
+            animate={hovered ? { scale: 1.1 } : { scale: 1 }}
+            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full h-full object-cover"
+          />
+
+          {/* Gradient overlay */}
+          <motion.div
+            animate={hovered ? { opacity: 1 } : { opacity: 0.4 }}
+            transition={{ duration: 0.5 }}
+            className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-900/20 to-transparent"
+          />
+
+          {/* ── BADGE TOP-LEFT ── */}
+          <motion.div
+            initial={{ x: -30, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute top-4 left-4 flex items-center gap-1.5 bg-slate-950/80 backdrop-blur-xl border border-white/10 text-amber-400 text-xs font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg"
+          >
+            <Sparkles size={11} className="fill-amber-400" />
+            {badge}
+          </motion.div>
+
+          {/* ── NEW badge ── */}
+          {isNew && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.35, type: "spring", stiffness: 300 }}
+              className="absolute top-4 left-[calc(50%-20px)] bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-full"
+            >
+              NEW
+            </motion.div>
+          )}
+
+          {/* ── LIKE BUTTON (top-right) ── */}
+          <div className="absolute top-4 right-4 relative">
+            <motion.button
+              whileTap={{ scale: 0.8 }}
+              onClick={handleLike}
+              className="w-9 h-9 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center shadow-lg"
+            >
+              <Heart
+                size={16}
+                className={liked ? "fill-red-500 text-red-500" : "text-white"}
+                style={{ transition: "all 0.3s" }}
+              />
+            </motion.button>
+            {/* Particles burst from like button */}
+            <Particles active={particles} />
           </div>
-          <h3 className="text-2xl font-black text-slate-900 mb-6 group-hover:text-amber-600 transition-colors duration-300 tracking-tight">
-            {title}
+
+          {/* ── QUICK-STATS STRIP  (slides up on hover) ── */}
+          <motion.div
+            initial={{ y: 80, opacity: 0 }}
+            animate={hovered ? { y: 0, opacity: 1 } : { y: 80, opacity: 0 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute bottom-0 left-0 right-0 px-5 py-4 flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5 text-white/80 text-xs font-semibold bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1 border border-white/10">
+                <Eye size={11} />
+                {views} views
+              </div>
+              <div className="flex items-center gap-1.5 text-emerald-300 text-xs font-semibold bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1 border border-white/10">
+                <TrendingUp size={11} />
+                {roi}% ROI
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 text-white/80 text-xs font-semibold bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1 border border-white/10">
+              <Shield size={11} />
+              RERA ✓
+            </div>
+          </motion.div>
+        </div>
+
+        {/* ════════════════════════════════════════
+            CONTENT AREA
+        ════════════════════════════════════════ */}
+        <div className="px-6 sm:px-7 pt-6 pb-7 flex flex-col flex-1 relative">
+
+          {/* Subtle inner grid texture */}
+          <div
+            className="absolute inset-0 opacity-[0.015] pointer-events-none"
+            style={{
+              backgroundImage:
+                "linear-gradient(to right, #0f172a 1px, transparent 1px), linear-gradient(to bottom, #0f172a 1px, transparent 1px)",
+              backgroundSize: "24px 24px",
+            }}
+          />
+
+          {/* ── LOCATION ── */}
+          <motion.div
+            animate={hovered ? { x: 4 } : { x: 0 }}
+            transition={{ duration: 0.3 }}
+            className="flex items-center gap-1.5 text-slate-500 mb-2.5 font-medium"
+          >
+            <MapPin size={13} className="text-amber-500 shrink-0" />
+            <span className="text-xs tracking-wide truncate">{location}</span>
+          </motion.div>
+
+          {/* ── TITLE ── */}
+          <h3 className="text-xl font-black text-slate-900 mb-5 leading-tight tracking-tight relative z-10">
+            <motion.span
+              animate={hovered ? { color: "#d97706" } : { color: "#0f172a" }}
+              transition={{ duration: 0.3 }}
+              style={{ display: "block" }}
+            >
+              {title}
+            </motion.span>
           </h3>
-        </div>
-        
-        {/* Specifications Grid */}
-        <div className="grid grid-cols-3 gap-2 py-5 border-y border-slate-100 mb-6">
-          <div className="flex flex-col items-center justify-center gap-1.5 text-slate-600 border-r border-slate-100">
-            <BedDouble size={20} className="text-slate-400 mb-1" />
-            <span className="font-bold text-slate-900 text-sm">{displayBeds} BHK</span>
-          </div>
-          <div className="flex flex-col items-center justify-center gap-1.5 text-slate-600 border-r border-slate-100">
-            <Bath size={20} className="text-slate-400 mb-1" />
-            <span className="font-bold text-slate-900 text-sm">{baths} Bath</span>
-          </div>
-          <div className="flex flex-col items-center justify-center gap-1.5 text-slate-600">
-            <Maximize size={20} className="text-slate-400 mb-1" />
-            <span className="font-bold text-slate-900 text-sm">{area} <span className="text-xs text-slate-500 font-medium">sq.ft</span></span>
-          </div>
-        </div>
 
-        {/* Footer: Price & CTA */}
-        <div className="flex items-end justify-between mt-auto">
-          <div>
-            <p className="text-xs text-slate-400 font-bold mb-1 uppercase tracking-widest">Starting From</p>
-            <p className="text-3xl font-black text-slate-900 leading-none group-hover:text-amber-500 transition-colors">
-              ₹{price}
-            </p>
+          {/* ── SPECS GRID (animated counters) ── */}
+          <div className="grid grid-cols-3 gap-2 py-4 border-y border-slate-100 mb-5 relative z-10">
+            {[
+              {
+                icon: <BedDouble size={17} />,
+                value: displayBeds,
+                label: "BHK",
+                raw: displayBeds,
+              },
+              {
+                icon: <Bath size={17} />,
+                value: baths,
+                label: "Bath",
+                raw: baths,
+              },
+              {
+                icon: <Maximize size={17} />,
+                value: area,
+                label: "sq.ft",
+                raw: area,
+              },
+            ].map((spec, i) => (
+              <motion.div
+                key={i}
+                whileHover={{ y: -3 }}
+                transition={{ type: "spring", stiffness: 400 }}
+                className={`flex flex-col items-center justify-center gap-1 py-1 ${
+                  i < 2 ? "border-r border-slate-100" : ""
+                }`}
+              >
+                <motion.div
+                  animate={hovered ? { color: "#f59e0b" } : { color: "#94a3b8" }}
+                  transition={{ duration: 0.4, delay: i * 0.06 }}
+                >
+                  {spec.icon}
+                </motion.div>
+                <span className="font-black text-slate-900 text-sm">
+                  {spec.value}{" "}
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    {spec.label}
+                  </span>
+                </span>
+              </motion.div>
+            ))}
           </div>
-          
-          {/* UPDATED BUTTON: "Building Rise" Animation added here */}
-          <button className="relative overflow-hidden bg-slate-950 text-white px-6 py-3 rounded-xl font-bold active:scale-95 group/btn shadow-md hover:shadow-xl hover:shadow-slate-900/20 transition-all">
-            <span className="absolute inset-0 w-full h-full bg-amber-500 origin-bottom transform scale-y-0 transition-transform duration-300 ease-out group-hover/btn:scale-y-100" />
-            <span className="relative z-10 flex items-center gap-2 group-hover/btn:text-slate-950 transition-colors duration-300">
-              Details
-              <ArrowRight size={18} className="text-amber-400 group-hover/btn:text-slate-950 group-hover/btn:translate-x-1 transition-all duration-300" />
-            </span>
-          </button>
-        </div>
 
-      </div>
+          {/* ── PRICE + CTA ROW ── */}
+          <div className="flex items-end justify-between mt-auto relative z-10">
+            <div>
+              <p className="text-[10px] text-slate-400 font-bold mb-0.5 uppercase tracking-widest">
+                Starting From
+              </p>
+              <motion.p
+                animate={hovered ? { scale: 1.04 } : { scale: 1 }}
+                transition={{ type: "spring", stiffness: 300 }}
+                className="text-2xl font-black text-slate-900 leading-none"
+                style={{ transformOrigin: "left center" }}
+              >
+                <motion.span
+                  animate={hovered ? { color: "#d97706" } : { color: "#0f172a" }}
+                  transition={{ duration: 0.3 }}
+                >
+                  ₹{price}
+                </motion.span>
+              </motion.p>
+            </div>
+
+            {/* ── MAGNETIC CTA BUTTON ── */}
+            <motion.button
+              whileHover={{ scale: 1.06 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setDrawerOpen((p) => !p);
+              }}
+              className="relative overflow-hidden group/btn bg-slate-950 text-white px-5 py-3 rounded-2xl font-bold flex items-center gap-2 text-sm shadow-lg"
+            >
+              {/* fill sweep */}
+              <motion.span
+                initial={false}
+                animate={hovered ? { scaleY: 1 } : { scaleY: 0 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="absolute inset-0 bg-amber-500 origin-bottom"
+              />
+              <motion.span
+                animate={hovered ? { color: "#0f172a" } : { color: "#fff" }}
+                transition={{ duration: 0.3 }}
+                className="relative z-10 flex items-center gap-1.5"
+              >
+                Details
+                <motion.span
+                  animate={hovered ? { rotate: -45, x: 2, y: -2 } : { rotate: 0, x: 0, y: 0 }}
+                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <ArrowUpRight size={16} />
+                </motion.span>
+              </motion.span>
+            </motion.button>
+          </div>
+
+          {/* ════════════════════════════════════════
+              SLIDE-DOWN DRAWER  (Details expand)
+          ════════════════════════════════════════ */}
+          <AnimatePresence>
+            {drawerOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className="overflow-hidden"
+              >
+                <div className="mt-4 pt-4 border-t border-slate-100 relative z-10">
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { icon: <Zap size={13} />, label: "Pre-Launch", value: "Priority Access" },
+                      { icon: <Shield size={13} />, label: "Legal Status", value: "RERA Verified" },
+                      { icon: <TrendingUp size={13} />, label: "Est. ROI", value: `${roi}% p.a.` },
+                      { icon: <Eye size={13} />, label: "Popularity", value: `${views} views` },
+                    ].map((item, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ y: 10, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: i * 0.06, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                        className="flex items-start gap-2 bg-slate-50 rounded-xl p-2.5 border border-slate-100"
+                      >
+                        <span className="text-amber-500 mt-0.5">{item.icon}</span>
+                        <div>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                            {item.label}
+                          </p>
+                          <p className="text-xs font-black text-slate-900">{item.value}</p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="mt-3 w-full py-3 bg-amber-500 text-slate-950 font-black text-sm rounded-xl flex items-center justify-center gap-2 shadow-md shadow-amber-500/30"
+                  >
+                    <Sparkles size={14} className="fill-slate-950" />
+                    Book a Site Visit
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </motion.div>
     </div>
   );
 }

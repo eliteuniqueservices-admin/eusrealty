@@ -1,9 +1,25 @@
 import nodemailer from 'nodemailer';
+import dbConnect from '@/lib/mongodb';
+import Lead from '@/models/Lead';
+import Notification from '@/models/Notification';
+import { calculateLeadScore } from '@/lib/leadScoring';
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { name, phone, email, objective, position, message } = body;
+    const { 
+      name, 
+      phone, 
+      email, 
+      objective, 
+      position, 
+      message,
+      budget,
+      preferredLocation,
+      propertyType,
+      possession,
+      sessionId
+    } = body;
 
     // --- Basic validation (email is optional — chatbot form may omit it) ---
     if (!name || !phone || !objective) {
@@ -11,86 +27,166 @@ export async function POST(request) {
     }
 
     // -------------------------------------------------------
+    // Save Lead to MongoDB
+    // -------------------------------------------------------
+    let dbLead = null;
+    try {
+      await dbConnect();
+      
+      const cleanPhone = phone.trim();
+      
+      // Calculate score & quality
+      const leadDataForScore = {
+        name: name.trim(),
+        phone: cleanPhone,
+        email: email || '',
+        budget: budget || '',
+        preferredLocation: preferredLocation || (objective !== 'Home Loan Help' && objective !== 'Free Site Visit' ? objective : ''),
+        propertyType: propertyType || '',
+        possession: possession || '',
+        siteVisitRequested: objective === 'Free Site Visit',
+        callbackRequested: true
+      };
+      
+      const { score, quality } = calculateLeadScore(leadDataForScore);
+
+      dbLead = await Lead.create({
+        name: name.trim(),
+        phone: cleanPhone,
+        email: email || '',
+        budget: budget || '',
+        preferredLocation: preferredLocation || leadDataForScore.preferredLocation,
+        propertyType: propertyType || '',
+        possession: possession || '',
+        leadScore: score,
+        leadQuality: quality,
+        status: 'New',
+        source: body.source === 'Chatbot Widget' ? 'chatbot' : 'contact_form',
+        sessionId: sessionId || '',
+        siteVisitRequested: objective === 'Free Site Visit',
+        callbackRequested: true,
+        notes: message ? [{ text: message, addedBy: 'System', addedAt: new Date() }] : []
+      });
+
+      // Create Admin Notification in DB
+      await Notification.create({
+        title: `${quality === 'Hot' ? '🔥 Hot' : quality === 'Warm' ? '🟡 Warm' : '❄️ Cold'} Lead: ${dbLead.name}`,
+        message: `${dbLead.name} (${dbLead.phone}) requested callback for: ${objective}${budget ? ` | Budget: ${budget}` : ''}`,
+        type: quality === 'Hot' ? 'hot_lead' : 'lead',
+        isRead: false,
+        relatedId: dbLead._id.toString(),
+        relatedModel: 'Lead',
+        icon: quality === 'Hot' ? '🔥' : '📞'
+      });
+    } catch (dbErr) {
+      console.error('Failed to save lead in database:', dbErr.message);
+    }
+
+    // -------------------------------------------------------
     // 1. SEND EMAILS via Gmail SMTP (Nodemailer)
     // -------------------------------------------------------
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD,
-      },
-    });
+    try {
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.GMAIL_USER,
+          pass: process.env.GMAIL_APP_PASSWORD,
+        },
+      });
 
-    const emailHtml = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8" />
-          <style>
-            body { font-family: 'Segoe UI', Arial, sans-serif; background: #f8f9fa; margin: 0; padding: 0; }
-            .wrapper { max-width: 600px; margin: 32px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.07); }
-            .header { background: #0f172a; padding: 32px 40px; }
-            .header h1 { color: #f59e0b; margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
-            .header p { color: #94a3b8; margin: 4px 0 0; font-size: 13px; }
-            .body { padding: 36px 40px; }
-            .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 4px; }
-            .value { font-size: 16px; font-weight: 600; color: #0f172a; margin-bottom: 20px; }
-            .badge { display: inline-block; background: #fef3c7; color: #92400e; border-radius: 999px; padding: 4px 14px; font-size: 13px; font-weight: 700; }
-            .message-box { background: #f8f9fa; border-left: 3px solid #f59e0b; border-radius: 8px; padding: 16px 20px; font-size: 15px; color: #334155; line-height: 1.6; }
-            .footer { padding: 20px 40px; background: #f8f9fa; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8; text-align: center; }
-          </style>
-        </head>
-        <body>
-          <div class="wrapper">
-            <div class="header">
-              <h1>🏠 New Lead — EUS Realty</h1>
-              <p>A client just submitted the contact form</p>
+      const emailHtml = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8" />
+            <style>
+              body { font-family: 'Segoe UI', Arial, sans-serif; background: #f8f9fa; margin: 0; padding: 0; }
+              .wrapper { max-width: 600px; margin: 32px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.07); }
+              .header { background: #0f172a; padding: 32px 40px; }
+              .header h1 { color: #f59e0b; margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+              .header p { color: #94a3b8; margin: 4px 0 0; font-size: 13px; }
+              .body { padding: 36px 40px; }
+              .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 4px; }
+              .value { font-size: 16px; font-weight: 600; color: #0f172a; margin-bottom: 20px; }
+              .badge { display: inline-block; background: #fef3c7; color: #92400e; border-radius: 999px; padding: 4px 14px; font-size: 13px; font-weight: 700; }
+              .message-box { background: #f8f9fa; border-left: 3px solid #f59e0b; border-radius: 8px; padding: 16px 20px; font-size: 15px; color: #334155; line-height: 1.6; }
+              .footer { padding: 20px 40px; background: #f8f9fa; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8; text-align: center; }
+            </style>
+          </head>
+          <body>
+            <div class="wrapper">
+              <div class="header">
+                <h1>🏠 New Lead — EUS Realty</h1>
+                <p>A client just submitted a contact/lead form</p>
+              </div>
+              <div class="body">
+                <div class="label">Full Name</div>
+                <div class="value">${name}</div>
+
+                <div class="label">Phone</div>
+                <div class="value"><a href="tel:${phone}" style="color:#f59e0b;">${phone}</a></div>
+
+                ${email ? `
+                <div class="label">Email</div>
+                <div class="value"><a href="mailto:${email}" style="color:#f59e0b;">${email}</a></div>
+                ` : ''}
+
+                <div class="label">Objective / Interest</div>
+                <div class="value"><span class="badge">${objective}</span></div>
+
+                ${budget ? `
+                <div class="label">Budget</div>
+                <div class="value">${budget}</div>
+                ` : ''}
+
+                ${preferredLocation ? `
+                <div class="label">Preferred Location</div>
+                <div class="value">${preferredLocation}</div>
+                ` : ''}
+
+                ${propertyType ? `
+                <div class="label">Property Type</div>
+                <div class="value">${propertyType}</div>
+                ` : ''}
+
+                ${possession ? `
+                <div class="label">Possession Requirement</div>
+                <div class="value">${possession}</div>
+                ` : ''}
+
+                ${position ? `
+                <div class="label">Applying for Position</div>
+                <div class="value">${position}</div>
+                ` : ''}
+
+                ${message ? `
+                <div class="label">Message / Notes</div>
+                <div class="message-box">${message}</div>
+                ` : ''}
+
+                <div class="label">Lead Source</div>
+                <div class="value" style="font-size:13px;color:#64748b;">${body.source || 'Contact Page'}</div>
+              </div>
+              <div class="footer">
+                Received from eusrealty.com · ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST
+              </div>
             </div>
-            <div class="body">
-              <div class="label">Full Name</div>
-              <div class="value">${name}</div>
+          </body>
+        </html>
+      `;
 
-              <div class="label">Phone</div>
-              <div class="value"><a href="tel:${phone}" style="color:#f59e0b;">${phone}</a></div>
+      const mailOptions = {
+        from: `"EUS Realty Leads" <${process.env.GMAIL_USER}>`,
+        to: [process.env.NOTIFY_EMAIL_1, process.env.NOTIFY_EMAIL_2].filter(Boolean).join(', '),
+        subject: `🏠 New Lead: ${name} — ${objective}`,
+        html: emailHtml,
+        replyTo: email || undefined,
+      };
 
-              ${email ? `
-              <div class="label">Email</div>
-              <div class="value"><a href="mailto:${email}" style="color:#f59e0b;">${email}</a></div>
-              ` : ''}
-
-              <div class="label">Objective</div>
-              <div class="value"><span class="badge">${objective}</span></div>
-
-              ${position ? `
-              <div class="label">Applying for Position</div>
-              <div class="value">${position}</div>
-              ` : ''}
-
-              ${message ? `
-              <div class="label">Message</div>
-              <div class="message-box">${message}</div>
-              ` : ''}
-
-              <div class="label">Lead Source</div>
-              <div class="value" style="font-size:13px;color:#64748b;">${body.source || 'Contact Page'}</div>
-            </div>
-            <div class="footer">
-              Received from eusrealty.com · ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST
-            </div>
-          </div>
-        </body>
-      </html>
-    `;
-
-    const mailOptions = {
-      from: `"EUS Realty Leads" <${process.env.GMAIL_USER}>`,
-      to: [process.env.NOTIFY_EMAIL_1, process.env.NOTIFY_EMAIL_2].filter(Boolean).join(', '),
-      subject: `🏠 New Lead: ${name} — ${objective}`,
-      html: emailHtml,
-      replyTo: email,
-    };
-
-    await transporter.sendMail(mailOptions);
+      await transporter.sendMail(mailOptions);
+    } catch (mailErr) {
+      console.error('Email notification failed:', mailErr);
+    }
 
     // -------------------------------------------------------
     // 2. SEND WHATSAPP via CallMeBot API
@@ -101,6 +197,10 @@ export async function POST(request) {
       `📞 *Phone:* ${phone}\n` +
       `📧 *Email:* ${email || 'N/A'}\n` +
       `🎯 *Objective:* ${objective}\n` +
+      (budget ? `💰 *Budget:* ${budget}\n` : '') +
+      (preferredLocation ? `📍 *Location:* ${preferredLocation}\n` : '') +
+      (propertyType ? `🏢 *Prop Type:* ${propertyType}\n` : '') +
+      (possession ? `🔑 *Possession:* ${possession}\n` : '') +
       (position ? `💼 *Position:* ${position}\n` : '') +
       (message ? `💬 *Message:* ${message}` : '')
     );
@@ -112,7 +212,7 @@ export async function POST(request) {
       console.error('WhatsApp notification failed:', err);
     });
 
-    return Response.json({ success: true }, { status: 200 });
+    return Response.json({ success: true, leadId: dbLead?._id }, { status: 200 });
 
   } catch (error) {
     console.error('Contact API error:', error);

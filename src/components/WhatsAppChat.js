@@ -3,10 +3,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send, CheckCheck, MessageCircle, User, Phone, ChevronRight, Sparkles } from "lucide-react";
+import { 
+  X, Send, CheckCheck, MessageCircle, User, Phone, 
+  ChevronRight, Sparkles, Mail, MapPin, Home, Clock
+} from "lucide-react";
 
 /* ──────────────────────────────────────────────────────
-   INTENTS: keyword → smart bot reply
+   INTENTS: keyword → smart bot reply (Fallback Mode)
 ────────────────────────────────────────────────────── */
 const INTENTS = [
   {
@@ -117,12 +120,158 @@ function getSmartReply(text) {
 }
 
 /* ──────────────────────────────────────────────────────
-   LeadFormCard – inline chat bubble form
+   VOICE CONGRATULATION  (Web Speech API)
 ────────────────────────────────────────────────────── */
-function LeadFormCard({ phoneNumber, onSubmitted }) {
+const currentSpeechController = {
+  active: false,
+  cancel: function() {
+    this.active = false;
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+  }
+};
+
+function speakCongratulation(name) {
+  if (typeof window === 'undefined' || !window.speechSynthesis) return;
+
+  try {
+    currentSpeechController.cancel();
+    currentSpeechController.active = true;
+
+    const firstName = name?.trim().split(' ')[0] || 'there';
+
+    const doSpeak = () => {
+      if (!currentSpeechController.active) return;
+      const voices = window.speechSynthesis.getVoices();
+
+      const preferred = [
+        'Microsoft Neerja Online (Natural) - English (India)',
+        'Microsoft Heera Online (Natural) - English (India)',
+        'Google हिन्दी',
+        'Google Hindi',
+        'Microsoft Hemant - Hindi (India)',
+        'Microsoft Kalpana - Hindi (India)',
+        'Lekha',
+        'Veena',
+        'Microsoft Heera',
+        'Microsoft Neerja',
+        'Google en-IN',
+        'Google UK English Female',
+        'Microsoft Zira Desktop',
+        'Samantha',
+      ];
+
+      let chosenVoice = null;
+      for (const pref of preferred) {
+        chosenVoice = voices.find(v => v.name === pref || v.name.includes(pref));
+        if (chosenVoice) break;
+      }
+
+      if (!chosenVoice) {
+        chosenVoice = voices.find(v =>
+          v.lang === 'hi-IN' || v.lang.startsWith('hi') ||
+          v.lang === 'en-IN' ||
+          v.name.toLowerCase().includes('hindi') ||
+          v.name.toLowerCase().includes('neerja') ||
+          v.name.toLowerCase().includes('heera') ||
+          v.name.toLowerCase().includes('lekha') ||
+          v.name.toLowerCase().includes('kalpana')
+        );
+      }
+
+      if (!chosenVoice) {
+        chosenVoice = voices.find(v =>
+          v.name.toLowerCase().includes('female') ||
+          v.name.toLowerCase().includes('zira') ||
+          v.name.toLowerCase().includes('samantha') ||
+          v.name.toLowerCase().includes('google uk english female')
+        );
+      }
+
+      const isHindi = chosenVoice && (
+        chosenVoice.lang.startsWith('hi') ||
+        chosenVoice.name.toLowerCase().includes('hindi')
+      );
+
+      const sentences = isHindi ? [
+        `Bahut bahut badhai ho, ${firstName}!`,
+        `Aap apne sapno ke ghar ke ek kadam aur paas aa gaye hain.`,
+        `Hamare senior consultant aapko call karenge agle pandrah minute mein.`,
+        `EUS Realty parivar mein aapka swagat hai.`
+      ] : [
+        `Congratulations, ${firstName}!`,
+        `You are one step closer to your dream home.`,
+        `Our senior consultant will call you personally within the next fifteen minutes.`,
+        `Welcome to the E-U-S Realty family.`
+      ];
+
+      const lang = isHindi ? 'hi-IN' : (chosenVoice?.lang || 'en-IN');
+      let index = 0;
+
+      const speakNext = () => {
+        if (!currentSpeechController.active) return;
+        if (index >= sentences.length) return;
+
+        const utter = new SpeechSynthesisUtterance(sentences[index]);
+        utter.rate = isHindi ? 0.85 : 0.9;
+        utter.pitch = 1.05;
+        utter.volume = 1;
+        utter.lang = lang;
+        if (chosenVoice) utter.voice = chosenVoice;
+
+        utter.onend = () => {
+          if (!currentSpeechController.active) return;
+          setTimeout(() => {
+            if (!currentSpeechController.active) return;
+            index++;
+            speakNext();
+          }, 600);
+        };
+
+        utter.onerror = () => {
+          if (!currentSpeechController.active) return;
+          index++;
+          speakNext();
+        };
+
+        window.speechSynthesis.speak(utter);
+      };
+
+      speakNext();
+    };
+
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+      doSpeak();
+    } else {
+      const onVoicesLoaded = () => {
+        window.speechSynthesis.removeEventListener('voiceschanged', onVoicesLoaded);
+        doSpeak();
+      };
+      window.speechSynthesis.addEventListener('voiceschanged', onVoicesLoaded);
+      setTimeout(() => {
+        window.speechSynthesis.removeEventListener('voiceschanged', onVoicesLoaded);
+        doSpeak();
+      }, 1500);
+    }
+  } catch (err) {
+    console.error('Error in speakCongratulation:', err);
+  }
+}
+
+/* ──────────────────────────────────────────────────────
+   LeadFormCard – inline chat bubble form (Enhanced)
+────────────────────────────────────────────────────── */
+function LeadFormCard({ phoneNumber, onSubmitted, sessionId }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [interest, setInterest] = useState("Residential");
+  const [email, setEmail] = useState("");
+  const [budget, setBudget] = useState("");
+  const [location, setLocation] = useState("");
+  const [propertyType, setPropertyType] = useState("");
+  const [possession, setPossession] = useState("");
+  const [interest, setInterest] = useState("Residential Property");
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
@@ -139,9 +288,15 @@ function LeadFormCard({ phoneNumber, onSubmitted }) {
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
 
+    // Unlock speech synthesis context synchronously in user click gesture handler
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      const silentUtterance = new SpeechSynthesisUtterance('');
+      silentUtterance.volume = 0;
+      window.speechSynthesis.speak(silentUtterance);
+    }
+
     setSubmitting(true);
 
-    // 1. Fire API → sends 2 emails + CallMeBot WhatsApp notification
     try {
       await fetch("/api/contact", {
         method: "POST",
@@ -149,23 +304,39 @@ function LeadFormCard({ phoneNumber, onSubmitted }) {
         body: JSON.stringify({
           name: name.trim(),
           phone: `+91 ${phone.trim()}`,
-          email: "",           // not collected in chatbot form
+          email: email.trim(),
           objective: interest,
-          message: "",
+          budget: budget.trim(),
+          preferredLocation: location.trim(),
+          propertyType: propertyType.trim(),
+          possession: possession.trim(),
+          message: `Lead form filled inside AI Assistant widget.`,
           source: "Chatbot Widget",
+          sessionId: sessionId || "",
         }),
       });
-    } catch (_) {
-      // Silently fail — don't block the user experience
+    } catch (err) {
+      console.error("Failed to submit contact details to DB:", err);
     }
 
-    // 2. Also open wa.me link so customer can chat directly with you
-    const msg = `🏠 *New Lead – EusRealty Chatbot*\n\n👤 Name: ${name.trim()}\n📞 Phone: +91 ${phone.trim()}\n🏢 Interest: ${interest}\n\nPlease contact this customer ASAP!`;
+    // Also open WhatsApp link for live connection
+    const msg = `🏠 *New Lead – EusRealty Chatbot*\n\n` +
+                `👤 Name: ${name.trim()}\n` +
+                `📞 Phone: +91 ${phone.trim()}\n` +
+                (email.trim() ? `📧 Email: ${email.trim()}\n` : "") +
+                `🏢 Interest: ${interest}\n` +
+                (budget.trim() ? `💰 Budget: ${budget.trim()}\n` : "") +
+                (location.trim() ? `📍 Location: ${location.trim()}\n` : "") +
+                (propertyType.trim() ? `🏗️ Prop Type: ${propertyType.trim()}\n` : "") +
+                (possession.trim() ? `🔑 Possession: ${possession.trim()}\n` : "") +
+                `\nPlease contact me soon!`;
+
     window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(msg)}`, "_blank", "noopener,noreferrer");
 
     setSubmitting(false);
     setSubmitted(true);
     if (onSubmitted) onSubmitted(name.trim());
+    speakCongratulation(name);
   };
 
   if (submitted) {
@@ -173,25 +344,27 @@ function LeadFormCard({ phoneNumber, onSubmitted }) {
       <div className="text-center py-3">
         <div className="text-3xl mb-2">🎉</div>
         <p className="text-sm font-bold text-green-700">Thank you, {name}!</p>
-        <p className="text-xs text-gray-500 mt-1">Our consultant will call you within 30 minutes.</p>
+        <p className="text-xs text-gray-500 mt-1">Our consultant will call you within 15 minutes.</p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-2.5 w-full" noValidate>
-      <p className="text-[11px] text-gray-500 mb-1">Fill in your details and we'll call you back within 30 minutes ⚡</p>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-2.5 w-full max-h-[350px] overflow-y-auto pr-1" noValidate>
+      <p className="text-[11px] text-gray-500 mb-1">Fill in details for direct builder catalog & callback ⚡</p>
+      
       <div className="flex flex-col gap-1">
         <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Full Name *</label>
         <div className="relative">
           <User size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
           <input type="text" value={name} onChange={(e) => { setName(e.target.value); setErrors(p => ({ ...p, name: "" })); }}
             placeholder="Your full name"
-            className={`w-full pl-7 pr-3 py-2 text-[12px] rounded-lg border bg-gray-50 outline-none font-medium text-gray-800 placeholder:text-gray-400 transition-all ${errors.name ? "border-red-400 ring-1 ring-red-400/30" : "border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30"}`}
+            className={`w-full pl-7 pr-3 py-2 text-[12px] rounded-lg border bg-gray-50 outline-none font-medium text-gray-800 placeholder:text-gray-400 transition-all ${errors.name ? "border-red-400 ring-1 ring-red-400/30" : "border-gray-200 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/30"}`}
           />
         </div>
         {errors.name && <p className="text-[10px] text-red-500">{errors.name}</p>}
       </div>
+
       <div className="flex flex-col gap-1">
         <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Mobile Number *</label>
         <div className="flex">
@@ -200,16 +373,28 @@ function LeadFormCard({ phoneNumber, onSubmitted }) {
             <Phone size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
             <input type="tel" value={phone} maxLength={10} onChange={(e) => { setPhone(e.target.value.replace(/\D/g, "")); setErrors(p => ({ ...p, phone: "" })); }}
               placeholder="10-digit number"
-              className={`w-full pl-7 pr-3 py-2 text-[12px] rounded-r-lg border bg-gray-50 outline-none font-medium text-gray-800 placeholder:text-gray-400 transition-all ${errors.phone ? "border-red-400 ring-1 ring-red-400/30" : "border-gray-200 focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30"}`}
+              className={`w-full pl-7 pr-3 py-2 text-[12px] rounded-r-lg border bg-gray-50 outline-none font-medium text-gray-800 placeholder:text-gray-400 transition-all ${errors.phone ? "border-red-400 ring-1 ring-red-400/30" : "border-gray-200 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/30"}`}
             />
           </div>
         </div>
         {errors.phone && <p className="text-[10px] text-red-500">{errors.phone}</p>}
       </div>
+
       <div className="flex flex-col gap-1">
-        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">I'm looking for</label>
+        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Email Address</label>
+        <div className="relative">
+          <Mail size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+            placeholder="Your email (optional)"
+            className="w-full pl-7 pr-3 py-2 text-[12px] rounded-lg border border-gray-200 bg-gray-50 outline-none font-medium text-gray-800 placeholder:text-gray-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/30 transition-all"
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">I&apos;m looking for</label>
         <select value={interest} onChange={(e) => setInterest(e.target.value)}
-          className="w-full px-3 py-2 text-[12px] rounded-lg border border-gray-200 bg-gray-50 outline-none focus:border-blue-400 font-medium text-gray-700 cursor-pointer">
+          className="w-full px-3 py-2 text-[12px] rounded-lg border border-gray-200 bg-gray-50 outline-none focus:border-indigo-400 font-medium text-gray-700 cursor-pointer">
           <option>Residential Property</option>
           <option>Commercial Property</option>
           <option>Investment / ROI</option>
@@ -217,6 +402,53 @@ function LeadFormCard({ phoneNumber, onSubmitted }) {
           <option>Free Site Visit</option>
         </select>
       </div>
+
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Your Budget</label>
+        <div className="relative">
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[12px] font-bold text-gray-400">₹</span>
+          <input type="text" value={budget} onChange={(e) => setBudget(e.target.value)}
+            placeholder="e.g. 80L - 1.2 Cr"
+            className="w-full pl-7 pr-3 py-2 text-[12px] rounded-lg border border-gray-200 bg-gray-50 outline-none font-medium text-gray-800 placeholder:text-gray-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/30 transition-all"
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Preferred Location</label>
+        <div className="relative">
+          <MapPin size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input type="text" value={location} onChange={(e) => setLocation(e.target.value)}
+            placeholder="e.g. Baner, Tathawade"
+            className="w-full pl-7 pr-3 py-2 text-[12px] rounded-lg border border-gray-200 bg-gray-50 outline-none font-medium text-gray-800 placeholder:text-gray-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/30 transition-all"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Type</label>
+          <div className="relative">
+            <Home size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input type="text" value={propertyType} onChange={(e) => setPropertyType(e.target.value)}
+              placeholder="e.g. 2BHK"
+              className="w-full pl-7 pr-3 py-2 text-[12px] rounded-lg border border-gray-200 bg-gray-50 outline-none font-medium text-gray-800 placeholder:text-gray-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/30 transition-all"
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Possession</label>
+          <div className="relative">
+            <Clock size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input type="text" value={possession} onChange={(e) => setPossession(e.target.value)}
+              placeholder="e.g. Ready / 1 Yr"
+              className="w-full pl-7 pr-3 py-2 text-[12px] rounded-lg border border-gray-200 bg-gray-50 outline-none font-medium text-gray-800 placeholder:text-gray-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/30 transition-all"
+            />
+          </div>
+        </div>
+      </div>
+
       <motion.button
         type="submit"
         disabled={submitting}
@@ -239,25 +471,29 @@ function LeadFormCard({ phoneNumber, onSubmitted }) {
         ) : (
           <>
             <MessageCircle size={13} fill="currentColor" />
-            <span>Send to Sales Team</span>
+            <span>Send details</span>
             <ChevronRight size={12} />
           </>
         )}
       </motion.button>
-      <p className="text-[9px] text-gray-400 text-center">🔒 Your details are secure and private.</p>
+      <p className="text-[9px] text-gray-400 text-center">🔒 Secure direct builder registration.</p>
     </form>
   );
 }
 
-/* ──────────────────────────────────────────────────────
+/* ──────────────────────────────────────────────────────────────────────────
+   MODULE-LEVEL CONSTANTS
+────────────────────────────────────────────────────────────────────────── */
+const BOT_REPLY_DELAY_MS = 1050;
+
+/* ──────────────────────────────────────────────────────────────────────────
    Framer-motion variants
-────────────────────────────────────────────────────── */
+────────────────────────────────────────────────────────────────────────── */
 const windowV = {
   hidden: { opacity: 0, scale: 0.88, y: 24, transformOrigin: "bottom right" },
   visible: { opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 320, damping: 28, mass: 0.9 } },
   exit: { opacity: 0, scale: 0.9, y: 16, transition: { duration: 0.22, ease: [0.4, 0, 0.2, 1] } },
 };
-// Full-screen slide-up for mobile
 const mobileWindowV = {
   hidden: { opacity: 0, y: "100%" },
   visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 280, damping: 32 } },
@@ -291,8 +527,9 @@ export default function WhatsAppChat() {
   const [showNudge, setShowNudge] = useState(false);
   const [unreadCount, setUnreadCount] = useState(1);
   const [isTyping, setIsTyping] = useState(false);
-  // true = mobile (< 768px), determined client-side
   const [isMobile, setIsMobile] = useState(false);
+  const [sessionId, setSessionId] = useState("");
+  const [viewportHeight, setViewportHeight] = useState("100dvh");
 
   const getNow = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   const phoneNumber = "917620733613";
@@ -314,13 +551,71 @@ export default function WhatsAppChat() {
   const nudgeDismissTimerRef = useRef(null);
   const idleTimerRef = useRef(null);
 
-  /* ── Detect screen size (client-side only) ── */
+  /* ── Detect screen size, load session and history ── */
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
     window.addEventListener("resize", check);
+
+    // Initialize/Get Session ID
+    let sid = localStorage.getItem("eusrealty_chat_session_id");
+    if (!sid) {
+      sid = "sid_" + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      localStorage.setItem("eusrealty_chat_session_id", sid);
+    }
+    setSessionId(sid);
+
+    // Load Chat History from LocalStorage
+    const saved = localStorage.getItem("eusrealty_chat_history");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMessages(parsed);
+        }
+      } catch (err) {
+        console.error("Failed to load saved chat history:", err);
+      }
+    }
+
     return () => window.removeEventListener("resize", check);
   }, []);
+
+  /* ── Visual Viewport resize handler for mobile keyboard behavior ── */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    
+    const updateViewportHeight = () => {
+      if (window.visualViewport) {
+        setViewportHeight(`${window.visualViewport.height}px`);
+      } else {
+        setViewportHeight(`${window.innerHeight}px`);
+      }
+    };
+
+    updateViewportHeight();
+    
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", updateViewportHeight);
+    } else {
+      window.addEventListener("resize", updateViewportHeight);
+    }
+
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener("resize", updateViewportHeight);
+      } else {
+        window.removeEventListener("resize", updateViewportHeight);
+      }
+    };
+  }, []);
+
+  /* ── Save chat history to localstorage when messages update ── */
+  useEffect(() => {
+    if (messages.length > 1) {
+      localStorage.setItem("eusrealty_chat_history", JSON.stringify(messages));
+    }
+  }, [messages]);
 
   /* ── Lock body scroll when mobile chat is open ── */
   useEffect(() => {
@@ -329,14 +624,12 @@ export default function WhatsAppChat() {
     } else {
       document.body.style.overflow = "";
     }
-    return () => { document.body.style.overflow = ""; };
+    return () => { 
+      document.body.style.overflow = "";
+    };
   }, [isMobile, isOpen]);
 
-  /* ── Nudge logic (desktop only) ──
-     - Show after 4-5s on load (if chat not open)
-     - Auto-dismiss after 6s
-     - Re-show if mouse is idle for 30s
-  ── */
+  /* ── Nudge logic (desktop only) ── */
   const showNudgeTemporarily = useCallback(() => {
     if (isOpen) return;
     setShowNudge(true);
@@ -350,18 +643,16 @@ export default function WhatsAppChat() {
     clearTimeout(idleTimerRef.current);
     idleTimerRef.current = setTimeout(() => {
       if (!isOpen) showNudgeTemporarily();
-    }, 30000); // 30s of idle → re-show nudge
+    }, 30000);
   }, [isOpen, showNudgeTemporarily]);
 
   useEffect(() => {
-    if (isMobile) return; // skip nudge on mobile entirely
+    if (isMobile) return;
 
-    // Initial nudge after 4.5s
     nudgeTimerRef.current = setTimeout(() => {
       if (!isOpen) showNudgeTemporarily();
     }, 4500);
 
-    // Start tracking mouse movement for idle re-show
     window.addEventListener("mousemove", resetIdleTimer);
     window.addEventListener("keydown", resetIdleTimer);
     window.addEventListener("scroll", resetIdleTimer);
@@ -407,6 +698,15 @@ export default function WhatsAppChat() {
     }
   }, [messages, isTyping]);
 
+  const handleFocus = () => {
+    // Scroll chat body to bottom when input is focused, after keyboard layout changes
+    setTimeout(() => {
+      if (chatBodyRef.current) {
+        chatBodyRef.current.scrollTo({ top: chatBodyRef.current.scrollHeight, behavior: "smooth" });
+      }
+    }, 150);
+  };
+
   /* ── Bot reply ── */
   const botReply = (text, waMsg, chips) => {
     setIsTyping(true);
@@ -416,7 +716,7 @@ export default function WhatsAppChat() {
         ...prev,
         { id: `agent-${Date.now()}`, sender: "agent", text, time: getNow(), waActionMsg: waMsg, chips },
       ]);
-    }, 900 + Math.random() * 300);
+    }, BOT_REPLY_DELAY_MS);
   };
 
   const showLeadForm = () => {
@@ -433,15 +733,16 @@ export default function WhatsAppChat() {
   const handleLeadSubmitted = (name) => {
     setTimeout(() => {
       botReply(
-        `Thanks ${name}! 🎉 Our senior consultant will call you within 30 minutes.\n\nFeel free to ask me anything else!`,
+        `Thanks ${name}! 🎉 Our senior consultant will call you within 15 minutes.\n\nFeel free to ask me anything else!`,
         null,
-        ["🏢 Explore properties", "💰 View pricing", "🗓️ Book a site visit"]
+        ["🏢 Explore projects", "💰 View pricing", "🗓️ Book a site visit"]
       );
     }, 1200);
   };
 
-  const handleChipClick = (chip) => {
+  const handleChipClick = async (chip) => {
     if (isTyping) return;
+    
     setMessages((prev) => [
       ...prev,
       { id: `user-${Date.now()}`, sender: "user", text: chip, time: getNow() },
@@ -449,36 +750,106 @@ export default function WhatsAppChat() {
 
     const label = chip.replace(/^[^\w\s]+\s*/, "").toLowerCase();
     if (label.includes("callback") || label.includes("request")) {
-      showLeadForm(); return;
+      showLeadForm(); 
+      return;
     }
 
-    const match = getSmartReply(chip);
-    if (match) {
-      if (match.action === "show_lead_form") { showLeadForm(); return; }
-      botReply(match.answer, match.waMsg, match.chips);
-    } else {
-      botReply("Great choice! 😊 Let me connect you with our team on WhatsApp for that.", chip, null);
+    setIsTyping(true);
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: chip,
+          sessionId: sessionId,
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setIsTyping(false);
+        setMessages((prev) => [
+          ...prev,
+          { 
+            id: `agent-${Date.now()}`, 
+            sender: "agent", 
+            text: data.reply, 
+            time: getNow(), 
+            waActionMsg: null, 
+            chips: data.chips || [] 
+          },
+        ]);
+        return;
+      }
+      throw new Error("API call failed");
+    } catch (err) {
+      console.warn("API Chat failed on chip click, using local intents:", err);
+      setIsTyping(false);
+      const match = getSmartReply(chip);
+      if (match) {
+        if (match.action === "show_lead_form") { showLeadForm(); return; }
+        botReply(match.answer, match.waMsg, match.chips);
+      } else {
+        botReply("Great choice! 😊 Let me connect you with our team on WhatsApp for that.", chip, null);
+      }
     }
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const finalMsg = message.trim();
     if (!finalMsg) return;
     setMessage("");
+    
     setMessages((prev) => [
       ...prev,
       { id: `user-${Date.now()}`, sender: "user", text: finalMsg, time: getNow() },
     ]);
-    const match = getSmartReply(finalMsg);
-    if (match) {
-      if (match.action === "show_lead_form") { showLeadForm(); return; }
-      botReply(match.answer, match.waMsg, match.chips);
-    } else {
-      botReply(
-        "That's a great question! 😊 I'm connecting you with one of our senior property consultants on WhatsApp who can give you a detailed answer.",
-        finalMsg,
-        null
-      );
+    
+    setIsTyping(true);
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: finalMsg,
+          sessionId: sessionId,
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setIsTyping(false);
+        setMessages((prev) => [
+          ...prev,
+          { 
+            id: `agent-${Date.now()}`, 
+            sender: "agent", 
+            text: data.reply, 
+            time: getNow(), 
+            waActionMsg: null, 
+            chips: data.chips || [] 
+          },
+        ]);
+        return;
+      }
+      throw new Error("API call failed");
+    } catch (err) {
+      console.warn("API Chat failed on message send, using local intents:", err);
+      setIsTyping(false);
+      
+      const match = getSmartReply(finalMsg);
+      if (match) {
+        if (match.action === "show_lead_form") { showLeadForm(); return; }
+        botReply(match.answer, match.waMsg, match.chips);
+      } else {
+        botReply(
+          "That's a great question! 😊 I'm connecting you with one of our senior property consultants on WhatsApp who can give you a detailed answer.",
+          finalMsg,
+          null
+        );
+      }
     }
   };
 
@@ -487,7 +858,7 @@ export default function WhatsAppChat() {
     setIsOpen(false);
   };
 
-  /* ── Chat window inner content (shared between mobile & desktop) ── */
+  /* ── Chat window inner content ── */
   const ChatWindowContent = () => (
     <>
       {/* ── Header ── */}
@@ -549,7 +920,7 @@ export default function WhatsAppChat() {
       {/* ── Chat Body ── */}
       <div
         ref={chatBodyRef}
-        className="wa-body flex-1 min-h-0 px-3 sm:px-4 py-3 flex flex-col gap-3 overflow-y-auto"
+        className="wa-body flex-1 min-h-0 px-3 sm:px-4 py-3 flex flex-col gap-3 overflow-y-auto overscroll-contain"
         style={{
           background: "linear-gradient(180deg,#f8fafc 0%,#f0f4f8 100%)",
           backgroundImage: "radial-gradient(#e2e8f0 1px, transparent 1px)",
@@ -557,6 +928,7 @@ export default function WhatsAppChat() {
           msOverflowStyle: "none",
           scrollbarWidth: "none",
           WebkitOverflowScrolling: "touch",
+          overscrollBehavior: "contain",
         }}
       >
         <style>{`.wa-body::-webkit-scrollbar{display:none!important}`}</style>
@@ -583,11 +955,11 @@ export default function WhatsAppChat() {
                       <Phone size={13} className="text-emerald-600" />
                     </div>
                     <div>
-                      <p className="text-[12px] font-bold text-gray-800">Request a Callback</p>
-                      <p className="text-[10px] text-gray-400">We'll call within 15 mins</p>
+                      <p className="text-[12px] font-bold text-gray-800">Direct Builder Registration</p>
+                      <p className="text-[10px] text-gray-400">Request catalog & callback</p>
                     </div>
                   </div>
-                  <LeadFormCard phoneNumber={phoneNumber} onSubmitted={handleLeadSubmitted} />
+                  <LeadFormCard phoneNumber={phoneNumber} onSubmitted={handleLeadSubmitted} sessionId={sessionId} />
                   <div className="flex justify-end mt-2">
                     <span className="text-[9px] text-gray-400">{msg.time}</span>
                   </div>
@@ -666,9 +1038,10 @@ export default function WhatsAppChat() {
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
+            onFocus={handleFocus}
             placeholder="Ask Vision anything…"
             className="flex-1 py-2.5 px-4 rounded-2xl bg-gray-50 border border-gray-200 outline-none text-[13px] text-gray-800 placeholder:text-gray-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20 transition-all font-medium"
-            style={{ fontSize: "16px" }} // prevents iOS auto-zoom on input focus
+            style={{ fontSize: "16px" }}
           />
           <motion.button
             type="submit"
@@ -701,10 +1074,15 @@ export default function WhatsAppChat() {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="fixed inset-0 z-[9999] bg-white flex flex-col"
-            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+            className="fixed inset-0 z-[9999] bg-white flex flex-col overscroll-none"
+            style={{ 
+              height: viewportHeight,
+              top: 0,
+              bottom: 0,
+              paddingBottom: "env(safe-area-inset-bottom)" 
+            }}
           >
-            <ChatWindowContent />
+            {ChatWindowContent()}
           </motion.div>
         )}
       </AnimatePresence>
@@ -714,7 +1092,7 @@ export default function WhatsAppChat() {
       ════════════════════════════════════ */}
       <div
         ref={widgetRef}
-        className="fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-[9998] font-sans select-none"
+        className="fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-[9998] font-sans select-text"
       >
         <AnimatePresence mode="sync">
 
@@ -751,7 +1129,7 @@ export default function WhatsAppChat() {
                 height: "min(580px, calc(100dvh - 110px))",
               }}
             >
-              <ChatWindowContent />
+              {ChatWindowContent()}
             </motion.div>
           )}
 

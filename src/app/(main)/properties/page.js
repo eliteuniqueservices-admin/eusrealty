@@ -41,6 +41,13 @@ export default function PropertiesPage() {
   const locations = useMemo(() => ["All", ...new Set(allProperties.map(p => p.location).filter(Boolean))], [allProperties]);
   const propertyTypes = useMemo(() => ["All", ...new Set(allProperties.map(p => p.type).filter(Boolean))], [allProperties]);
 
+  // Pre-fill search from URL param when arriving from hero search bar (?search=Baner)
+  // Using window.location.search avoids the Suspense requirement of useSearchParams
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get('search');
+    if (q) setSearchQuery(decodeURIComponent(q));
+  }, []);
+
   // Fetch from Database
   useEffect(() => {
     async function fetchProperties() {
@@ -193,7 +200,7 @@ export default function PropertiesPage() {
 
       return matchesSearch && matchesType && matchesBhk && matchesStatus && matchesLocation && matchesPrice && matchesPossession;
     });
-  }, [searchQuery, filters]);
+  }, [searchQuery, filters, allProperties]);
 
   const activeFilterCount = Object.entries(filters).filter(([key, v]) => {
     return v !== "All" && v !== "All Prices" && v !== "Any Time";
@@ -434,6 +441,29 @@ export default function PropertiesPage() {
           )}
 
           {/* Dynamic Render based on viewMode */}
+          {loading ? (
+            /* ── Premium Skeleton Loading State ── */
+            <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8" : "flex flex-col gap-6"}>
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="bg-white border border-slate-100 rounded-[2rem] overflow-hidden animate-pulse">
+                  <div className="h-64 bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 bg-[length:200%_100%] animate-[shimmer_1.5s_infinite]" />
+                  <div className="p-6 space-y-4">
+                    <div className="h-3 bg-slate-100 rounded-full w-1/3" />
+                    <div className="h-5 bg-slate-100 rounded-full w-3/4" />
+                    <div className="grid grid-cols-3 gap-4 py-4 border-y border-slate-50">
+                      <div className="h-8 bg-slate-100 rounded-xl" />
+                      <div className="h-8 bg-slate-100 rounded-xl" />
+                      <div className="h-8 bg-slate-100 rounded-xl" />
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="h-7 bg-slate-100 rounded-full w-1/3" />
+                      <div className="h-10 bg-slate-100 rounded-2xl w-24" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
           <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8" : "flex flex-col gap-6"}>
             {filteredProperties.map((prop, index) => (
               <Reveal key={prop.id} delay={(index % 4) * 0.1}>
@@ -526,9 +556,10 @@ export default function PropertiesPage() {
               </Reveal>
             ))}
           </div>
+          )} {/* end loading ternary */}
 
           {/* Empty State */}
-          {filteredProperties.length === 0 && (
+          {!loading && filteredProperties.length === 0 && (
             <Reveal>
               <div className="text-center py-32 bg-white border border-dashed border-slate-200 rounded-[3rem] mt-4 flex flex-col items-center justify-center">
                 <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
@@ -536,7 +567,7 @@ export default function PropertiesPage() {
                 </div>
                 <h3 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">No properties found</h3>
                 <p className="text-slate-500 text-lg max-w-md mx-auto mb-8 font-light">
-                  We couldn't find any properties matching your exact criteria in West Pune. Try adjusting your filters.
+                  We couldn&apos;t find any properties matching your exact criteria in West Pune. Try adjusting your filters.
                 </p>
                 {/* EMPTY STATE BUTTON: "Building Rise" Animation */}
                 <button 

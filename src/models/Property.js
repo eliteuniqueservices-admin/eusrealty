@@ -24,7 +24,9 @@ const PropertySchema = new mongoose.Schema({
   usp: { type: String },
   launchYear: { type: String },
   images: [{ type: String }], // Optional for future image uploads
-  isFeatured: { type: Boolean, default: false }
+  isFeatured: { type: Boolean, default: false },
+  isSignature: { type: Boolean, default: false },
+  isMandate: { type: Boolean, default: false }
 }, { timestamps: true });
 
 export default mongoose.models.Property || mongoose.model('Property', PropertySchema);

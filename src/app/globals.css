@@ -53,11 +53,328 @@
   * {
     @apply border-border;
   }
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
+  }
+
+  /* Optimized image rendering */
+  img {
+    content-visibility: auto;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   PERFORMANCE: GPU-accelerated layers for animated elements
+───────────────────────────────────────────────────────────── */
+.will-animate {
+  will-change: transform, opacity, filter;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   KEYFRAME ANIMATIONS
+───────────────────────────────────────────────────────────── */
+
+/* Floating / levitation */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33%       { transform: translateY(-12px) rotate(1deg); }
+  66%       { transform: translateY(-6px) rotate(-0.5deg); }
+}
+
+/* Slow drift for orbs */
+@keyframes drift {
+  0%   { transform: translate(0, 0) scale(1); }
+  33%  { transform: translate(30px, -20px) scale(1.05); }
+  66%  { transform: translate(-20px, 10px) scale(0.98); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+/* Glowing pulse */
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 20px 4px rgba(251,191,36,0.3); }
+  50%       { box-shadow: 0 0 40px 12px rgba(251,191,36,0.6); }
+}
+
+/* Shimmer sweep */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Marquee scroll */
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Marquee reverse scroll */
+@keyframes marquee-reverse {
+  0%   { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+/* RERA QR code scanning laser */
+@keyframes scan {
+  0%, 100% { top: 0%; opacity: 0.3; }
+  50% { top: 100%; opacity: 1; }
+}
+
+
+
+/* Gradient spin */
+@keyframes gradientSpin {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Counter number roll */
+@keyframes countUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* Badge conic border spin */
+@keyframes conicSpin {
+  0%   { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Subtle breathe */
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50%       { transform: scale(1.08); opacity: 1; }
+}
+
+/* Grid line slide */
+@keyframes gridSlide {
+  0%   { background-position: 0 0; }
+  100% { background-position: 40px 40px; }
+}
+
+/* Bubbles pulse */
 @keyframes bubblePulse {
   0%,100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(251,191,36,0.5); }
   50%      { transform: scale(1.08); box-shadow: 0 0 0 8px rgba(251,191,36,0); }
+}
+
+/* Hero text glow flash */
+@keyframes textGlow {
+  0%, 100% { text-shadow: 0 0 0px rgba(251,191,36,0); }
+  50%       { text-shadow: 0 0 40px rgba(251,191,36,0.3); }
+}
+
+/* Wave ripple */
+@keyframes wave {
+  0%, 100% { transform: scaleY(1); }
+  50%       { transform: scaleY(0.5); }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   UTILITY CLASSES
+───────────────────────────────────────────────────────────── */
+
+/* Skeleton shimmer */
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #f1f5f9 25%, #f8fafc 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Animated gradient text */
+.gradient-text-animated {
+  background: linear-gradient(135deg, #0f172a 0%, #78716c 30%, #f59e0b 60%, #0f172a 100%);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientSpin 6s ease infinite;
+}
+
+/* Gold shimmer text */
+.gold-shimmer {
+  background: linear-gradient(90deg, #d97706 0%, #fbbf24 30%, #fef3c7 50%, #fbbf24 70%, #d97706 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s linear infinite;
+}
+
+/* Float animation */
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Drift animation */
+.animate-drift {
+  animation: drift 15s ease-in-out infinite;
+}
+
+/* Glow pulse */
+.animate-glow {
+  animation: glowPulse 2.5s ease-in-out infinite;
+}
+
+/* Marquee */
+.animate-marquee {
+  animation: marquee 28s linear infinite;
+}
+
+.animate-marquee-reverse {
+  animation: marquee-reverse 28s linear infinite;
+}
+
+.animate-scan {
+  animation: scan 4s ease-in-out infinite;
+}
+
+
+
+/* Breathe */
+.animate-breathe {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+/* Conic spin for badge */
+.animate-conic-spin {
+  animation: conicSpin 4s linear infinite;
+}
+
+/* Grid animated background */
+.animated-grid {
+  background-image: linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: gridSlide 8s linear infinite;
+}
+
+/* Noise texture overlay */
+.noise-overlay {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.04;
+  pointer-events: none;
+}
+
+/* Glass card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* Premium border gradient */
+.border-gradient {
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  position: relative;
+}
+.border-gradient::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(251,191,36,0.4), rgba(15,23,42,0.2));
+  z-index: -1;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SCROLLBAR STYLING
+───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #f59e0b, #d97706);
+  border-radius: 100px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #fbbf24, #f59e0b);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SELECTION COLOR
+───────────────────────────────────────────────────────────── */
+::selection {
+  background: rgba(251,191,36,0.3);
+  color: #0f172a;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   FOCUS STYLES (accessibility + polish)
+───────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   MARQUEE PAUSE ON HOVER
+───────────────────────────────────────────────────────────── */
+.marquee-track:hover .animate-marquee,
+.marquee-track:hover .animate-marquee-reverse {
+  animation-play-state: paused;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   STAT COUNTER OVERFLOW
+───────────────────────────────────────────────────────────── */
+.stat-counter {
+  overflow: hidden;
+  display: inline-block;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   HERO GRADIENT ORB (faster GPU path)
+───────────────────────────────────────────────────────────── */
+.hero-orb {
+  will-change: transform;
+  transform: translateZ(0);
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   WAVE BARS (for audio/visual decoration)
+───────────────────────────────────────────────────────────── */
+.wave-bar {
+  width: 3px;
+  border-radius: 9px;
+  animation: wave 1.2s ease-in-out infinite;
+  background: #f59e0b;
+}
+.wave-bar:nth-child(2) { animation-delay: 0.15s; height: 70%; }
+.wave-bar:nth-child(3) { animation-delay: 0.3s;  height: 90%; }
+.wave-bar:nth-child(4) { animation-delay: 0.45s; height: 60%; }
+.wave-bar:nth-child(5) { animation-delay: 0.6s;  height: 80%; }
+
+/* ─────────────────────────────────────────────────────────────
+   REDUCE MOTION PREFERENCE
+───────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

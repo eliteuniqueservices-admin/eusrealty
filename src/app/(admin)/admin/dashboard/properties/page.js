@@ -27,6 +27,8 @@ export default function ManageProjects() {
         landParcel: '', openSpace: '', totalFloors: '', floorBreakdown: '',
         configDetails: [], description: '', amenities: '', usp: '', launchYear: '',
         images: [],
+        isSignature: false,
+        isMandate: false,
     });
 
     useEffect(() => {
@@ -146,6 +148,8 @@ export default function ManageProjects() {
             landParcel: '', openSpace: '', totalFloors: '', floorBreakdown: '',
             configDetails: [], description: '', amenities: '', usp: '', launchYear: '',
             images: [],
+            isSignature: false,
+            isMandate: false,
         });
         setSelectedAmenities([]);
         setCustomAmenity('');
@@ -157,6 +161,8 @@ export default function ManageProjects() {
         setFormData({
             ...project,
             images: project.images || [],
+            isSignature: project.isSignature || false,
+            isMandate: project.isMandate || false,
         });
         setSelectedAmenities(project.amenities ? project.amenities.split(',').map(a => a.trim()) : []);
         setCustomAmenity('');
@@ -433,14 +439,28 @@ export default function ManageProjects() {
                         <div className="flex-1 grid grid-cols-2 lg:grid-cols-3 gap-4 text-sm border-l-0 lg:border-l border-slate-200 lg:pl-6">
                             <div>
                                 <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Status</p>
-                                <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold border ${
-                                    p.status === 'Under Construction' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                                    p.status === 'Ready to Move' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                    p.status === 'Pre-Launch' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
-                                    'bg-slate-50 text-slate-700 border-slate-200'
-                                }`}>
-                                    {p.status || 'N/A'}
-                                </span>
+                                <div className="flex flex-col items-start gap-1">
+                                    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold border ${
+                                        p.status === 'Under Construction' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                        p.status === 'Ready to Move' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                        p.status === 'Pre-Launch' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                                        'bg-slate-50 text-slate-700 border-slate-200'
+                                    }`}>
+                                        {p.status || 'N/A'}
+                                    </span>
+                                    <div className="flex flex-wrap gap-1 mt-0.5">
+                                        {p.isSignature && (
+                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-500 text-slate-950">
+                                                Signature
+                                            </span>
+                                        )}
+                                        {p.isMandate && (
+                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-slate-900 text-amber-400 border border-slate-800">
+                                                Mandate
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                             <div>
                                 <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1 flex items-center gap-1"><Calendar size={12}/> Possession</p>
@@ -600,6 +620,34 @@ export default function ManageProjects() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <input name="usp" placeholder="Highlights / USP" onChange={handleChange} value={formData.usp} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
                             <input name="launchYear" placeholder="Launch Year" onChange={handleChange} value={formData.launchYear} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium" />
+                        </div>
+                    </section>
+
+                    {/* HOMEPAGE VISIBILITY FLAGS */}
+                    <section>
+                        <h3 className="font-bold text-lg text-slate-900 mb-4 flex items-center gap-2">🌐 Homepage Sectioning</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-5 bg-slate-50 rounded-xl border border-slate-200">
+                            <label className="flex items-start gap-3 cursor-pointer group">
+                                <div className={`w-5 h-5 rounded flex items-center justify-center border transition mt-0.5 ${formData.isSignature ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-300 group-hover:border-blue-400'}`}>
+                                    {formData.isSignature && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"/></svg>}
+                                </div>
+                                <input type="checkbox" className="hidden" checked={formData.isSignature} onChange={(e) => setFormData({ ...formData, isSignature: e.target.checked })} />
+                                <div>
+                                    <span className="text-sm font-bold text-slate-900 block">Signature Collection</span>
+                                    <span className="text-xs text-slate-500 font-medium">Display this property in the "Signature Collection" on the homepage</span>
+                                </div>
+                            </label>
+
+                            <label className="flex items-start gap-3 cursor-pointer group">
+                                <div className={`w-5 h-5 rounded flex items-center justify-center border transition mt-0.5 ${formData.isMandate ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-300 group-hover:border-blue-400'}`}>
+                                    {formData.isMandate && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"/></svg>}
+                                </div>
+                                <input type="checkbox" className="hidden" checked={formData.isMandate} onChange={(e) => setFormData({ ...formData, isMandate: e.target.checked })} />
+                                <div>
+                                    <span className="text-sm font-bold text-slate-900 block">Mandate Property</span>
+                                    <span className="text-xs text-slate-500 font-medium">Display this property in the "Investment Opportunities" (Mandates) homepage section</span>
+                                </div>
+                            </label>
                         </div>
                     </section>
 

@@ -5,6 +5,8 @@ import { Calculator, ArrowUpRight, TrendingUp, AlertTriangle, Shield, MapPin, Do
 import Reveal from "@/components/Reveal";
 import jsPDF from "jspdf";
 import { Chart } from "chart.js/auto";
+import { formatINR } from "@/lib/formatCurrency";
+
 
 export default function ROICalculator() {
   const reportRef = useRef();
@@ -146,12 +148,7 @@ export default function ROICalculator() {
     }
   }, [chartData]);
 
-  const formatINR = (num) => {
-    const absNum = Math.abs(num);
-    if (absNum >= 10000000) return `₹${(num / 10000000).toFixed(2)} Cr`;
-    if (absNum >= 100000) return `₹${(num / 100000).toFixed(2)} L`;
-    return `₹${Math.round(num).toLocaleString("en-IN")}`;
-  };
+
 
   const loadImage = (src) => {
     return new Promise((resolve, reject) => {
