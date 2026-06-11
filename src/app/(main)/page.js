@@ -134,9 +134,9 @@ export default async function Home() {
             {/* Subtitle */}
             <Reveal delay={0.2} variant="fade-up">
               <p className="text-[clamp(1rem,2.5vw,1.35rem)] text-slate-500 max-w-2xl mb-10 md:mb-14 leading-relaxed font-light px-2">
-                Access premium pre-launch inventory with{' '}
-                <span className="text-slate-700 font-semibold">direct-builder pricing</span>.
-                Expert guidance. <span className="text-amber-600 font-semibold">Zero brokerage</span>. Total transparency.
+                Discover <span className="text-amber-600 font-semibold">Verified Properties</span>,{' '}
+                <span className="text-slate-700 font-semibold">Exclusive Opportunities</span>, and{' '}
+                <span className="text-amber-600 font-semibold">Expert Real Estate Guidance</span>—All in One Place.
               </p>
             </Reveal>
 

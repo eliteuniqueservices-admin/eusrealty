@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 // ─── Nav links config ──────────────────────────────────────────
 const NAV_LINKS = [
   { name: "Home",          href: "/",           emoji: "🏠" },
-  { name: "Properties",   href: "/properties",  emoji: "🏙️" },
+  { name: "Projects",   href: "/properties",  emoji: "🏙️" },
   { name: "ROI Calc",     href: "/calculator",  emoji: "📈" },
   { name: "Careers",      href: "/careers",     emoji: "💼" },
   { name: "About",        href: "/about",       emoji: "⭐" },
