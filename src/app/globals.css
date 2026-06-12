@@ -378,3 +378,11 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   CUSTOM CURSOR OVERRIDES (Desktop Pointer Only)
+───────────────────────────────────────────────────────────── */
+.has-custom-cursor,
+.has-custom-cursor * {
+  cursor: none !important;
+}
