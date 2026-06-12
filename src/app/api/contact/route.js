@@ -184,6 +184,58 @@ export async function POST(request) {
       };
 
       await transporter.sendMail(mailOptions);
+
+      // Send Professional Auto-Reply to the Customer
+      if (email) {
+        const autoReplyHtml = `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="utf-8" />
+              <style>
+                body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #f8f9fa; margin: 0; padding: 0; }
+                .wrapper { max-width: 600px; margin: 32px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; }
+                .header { background: #0f172a; padding: 40px; text-align: center; }
+                .header h1 { color: #f59e0b; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+                .body { padding: 40px; color: #334155; font-size: 16px; line-height: 1.6; }
+                .body p { margin: 0 0 20px 0; }
+                .highlight { color: #0f172a; font-weight: 700; }
+                .btn { display: inline-block; background: #f59e0b; color: #0f172a; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 700; font-size: 15px; margin-top: 10px; }
+                .footer { padding: 30px 40px; background: #f8f9fa; border-top: 1px solid #e2e8f0; font-size: 13px; color: #64748b; text-align: center; }
+              </style>
+            </head>
+            <body>
+              <div class="wrapper">
+                <div class="header">
+                  <h1>EUS Realty</h1>
+                </div>
+                <div class="body">
+                  <p>Hi <span class="highlight">${name}</span>,</p>
+                  <p>Thank you for reaching out to EUS Realty! We have received your request for <strong>${objective}</strong>.</p>
+                  <p>Our premium real estate advisors are currently reviewing your details. <strong>We will connect with you within the next 30 minutes</strong> to discuss how we can best assist you.</p>
+                  <p>In the meantime, feel free to explore our exclusive collection of luxury properties in Pune.</p>
+                  <div style="text-align: center; margin-top: 30px;">
+                    <a href="https://eusrealty.com/properties" class="btn">Explore Properties</a>
+                  </div>
+                </div>
+                <div class="footer">
+                  <p>© ${new Date().getFullYear()} EUS Realty. All rights reserved.</p>
+                  <p>Pune's Premier Luxury Real Estate Advisory</p>
+                </div>
+              </div>
+            </body>
+          </html>
+        `;
+
+        const autoReplyOptions = {
+          from: `"EUS Realty" <${process.env.GMAIL_USER}>`,
+          to: email,
+          subject: "We've received your request! | EUS Realty",
+          html: autoReplyHtml,
+        };
+
+        await transporter.sendMail(autoReplyOptions);
+      }
     } catch (mailErr) {
       console.error('Email notification failed:', mailErr);
     }

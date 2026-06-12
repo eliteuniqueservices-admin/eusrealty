@@ -7,6 +7,7 @@ import {
   MapPin, Home as HomeIcon, BedDouble, Wallet, 
   Clock, X, ChevronDown, Star, ArrowRight, Bath, Maximize
 } from 'lucide-react';
+import Link from 'next/link';
 
 const defaultPropertyTypes = ["All", "Apartments", "Villas", "Penthouses", "Plots", "Commercial"];
 const bhkOptions = ["All", "1", "2", "3", "4", "5", "5+"];
@@ -542,12 +543,15 @@ export default function PropertiesPage() {
                         </p>
                         
                         {/* LIST VIEW BUTTON: "Building Rise" Animation */}
-                        <button className="relative overflow-hidden bg-slate-950 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-md active:scale-95 group/btn">
+                        <Link 
+                          href={`/properties/${prop.id}`} 
+                          className="relative overflow-hidden bg-slate-950 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-md active:scale-95 group/btn inline-block"
+                        >
                           <span className="absolute inset-0 w-full h-full bg-amber-500 origin-bottom transform scale-y-0 transition-transform duration-300 ease-out group-hover/btn:scale-y-100" />
                           <span className="relative z-10 flex items-center justify-center gap-2 group-hover/btn:text-slate-950 transition-colors duration-300">
                             View Details <ArrowRight size={18} className="text-amber-400 group-hover/btn:text-slate-950 group-hover/btn:translate-x-1 transition-transform" />
                           </span>
-                        </button>
+                        </Link>
                       </div>
                     </div>
                   </div>

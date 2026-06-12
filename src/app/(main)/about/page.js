@@ -3,11 +3,12 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { motion, useScroll, useTransform, useSpring, useMotionValue, useSpring as useSpringFM, AnimatePresence } from 'framer-motion';
 import {
   ShieldCheck, Briefcase, MapPin, Phone, ArrowRight,
   Quote, Home, ChevronDown, Star, Building2, TrendingUp,
-  Award, Users, Handshake, CheckCircle2
+  Award, Users, Handshake, CheckCircle2, Play, X, Volume2, VolumeX
 } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 
@@ -22,7 +23,7 @@ const teamMembers = [
   //   tagline: 'The Quiet Empire Builder',
   //   img: 'https://randomuser.me/api/portraits/men/52.jpg',
   //   intro:
-  //     `With over three decades of deep-rooted presence in Pune's real estate landscape, Amarpal Singh is the cornerstone of EUS Realty. He built his reputation through ethical advisory, zero-commission integrity, and a developer network that spans every major project in West Pune. His philosophy is simple: put the client first, always.`,
+  //     `With over three decades of deep-rooted presence in Pune&apos;s real estate landscape, Amarpal Singh is the cornerstone of EUS Realty. He built his reputation through ethical advisory, zero-commission integrity, and a developer network that spans every major project in West Pune. His philosophy is simple: put the client first, always.`,
   //   expertise: ['Luxury Projects', 'Developer Relations', 'Market Foresight', 'Strategic Advisory'],
   //   accolade: '10,000+ Families Guided',
   //   wa: '917620733613',
@@ -38,7 +39,7 @@ const teamMembers = [
     tagline: 'Where Data Meets Legacy',
     img: '/uploads/Kunal Sir.jpg',
     intro:
-      `Kunal Verma transformed the way EUS Realty operates. Armed with an MBA and a sharp analytical mind, he integrated CRM technology, ROI-based investment frameworks, and digital-first client acquisition into a legacy built on trust. He is the bridge between Pune's real estate heritage and its digital future.`,
+      `Kunal Verma transformed the way EUS Realty operates. Armed with an MBA and a sharp analytical mind, he integrated CRM technology, ROI-based investment frameworks, and digital-first client acquisition into a legacy built on trust. He is the bridge between Pune&apos;s real estate heritage and its digital future.`,
     expertise: ['Prop-Tech Integration', 'ROI Analytics', 'CRM Architecture', 'Digital Strategy'],
     accolade: '100+ Premium Projects Marketed',
     wa: '917620733613',
@@ -228,7 +229,6 @@ function TeamCard({ member, index }) {
     <div style={{ perspective: '1000px' }}>
       <motion.div
         ref={cardRef}
-        style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
         initial={{ opacity: 0, y: 60 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: '-60px' }}
@@ -476,7 +476,6 @@ function StatCard({ stat, index }) {
     <div style={{ perspective: '800px' }}>
       <motion.div
         ref={cardRef}
-        style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: '-40px' }}
@@ -606,20 +605,31 @@ function loadYoutubeAPI(callback) {
   }
 }
 
+/* ──────────────────────────────────────────────────────
+   Scroll-Autoplay Muted Video Section with Audio Toggle
+────────────────────────────────────────────────────── */
 function VideoSection() {
   const VIDEO_ID = 'IuetSMPC17Q';
+  const sectionRef = useRef(null);
   const iframeRef = useRef(null);
   const playerRef = useRef(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [playerReady, setPlayerReady] = useState(false);
 
+  // Load YouTube API and initialize player
   useEffect(() => {
     let player = null;
 
     loadYoutubeAPI(() => {
       if (!iframeRef.current) return;
+      
       player = new window.YT.Player(iframeRef.current, {
         events: {
           onReady: (event) => {
             playerRef.current = event.target;
+            // Set volume and unmute initially
+            event.target.unMute();
+            setPlayerReady(true);
           }
         }
       });
@@ -632,47 +642,108 @@ function VideoSection() {
     };
   }, []);
 
-  const handleMouseEnter = () => {
-    const player = playerRef.current;
-    if (player && typeof player.playVideo === 'function') {
-      try {
-        player.seekTo(0, true);
-        player.unMute();
-        player.playVideo();
-      } catch (err) {
-        console.warn('Play failed, playing muted:', err);
-        player.mute();
-        player.playVideo();
-      }
-    }
-  };
+  // IntersectionObserver to play/pause on scroll
+  useEffect(() => {
+    if (!playerReady) return;
 
-  const handleMouseLeave = () => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const player = playerRef.current;
+        if (!player) return;
+
+        if (entry.isIntersecting) {
+          try {
+            if (isMuted) {
+              player.mute();
+            } else {
+              player.unMute();
+            }
+            const playPromise = player.playVideo();
+            // Fallback inside promise catch if browser blocks unmuted playback
+            if (playPromise && typeof playPromise.catch === 'function') {
+              playPromise.catch(() => {
+                player.mute();
+                setIsMuted(true);
+                player.playVideo();
+              });
+            }
+          } catch (err) {
+            console.warn('Scroll autoplay failed, trying muted:', err);
+            player.mute();
+            setIsMuted(true);
+            player.playVideo();
+          }
+        } else {
+          try {
+            player.pauseVideo();
+          } catch (err) {
+            console.warn('Scroll pause failed:', err);
+          }
+        }
+      },
+      {
+        threshold: 0.2, // trigger when 20% of the section is visible
+      }
+    );
+
+    const currentSection = sectionRef.current;
+    if (currentSection) {
+      observer.observe(currentSection);
+    }
+
+    return () => {
+      if (currentSection) {
+        observer.unobserve(currentSection);
+      }
+    };
+  }, [playerReady, isMuted]);
+
+  const toggleMute = () => {
     const player = playerRef.current;
-    if (player && typeof player.pauseVideo === 'function') {
-      player.pauseVideo();
+    if (!player || typeof player.mute !== 'function') return;
+
+    if (isMuted) {
+      player.unMute();
+      setIsMuted(false);
+    } else {
+      player.mute();
+      setIsMuted(true);
     }
   };
 
   return (
     <section 
-      className="w-full relative overflow-hidden bg-[#030305]"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      ref={sectionRef}
+      className="w-full h-[60vh] md:h-[85vh] lg:h-screen relative overflow-hidden bg-black border-y border-white/5 shadow-2xl"
     >
-      {/* Video Player Container - Edge-to-Edge Full Screen Widescreen */}
-      <div 
-        className="w-full relative bg-[#06060c] aspect-[16/9] md:h-[85vh] lg:h-screen pointer-events-none"
-      >
+      <div className="absolute inset-0 w-full h-full pointer-events-none">
         <iframe
           ref={iframeRef}
-          className="absolute inset-0 w-full h-full border-none"
-          src={`https://www.youtube.com/embed/${VIDEO_ID}?enablejsapi=1&autoplay=0&controls=0&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3`}
+          className="absolute top-1/2 left-1/2 w-[100vw] h-[56.25vw] min-h-[100vh] min-w-[177.77vh] -translate-x-1/2 -translate-y-1/2 border-none"
+          src={`https://www.youtube.com/embed/${VIDEO_ID}?enablejsapi=1&autoplay=1&mute=0&controls=0&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&loop=1&playlist=${VIDEO_ID}`}
           title="EUS Realty — Our Story"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
         />
       </div>
+
+      {/* Cinematic Vignette Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30 pointer-events-none z-10" />
+
+      {/* Volume Controller (Floating Mute Button) */}
+      {playerReady && (
+        <button
+          onClick={toggleMute}
+          className="absolute bottom-10 right-10 z-20 bg-slate-950/80 hover:bg-slate-900 border border-white/10 hover:border-amber-500/30 text-white rounded-full p-4 shadow-2xl flex items-center justify-center transition-all duration-300 backdrop-blur-md hover:scale-105 active:scale-95"
+          title={isMuted ? "Unmute Video" : "Mute Video"}
+        >
+          {isMuted ? (
+            <VolumeX size={24} className="text-amber-500" />
+          ) : (
+            <Volume2 size={24} className="text-amber-400" />
+          )}
+        </button>
+      )}
     </section>
   );
 }
@@ -856,7 +927,7 @@ export default function AboutClient() {
                 className="inline-flex items-center gap-2.5 px-4.5 py-2.5 bg-white/5 backdrop-blur-xl rounded-full text-xs md:text-sm font-bold border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.3)] mb-4"
               >
                 <Star size={14} className="fill-amber-400 text-amber-400" />
-                <span className="tracking-widest uppercase text-amber-500">Pune's Premier Real Estate Legacy</span>
+                <span className="tracking-widest uppercase text-amber-500">Pune&apos;s Premier Real Estate Legacy</span>
               </motion.div>
 
               {/* Title */}
@@ -953,13 +1024,13 @@ export default function AboutClient() {
                     advisory empire in West Pune was built entirely through word-of-mouth.
                   </p>
                   <p>
-                    For decades, Amarpal Singh operated as the market's most trusted advisor. He had no digital
+                    For decades, Amarpal Singh operated as the market&apos;s most trusted advisor. He had no digital
                     footprint. No aggressive marketing team. But what he possessed was invaluable: an ironclad
-                    reputation and an unmatched understanding of Pune's property landscape.
+                    reputation and an unmatched understanding of Pune&apos;s property landscape.
                   </p>
                   <p>
-                    When Pune's top-tier developers needed to market massive luxury ventures—like the legendary{' '}
-                    <strong className="text-amber-400 font-semibold">Omega Paradise in Wakad</strong>—they didn't rely solely on ad campaigns. They called
+                    When Pune&apos;s top-tier developers needed to market massive luxury ventures—like the legendary{' '}
+                    <strong className="text-amber-400 font-semibold">Omega Paradise in Wakad</strong>—they didn&apos;t rely solely on ad campaigns. They called
                     Amarpal. As an elite channel partner, he guided thousands of homebuyers and investors based purely on uncompromising ethics.
                   </p>
                 </div>
@@ -1049,11 +1120,11 @@ export default function AboutClient() {
                   <p>
                     Armed with an MBA and a vision to disrupt the prop-tech space, Kunal originally drew up plans to
                     build a brand new real estate startup from scratch. He wanted to integrate data analytics, digital
-                    sourcing, and modern CRM systems into Pune's booming property market.
+                    sourcing, and modern CRM systems into Pune&apos;s booming property market.
                   </p>
                   <p>
                     But before laying the first brick of a new venture, a defining conversation with his grandfather,
-                    Amarpal, altered the trajectory of West Pune's real estate advisory forever.
+                    Amarpal, altered the trajectory of West Pune&apos;s real estate advisory forever.
                   </p>
                 </div>
               </motion.div>
@@ -1075,13 +1146,13 @@ export default function AboutClient() {
                 {/* Visual quote indicator */}
                 <Quote className="text-amber-500/20 w-16 h-16 md:w-24 md:h-24 mb-6 md:mb-8 mx-auto transform transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6" />
                 <blockquote className="text-xl sm:text-2xl md:text-4xl font-serif italic text-white leading-snug tracking-tight max-w-4xl mx-auto">
-                  "You want to build a kingdom from scratch,"{' '}
+                  &quot;You want to build a kingdom from scratch,&quot;{' '}
                   <span className="text-amber-500 text-lg sm:text-xl md:text-2xl block mt-4 font-sans font-light not-italic tracking-wide">
                     Amarpal told his grandson,
                   </span>
                   <span className="block mt-4 text-slate-200">
-                    "But you are already standing in the courtyard of a quiet empire. Take the handover. Turn on the
-                    lights. Show them what we've built."
+                    &quot;But you are already standing in the courtyard of a quiet empire. Take the handover. Turn on the
+                    lights. Show them what we&apos;ve built.&quot;
                   </span>
                 </blockquote>
               </div>
@@ -1108,7 +1179,7 @@ export default function AboutClient() {
                 </h3>
                 <div className="space-y-4 text-slate-300 leading-relaxed font-light text-base sm:text-lg">
                   <p>
-                    Kunal didn't start a new company; he modernized a legacy. Together, the veteran visionary and the
+                    Kunal didn&apos;t start a new company; he modernized a legacy. Together, the veteran visionary and the
                     modern strategist officially launched{' '}
                     <strong className="text-amber-400 font-semibold">Elite Unique Services (EUS Realty)</strong> as a RERA-registered authorized channel
                     partner.
@@ -1155,7 +1226,7 @@ export default function AboutClient() {
                     </div>
                     <div>
                       <p className="text-white text-xs font-bold">100+ Luxury Projects</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">Strong builder associations in Pune's high-growth zones.</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">Strong builder associations in Pune&apos;s high-growth zones.</p>
                     </div>
                   </div>
                 </div>
@@ -1189,7 +1260,7 @@ export default function AboutClient() {
                   icon: <Building2 className="text-amber-500" size={30} />,
                   value: '100+',
                   label: 'Premium Projects',
-                  desc: "Unlocking inventory of Pune's highest-value developer ventures.",
+                  desc: "Unlocking inventory of Pune&apos;s highest-value developer ventures.",
                   delay: 0.12,
                   glow: 'rgba(251,191,36,0.12)',
                 },
@@ -1250,7 +1321,7 @@ export default function AboutClient() {
                 </span>
               </motion.h2>
               <motion.p variants={fadeUp} className="text-slate-400 font-light text-base sm:text-lg max-w-xl mx-auto leading-relaxed">
-                Hover or tap each card to discover the minds driving West Pune's real estate evolution.
+                Hover or tap each card to discover the minds driving West Pune&apos;s real estate evolution.
               </motion.p>
             </motion.div>
 
@@ -1303,7 +1374,7 @@ export default function AboutClient() {
                   variants={fadeUp}
                   className="text-base sm:text-lg md:text-xl text-slate-300 mb-10 md:mb-12 font-light max-w-2xl mx-auto leading-relaxed"
                 >
-                  Don't just buy a property. Partner with the legacy that built West Pune. Let EUS Realty navigate
+                  Don&apos;t just buy a property. Partner with the legacy that built West Pune. Let EUS Realty navigate
                   your next real estate triumph with zero brokerage.
                 </motion.p>
 
@@ -1312,7 +1383,7 @@ export default function AboutClient() {
                   variants={fadeUp}
                   className="flex flex-col sm:flex-row gap-4.5 justify-center items-center"
                 >
-                  <a
+                  <Link
                     href="/properties"
                     className="relative overflow-hidden inline-flex items-center justify-center bg-white text-slate-950 px-8 sm:px-11 py-4 sm:py-4.5 rounded-2xl md:rounded-full font-bold group shadow-2xl tracking-wide w-full sm:w-auto text-sm sm:text-base transition-transform duration-300 hover:scale-102"
                   >
@@ -1320,7 +1391,7 @@ export default function AboutClient() {
                     <span className="relative z-10 flex items-center gap-2.5 group-hover:text-slate-950 transition-colors duration-300">
                       Explore Inventory <ArrowRight size={18} className="text-slate-400 group-hover:text-slate-950 transition-colors" />
                     </span>
-                  </a>
+                  </Link>
 
                   <a
                     href="https://wa.me/917620733613"

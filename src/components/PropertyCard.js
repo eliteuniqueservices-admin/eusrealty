@@ -21,6 +21,9 @@ import {
   Shield,
   Zap,
 } from "lucide-react";
+import Link from "next/link";
+
+const MotionLink = motion(Link);
 
 /* ─────────────────────────────────────────────────────────────
    ANIMATED NUMBER COUNTER  (counts up from 0 to value on mount)
@@ -122,12 +125,12 @@ export default function PropertyCard({
   roi = "14.2",
   views = "2.4k",
   isNew = false,
+  id,
 }) {
   const displayBeds = beds || bhk;
   const cardRef = useRef(null);
   const [hovered, setHovered] = useState(false);
   const [liked, setLiked] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [particles, setParticles] = useState(false);
 
   /* ── 3-D Magnetic Tilt via Framer Motion Values ── */
@@ -407,13 +410,11 @@ export default function PropertyCard({
             </div>
 
             {/* ── MAGNETIC CTA BUTTON ── */}
-            <motion.button
+            <MotionLink
+              href={`/properties/${id}`}
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.95 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                setDrawerOpen((p) => !p);
-              }}
+              onClick={(e) => e.stopPropagation()}
               className="relative overflow-hidden group/btn bg-slate-950 text-white px-5 py-3 rounded-2xl font-bold flex items-center gap-2 text-sm shadow-lg"
             >
               {/* fill sweep */}
@@ -436,58 +437,10 @@ export default function PropertyCard({
                   <ArrowUpRight size={16} />
                 </motion.span>
               </motion.span>
-            </motion.button>
+            </MotionLink>
           </div>
 
-          {/* ════════════════════════════════════════
-              SLIDE-DOWN DRAWER  (Details expand)
-          ════════════════════════════════════════ */}
-          <AnimatePresence>
-            {drawerOpen && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="overflow-hidden"
-              >
-                <div className="mt-4 pt-4 border-t border-slate-100 relative z-10">
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      { icon: <Zap size={13} />, label: "Pre-Launch", value: "Priority Access" },
-                      { icon: <Shield size={13} />, label: "Legal Status", value: "RERA Verified" },
-                      { icon: <TrendingUp size={13} />, label: "Est. ROI", value: `${roi}% p.a.` },
-                      { icon: <Eye size={13} />, label: "Popularity", value: `${views} views` },
-                    ].map((item, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ y: 10, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: i * 0.06, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                        className="flex items-start gap-2 bg-slate-50 rounded-xl p-2.5 border border-slate-100"
-                      >
-                        <span className="text-amber-500 mt-0.5">{item.icon}</span>
-                        <div>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                            {item.label}
-                          </p>
-                          <p className="text-xs font-black text-slate-900">{item.value}</p>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="mt-3 w-full py-3 bg-amber-500 text-slate-950 font-black text-sm rounded-xl flex items-center justify-center gap-2 shadow-md shadow-amber-500/30"
-                  >
-                    <Sparkles size={14} className="fill-slate-950" />
-                    Book a Site Visit
-                  </motion.button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* Drawer removed in favor of dedicated property page */}
         </div>
       </motion.div>
     </div>

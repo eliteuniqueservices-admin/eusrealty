@@ -11,14 +11,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { 
   MessageSquare, Users, ShieldAlert, Award, Search, 
   Send, User, Bot, Calendar, Phone, Mail, DollarSign, 
-  MapPin, Home, Clock, Plus, Save
+  MapPin, Home, Clock, Plus, Save, Download, Trash2
 } from 'lucide-react';
+import ExportModal from '@/components/admin/ExportModal';
 
 export default function ChatLeadsPage() {
   const [sessions, setSessions] = useState([]);
   const [totalSessions, setTotalSessions] = useState(0);
   const [leads, setLeads] = useState([]);
   const [totalLeads, setTotalLeads] = useState(0);
+  const [exportOpen, setExportOpen] = useState(false);
   
   // Filter/Pagination States
   const [search, setSearch] = useState('');
@@ -33,6 +35,7 @@ export default function ChatLeadsPage() {
   const [loadingChat, setLoadingChat] = useState(false);
   const [noteText, setNoteText] = useState('');
   const [savingLead, setSavingLead] = useState(false);
+  const [deletingLead, setDeletingLead] = useState(false);
   
   // Edited Lead details state
   const [editForm, setEditForm] = useState({
@@ -181,6 +184,43 @@ export default function ChatLeadsPage() {
     }
   };
 
+  const handleDeleteLead = async () => {
+    if (!selectedSession) return;
+    if (!confirm('Are you sure you want to delete this lead? This action cannot be undone.')) return;
+
+    setDeletingLead(true);
+    try {
+      const res = await fetch(`/api/leads/${selectedSession._id}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        setSelectedSession(null);
+        setEditForm({
+          name: '',
+          phone: '',
+          email: '',
+          budget: '',
+          preferredLocation: '',
+          propertyType: '',
+          possession: '',
+          leadQuality: 'Cold',
+          status: 'New',
+        });
+        setChatHistory([]);
+        loadSessionsAndLeads();
+        loadStats();
+      } else {
+        alert('Failed to delete lead.');
+      }
+    } catch (err) {
+      console.error('Failed to delete lead:', err);
+      alert('An error occurred while deleting the lead.');
+    } finally {
+      setDeletingLead(false);
+    }
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500 max-w-[1600px] mx-auto">
       {/* Header */}
@@ -261,47 +301,57 @@ export default function ChatLeadsPage() {
               <CardTitle className="text-xl font-black text-slate-900">Qualified Leads List</CardTitle>
               
               {/* Filter Row */}
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
-                  <Input 
-                    placeholder="Search name, phone, email..." 
-                    value={search}
-                    onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                    className="pl-9 h-11 rounded-xl border-slate-200 focus-visible:ring-cyan-500 focus-visible:border-cyan-500 font-medium"
-                  />
-                </div>
-                
-                <div className="w-full md:w-40">
-                  <Select value={quality} onValueChange={(val) => { setQuality(val); setPage(1); }}>
-                    <SelectTrigger className="h-11 rounded-xl border-slate-200 font-bold text-slate-700">
-                      <SelectValue placeholder="Quality" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ALL">All Quality</SelectItem>
-                      <SelectItem value="Hot">🔥 Hot</SelectItem>
-                      <SelectItem value="Warm">🟡 Warm</SelectItem>
-                      <SelectItem value="Cold">❄️ Cold</SelectItem>
-                    </SelectContent>
-                  </Select>
+              <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div className="flex flex-col md:flex-row gap-4 flex-1">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
+                    <Input 
+                      placeholder="Search name, phone, email..." 
+                      value={search}
+                      onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                      className="pl-9 h-11 rounded-xl border-slate-200 focus-visible:ring-cyan-500 focus-visible:border-cyan-500 font-medium"
+                    />
+                  </div>
+                  
+                  <div className="w-full md:w-40">
+                    <Select value={quality} onValueChange={(val) => { setQuality(val); setPage(1); }}>
+                      <SelectTrigger className="h-11 rounded-xl border-slate-200 font-bold text-slate-700">
+                        <SelectValue placeholder="Quality" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ALL">All Quality</SelectItem>
+                        <SelectItem value="Hot">🔥 Hot</SelectItem>
+                        <SelectItem value="Warm">🟡 Warm</SelectItem>
+                        <SelectItem value="Cold">❄️ Cold</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="w-full md:w-44">
+                    <Select value={status} onValueChange={(val) => { setStatus(val); setPage(1); }}>
+                      <SelectTrigger className="h-11 rounded-xl border-slate-200 font-bold text-slate-700">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ALL">All Status</SelectItem>
+                        <SelectItem value="New">New</SelectItem>
+                        <SelectItem value="Contacted">Contacted</SelectItem>
+                        <SelectItem value="Interested">Interested</SelectItem>
+                        <SelectItem value="Escalated">Escalated</SelectItem>
+                        <SelectItem value="Converted">Converted</SelectItem>
+                        <SelectItem value="Lost">Lost</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
-                <div className="w-full md:w-44">
-                  <Select value={status} onValueChange={(val) => { setStatus(val); setPage(1); }}>
-                    <SelectTrigger className="h-11 rounded-xl border-slate-200 font-bold text-slate-700">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ALL">All Status</SelectItem>
-                      <SelectItem value="New">New</SelectItem>
-                      <SelectItem value="Contacted">Contacted</SelectItem>
-                      <SelectItem value="Interested">Interested</SelectItem>
-                      <SelectItem value="Escalated">Escalated</SelectItem>
-                      <SelectItem value="Converted">Converted</SelectItem>
-                      <SelectItem value="Lost">Lost</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Button 
+                  onClick={() => setExportOpen(true)}
+                  variant="outline"
+                  className="h-11 border-slate-200 text-slate-700 font-bold rounded-xl gap-2 hover:bg-slate-50"
+                >
+                  <Download size={16} /> Export Excel
+                </Button>
               </div>
             </div>
 
@@ -426,9 +476,22 @@ export default function ChatLeadsPage() {
                         <Clock size={12} /> Last active: {new Date(selectedSession.updatedAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })}
                       </CardDescription>
                     </div>
-                    <Badge variant={selectedSession.leadQuality === 'Hot' ? 'destructive' : selectedSession.leadQuality === 'Warm' ? 'warning' : 'default'} className="font-bold rounded-lg px-2.5 py-1">
-                      {selectedSession.leadQuality} ({selectedSession.leadScore}/100)
-                    </Badge>
+                    <div className="flex items-center gap-3">
+                      <Badge variant={selectedSession.leadQuality === 'Hot' ? 'destructive' : selectedSession.leadQuality === 'Warm' ? 'warning' : 'default'} className="font-bold rounded-lg px-2.5 py-1">
+                        {selectedSession.leadQuality} ({selectedSession.leadScore}/100)
+                      </Badge>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg h-8 w-8"
+                        onClick={handleDeleteLead}
+                        disabled={deletingLead}
+                        title="Delete Lead"
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 
@@ -661,6 +724,25 @@ export default function ChatLeadsPage() {
         </div>
 
       </div>
+
+      <ExportModal 
+        isOpen={exportOpen}
+        onClose={() => setExportOpen(false)}
+        data={leads}
+        filename="chat_leads_export.xlsx"
+        availableColumns={[
+          { key: 'name', label: 'Client Name' },
+          { key: 'phone', label: 'Phone' },
+          { key: 'email', label: 'Email' },
+          { key: 'leadQuality', label: 'Quality' },
+          { key: 'leadScore', label: 'Score' },
+          { key: 'status', label: 'Status' },
+          { key: 'budget', label: 'Budget' },
+          { key: 'preferredLocation', label: 'Location' },
+          { key: 'propertyType', label: 'Property Type' },
+          { key: 'updatedAt', label: 'Last Active' }
+        ]}
+      />
     </div>
   );
 }

@@ -18,6 +18,7 @@ import {
 import { useState, useEffect, useRef, use } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
+import Link from 'next/link';
 
 export default function JobDetailPage({ params }) {
   // Safe unwrapping of Next.js 15+ async params
@@ -243,7 +244,7 @@ export default function JobDetailPage({ params }) {
 
         <div className="max-w-4xl mx-auto relative z-10">
           {/* Back Button */}
-          <a
+          <Link
             href="/careers"
             className="inline-flex items-center gap-2 text-slate-400 font-bold mb-10 hover:text-amber-500 transition-colors duration-300 group tracking-wide text-sm"
           >
@@ -251,7 +252,7 @@ export default function JobDetailPage({ params }) {
               <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform text-white" />
             </div>
             Back to Careers
-          </a>
+          </Link>
 
           {loading ? (
             <div className="text-center py-32 bg-[#07070d] rounded-[2.5rem] border border-white/5 shadow-2xl">

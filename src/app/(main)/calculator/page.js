@@ -37,6 +37,29 @@ export default function ROICalculator() {
   // 4. Meta
   const [location, setLocation] = useState("Pune");
 
+  // Real Data Presets
+  const applyPreset1 = () => {
+    setCost(15000000); // 1.5 Cr
+    setDownPayment(3000000); // 20%
+    setSellingPrice(28000000); // 2.8 Cr
+    setYearsHeld(8);
+    setRentalYield(3.5);
+    setRentalGrowth(5.0);
+    setInterestRate(8.5);
+    setFinancingType("loan");
+  };
+
+  const applyPreset2 = () => {
+    setCost(45000000); // 4.5 Cr
+    setDownPayment(10000000); // ~22%
+    setSellingPrice(85000000); // 8.5 Cr
+    setYearsHeld(10);
+    setRentalYield(4.0);
+    setRentalGrowth(6.0);
+    setInterestRate(8.2);
+    setFinancingType("loan");
+  };
+
   // ==========================================
   // FINANCIAL CALCULATIONS (Unchanged)
   // ==========================================
@@ -322,9 +345,18 @@ export default function ROICalculator() {
             <h1 className="text-4xl md:text-6xl font-black mb-4 tracking-tight text-slate-950">
               Property <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600">ROI Calculator</span>
             </h1>
-            <p className="text-slate-500 max-w-2xl mx-auto font-light md:text-lg">
+            <p className="text-slate-500 max-w-2xl mx-auto font-light md:text-lg mb-8">
               Forecast your exact net returns by factoring in taxes, closing costs, loan amortization, and operational cash flow.
             </p>
+            
+            <div className="flex flex-wrap justify-center gap-4">
+              <button onClick={applyPreset1} className="px-5 py-2.5 rounded-full bg-slate-900 text-white font-bold text-sm hover:bg-slate-800 transition-colors border border-slate-700 flex items-center gap-2 shadow-sm">
+                <Activity size={14} className="text-amber-400" /> Load Scenario: Premium 2BHK (₹1.5 Cr)
+              </button>
+              <button onClick={applyPreset2} className="px-5 py-2.5 rounded-full bg-amber-500 text-slate-950 font-bold text-sm hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/20 flex items-center gap-2">
+                <Star size={14} /> Load Scenario: Luxury Villa (₹4.5 Cr)
+              </button>
+            </div>
           </div>
         </Reveal>
 

@@ -10,11 +10,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 // ─── Nav links config ──────────────────────────────────────────
 const NAV_LINKS = [
   { name: "Home",          href: "/",           emoji: "🏠" },
-  { name: "Projects",   href: "/properties",  emoji: "🏙️" },
-  { name: "ROI Calc",     href: "/calculator",  emoji: "📈" },
-  { name: "Careers",      href: "/careers",     emoji: "💼" },
-  { name: "About",        href: "/about",       emoji: "⭐" },
-  { name: "Contact",      href: "/contact",     emoji: "📞" },
+  { name: "Projects",      href: "/properties",  emoji: "🏙️" },
+  { name: "Home Loans",    href: "/home-loans",  emoji: "🏠" },
+  { name: "ROI Calc",      href: "/calculator",  emoji: "📈" },
+  { name: "Careers",       href: "/careers",     emoji: "💼" },
+  { name: "About",         href: "/about",       emoji: "⭐" },
+  { name: "Contact",       href: "/contact",     emoji: "📞" },
 ];
 
 const SOCIALS = [
@@ -363,7 +364,7 @@ export default function Navbar() {
     return () => { document.body.style.overflow = ""; };
   }, [menuOpen]);
 
-  useEffect(() => { setMenuOpen(false); }, [pathname]);
+  useEffect(() => { setTimeout(() => setMenuOpen(false), 0); }, [pathname]);
 
   return (
     <>
@@ -424,11 +425,7 @@ export default function Navbar() {
 
             {/* ── Desktop CTAs ── */}
             <div className="hidden lg:flex items-center gap-3 shrink-0">
-              {/* RERA trust pill */}
-              <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
-                <ShieldCheck size={11} className="text-emerald-500" />
-                RERA Vetted
-              </div>
+              {/* RERA trust pill removed for cleaner alignment */}
 
               {/* Phone quick-dial */}
               <a href={`tel:${PHONE}`}

@@ -86,3 +86,26 @@ export const PATCH = auth(async function PATCH(req, { params }) {
     return NextResponse.json({ error: 'Failed to update lead' }, { status: 500 });
   }
 });
+
+// DELETE /api/leads/[id] — Admin: delete a specific lead
+export const DELETE = auth(async function DELETE(req, { params }) {
+  try {
+    if (!req.auth) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id } = await params;
+    await dbConnect();
+
+    const lead = await Lead.findByIdAndDelete(id);
+
+    if (!lead) {
+      return NextResponse.json({ error: 'Lead not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, message: 'Lead deleted successfully' });
+  } catch (error) {
+    console.error('Lead DELETE error:', error);
+    return NextResponse.json({ error: 'Failed to delete lead' }, { status: 500 });
+  }
+});

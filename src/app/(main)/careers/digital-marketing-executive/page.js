@@ -12,6 +12,7 @@ import {
   ArrowRight,
   Star
 } from "lucide-react";
+import Link from "next/link";
 
 export default function DigitalMarketingExecutive() {
   return (
@@ -25,7 +26,7 @@ export default function DigitalMarketingExecutive() {
       <div className="max-w-4xl mx-auto relative z-10">
 
         {/* Back Button */}
-        <a
+        <Link
           href="/careers"
           className="inline-flex items-center gap-2 text-slate-500 font-bold mb-10 hover:text-amber-600 transition-colors duration-300 group tracking-wide text-sm"
         >
@@ -33,7 +34,7 @@ export default function DigitalMarketingExecutive() {
             <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
           </div>
           Back to Careers
-        </a>
+        </Link>
 
         {/* Job Card */}
         <div className="bg-white rounded-[2.5rem] p-8 sm:p-12 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.05)] border border-slate-100 relative">

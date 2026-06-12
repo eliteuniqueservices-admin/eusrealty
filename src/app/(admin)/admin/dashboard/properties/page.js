@@ -496,7 +496,7 @@ export default function ManageProjects() {
                     <div className="text-center py-24 bg-slate-50/50">
                         <Search size={48} className="mx-auto text-slate-300 mb-4" />
                         <p className="text-slate-900 font-black text-xl mb-2">No projects found</p>
-                        <p className="text-slate-500 font-medium max-w-sm mx-auto">Try adjusting your filters or search terms to find what you're looking for.</p>
+                        <p className="text-slate-500 font-medium max-w-sm mx-auto">Try adjusting your filters or search terms to find what you&apos;re looking for.</p>
                     </div>
                 )}
             </div>
@@ -647,7 +647,7 @@ export default function ManageProjects() {
                                 <input type="checkbox" className="hidden" checked={formData.isSignature} onChange={(e) => setFormData({ ...formData, isSignature: e.target.checked })} />
                                 <div>
                                     <span className="text-sm font-bold text-slate-900 block">Signature Collection</span>
-                                    <span className="text-xs text-slate-500 font-medium">Display this property in the "Signature Collection" on the homepage</span>
+                                    <span className="text-xs text-slate-500 font-medium">Display this property in the &quot;Signature Collection&quot; on the homepage</span>
                                 </div>
                             </label>
 
@@ -658,7 +658,7 @@ export default function ManageProjects() {
                                 <input type="checkbox" className="hidden" checked={formData.isMandate} onChange={(e) => setFormData({ ...formData, isMandate: e.target.checked })} />
                                 <div>
                                     <span className="text-sm font-bold text-slate-900 block">Mandate Property</span>
-                                    <span className="text-xs text-slate-500 font-medium">Display this property in the "Investment Opportunities" (Mandates) homepage section</span>
+                                    <span className="text-xs text-slate-500 font-medium">Display this property in the &quot;Investment Opportunities&quot; (Mandates) homepage section</span>
                                 </div>
                             </label>
                         </div>

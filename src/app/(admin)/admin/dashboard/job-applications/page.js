@@ -5,6 +5,7 @@ import {
   GraduationCap, CalendarDays, FileText, CheckCircle2, 
   Users, Briefcase, Filter, ChevronDown, Download, Award
 } from 'lucide-react';
+import ExportModal from '@/components/admin/ExportModal';
 
 const ROLES = ['Relationship Manager', 'Sourcing Manager', 'Digital Marketing Executive', 'Customer Success Associate', 'Software Engineer', 'Sales Executive', 'Team Leader'];
 const STATUSES = ['New', 'Shortlisted', 'Interview', 'Offered', 'Hired', 'Rejected'];
@@ -14,6 +15,7 @@ export default function ManageApps() {
   const [filterRole, setFilterRole] = useState('All');
   const [selectedApp, setSelectedApp] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
   const [apps, setApps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -152,9 +154,14 @@ export default function ManageApps() {
                 <Briefcase size={16}/> HR Command Center • EUS Realty
               </p>
             </div>
-            <button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95">
-              <Plus size={18} strokeWidth={3} /> Add Candidate
-            </button>
+            <div className="flex items-center gap-3">
+              <button onClick={() => setExportOpen(true)} className="flex items-center gap-2 px-5 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all shadow-sm active:scale-95">
+                <Download size={18} strokeWidth={2.5} /> Export Excel
+              </button>
+              <button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95">
+                <Plus size={18} strokeWidth={3} /> Add Candidate
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -426,6 +433,23 @@ export default function ManageApps() {
             </div>
           </div>
         )}
+
+        {/* --- EXPORT MODAL --- */}
+        <ExportModal 
+          isOpen={exportOpen}
+          onClose={() => setExportOpen(false)}
+          data={apps}
+          filename="job_applications_export.xlsx"
+          availableColumns={[
+            { key: 'name', label: 'Applicant Name' },
+            { key: 'email', label: 'Email' },
+            { key: 'phone', label: 'Phone' },
+            { key: 'position', label: 'Role / Position' },
+            { key: 'experience', label: 'Experience' },
+            { key: 'status', label: 'Pipeline Stage' },
+            { key: 'createdAt', label: 'Applied On' }
+          ]}
+        />
 
       </div>
     </div>

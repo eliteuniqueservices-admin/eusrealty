@@ -6,6 +6,17 @@ import {
   RefreshCcw, Mail, FileText, Activity, Database, Key
 } from 'lucide-react';
 
+// --- REUSABLE TOGGLE COMPONENT ---
+const Toggle = ({ checked, onChange }) => (
+  <button
+    type="button"
+    onClick={onChange}
+    className={`w-12 h-6 rounded-full relative transition-colors duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-inner ${checked ? 'bg-blue-600' : 'bg-slate-200'}`}
+  >
+    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform duration-300 ease-in-out ${checked ? 'left-7' : 'left-1'}`} />
+  </button>
+);
+
 export default function SettingsPage() {
   const [activeSection, setActiveSection] = useState('profile');
   const [isSaving, setIsSaving] = useState(false);
@@ -60,17 +71,6 @@ export default function SettingsPage() {
     { id: 'notifications', label: 'Notification Prefs', icon: <Bell size={18} /> },
     { id: 'system', label: 'System Configuration', icon: <Shield size={18} /> },
   ];
-
-  // --- REUSABLE TOGGLE COMPONENT ---
-  const Toggle = ({ checked, onChange }) => (
-    <button
-      type="button"
-      onClick={onChange}
-      className={`w-12 h-6 rounded-full relative transition-colors duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-inner ${checked ? 'bg-blue-600' : 'bg-slate-200'}`}
-    >
-      <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform duration-300 ease-in-out ${checked ? 'left-7' : 'left-1'}`} />
-    </button>
-  );
 
   return (
     <div className="min-h-screen bg-slate-50/50 p-6 md:p-10 font-sans">
@@ -191,7 +191,7 @@ export default function SettingsPage() {
                     <AlertCircle className="text-amber-600 shrink-0 mt-0.5" size={20} />
                     <div>
                       <p className="text-sm font-black text-amber-900">Security Recommendation</p>
-                      <p className="text-sm font-medium text-amber-700 mt-1">Your password hasn't been changed in 90 days. We strongly recommend updating it to maintain account security.</p>
+                      <p className="text-sm font-medium text-amber-700 mt-1">Your password hasn&apos;t been changed in 90 days. We strongly recommend updating it to maintain account security.</p>
                     </div>
                   </div>
 
@@ -314,7 +314,7 @@ export default function SettingsPage() {
                         <div className="p-3 bg-white text-amber-600 rounded-xl shadow-sm"><Database size={20}/></div>
                         <div>
                           <p className="font-bold text-amber-900">Maintenance Mode</p>
-                          <p className="text-xs font-medium text-amber-700 mt-0.5">Disables public-facing features (Shows "Under Construction")</p>
+                          <p className="text-xs font-medium text-amber-700 mt-0.5">Disables public-facing features (Shows &quot;Under Construction&quot;)</p>
                         </div>
                       </div>
                       <Toggle checked={systemConfig.maintenanceMode} onChange={() => setSystemConfig(prev => ({...prev, maintenanceMode: !prev.maintenanceMode}))} />

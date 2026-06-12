@@ -115,11 +115,26 @@ export default function Footer() {
     }
   };
 
-  const handleSubscribe = (e) => {
+  const handleSubscribe = async (e) => {
     e.preventDefault();
     if (!emailInput) return;
-    setIsSubscribed(true);
-    setEmailInput('');
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailInput })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setIsSubscribed(true);
+        setEmailInput('');
+      } else {
+        alert(data.error || 'Subscription failed.');
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Network error. Please try again.');
+    }
   };
 
   return (

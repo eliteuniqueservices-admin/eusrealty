@@ -316,6 +316,7 @@ export default async function Home() {
               return (
                 <Reveal key={p._id ? p._id.toString() : `sig-${i}`} delay={(i + 1) * 0.1}>
                   <PropertyCard
+                    id={p._id?.toString() || 'dummy'}
                     title={p.name}
                     location={p.location}
                     price={priceVal}

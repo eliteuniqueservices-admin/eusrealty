@@ -38,7 +38,9 @@ export function getNavItems(role) {
     { name: 'Properties', href: '/admin/dashboard/properties', icon: 'Building2', roles: ['admin'] },
     { name: 'Job Posts', href: '/admin/dashboard/manage-job-posts', icon: 'Briefcase', roles: ['admin'] },
     { name: 'Applications', href: '/admin/dashboard/job-applications', icon: 'Users', roles: ['admin'] },
+    { name: 'Loan Applied', href: '/admin/dashboard/loan-applications', icon: 'Banknote', roles: ['admin'] },
     { name: 'Chat Leads', href: '/admin/dashboard/chat-leads', icon: 'MessageSquare', roles: ['admin'] },
+    { name: 'Subscribers', href: '/admin/dashboard/subscribers', icon: 'Mail', roles: ['admin'] },
     { name: 'Settings', href: '/admin/dashboard/settings', icon: 'Settings', roles: ['admin'] },
   ];
 }

@@ -3,6 +3,9 @@
 import { useState, useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion";
 import { ArrowUpRight, Play, TrendingUp, Star } from "lucide-react";
+import Link from "next/link";
+
+const MotionLink = motion(Link);
 
 export default function DarkProjectCard({ project, index }) {
   const cardRef = useRef(null);
@@ -44,9 +47,10 @@ export default function DarkProjectCard({ project, index }) {
         }}
       />
 
-      <motion.div
+      <MotionLink
         ref={cardRef}
-        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        href={`/properties/${project._id?.toString() || 'dummy'}`}
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d", display: 'block' }}
         onMouseMove={handleMouseMove}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={handleMouseLeave}
@@ -156,7 +160,7 @@ export default function DarkProjectCard({ project, index }) {
             </motion.div>
           </div>
         </div>
-      </motion.div>
+      </MotionLink>
     </div>
   );
 }

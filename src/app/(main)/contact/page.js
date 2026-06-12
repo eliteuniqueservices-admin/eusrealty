@@ -277,10 +277,9 @@ function speakCongratulation(name) {
 function CelebrationPopup({ name, onClose }) {
   const firstName = name?.trim().split(' ')[0] || 'Friend';
   const [phase, setPhase] = useState(0);
-  const [mounted, setMounted] = useState(false);
+  const [mounted, setMounted] = useState(true);
 
   useEffect(() => {
-    setMounted(true);
     const t1 = setTimeout(() => setPhase(1), 400);
     const t2 = setTimeout(() => {
       setPhase(2);

@@ -83,6 +83,69 @@ export const POST = auth(async function POST(req) {
     await dbConnect();
     const data = await req.json();
     const property = await Property.create(data);
+
+    // Send New Property Alert to Subscribers
+    try {
+      const Subscriber = (await import('@/models/Subscriber')).default;
+      const activeSubscribers = await Subscriber.find({ status: 'Active' });
+      
+      if (activeSubscribers.length > 0) {
+        const nodemailer = (await import('nodemailer')).default;
+        const transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.GMAIL_USER,
+            pass: process.env.GMAIL_APP_PASSWORD,
+          },
+        });
+
+        const emails = activeSubscribers.map(sub => sub.email);
+        
+        const priceString = property.configDetails?.[0]?.price ? `Starting at ${property.configDetails[0].price}` : 'Price on Request';
+
+        const emailHtml = `
+          <!DOCTYPE html>
+          <html>
+            <head><meta charset="utf-8" /></head>
+            <body style="font-family: Arial, sans-serif; background: #f8f9fa; padding: 20px;">
+              <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <div style="background: #0f172a; padding: 30px; text-align: center;">
+                  <h1 style="color: #f59e0b; margin: 0; font-size: 24px;">New Premium Property Alert</h1>
+                </div>
+                <div style="padding: 30px;">
+                  <h2 style="color: #0f172a; margin-top: 0;">${property.name}</h2>
+                  <p style="color: #64748b; font-size: 14px; margin-bottom: 20px;">📍 ${property.location} | 🏢 By ${property.developer}</p>
+                  
+                  <div style="background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 25px;">
+                    <p style="margin: 0; font-size: 16px; color: #0f172a;"><strong>Configurations:</strong> ${property.configurations?.join(', ')}</p>
+                    <p style="margin: 10px 0 0 0; font-size: 16px; color: #f59e0b; font-weight: bold;">${priceString}</p>
+                  </div>
+                  
+                  <p style="color: #334155; line-height: 1.6;">${property.description || 'Explore our newest luxury addition in Pune. Designed for premium living.'}</p>
+                  
+                  <div style="text-align: center; margin-top: 30px;">
+                    <a href="https://eusrealty.com/properties" style="display: inline-block; background: #f59e0b; color: #0f172a; padding: 12px 25px; border-radius: 6px; text-decoration: none; font-weight: bold;">View Details</a>
+                  </div>
+                </div>
+                <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
+                  <p style="color: #94a3b8; font-size: 12px; margin: 0;">You are receiving this because you subscribed to EUS Realty updates.</p>
+                </div>
+              </div>
+            </body>
+          </html>
+        `;
+
+        await transporter.sendMail({
+          from: `"EUS Realty" <${process.env.GMAIL_USER}>`,
+          bcc: emails, // Send as BCC for privacy
+          subject: `New Luxury Property: ${property.name} in ${property.location}`,
+          html: emailHtml,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to send subscriber alerts:', err);
+    }
+
     return NextResponse.json(property, { status: 201 });
   } catch (error) {
     console.error('Create property error:', error);

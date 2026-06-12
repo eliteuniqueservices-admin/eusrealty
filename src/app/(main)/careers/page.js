@@ -85,7 +85,7 @@ function InteractiveCalculator() {
 
           <div className="p-5 bg-white/5 border border-white/5 rounded-2xl">
             <p className="text-xs text-slate-400 font-light leading-relaxed">
-              * Projections combine EUS's tier-based commission payouts (ranging from <span className="text-amber-400 font-semibold">1.5% to 2.2%</span> of total closed volume) alongside standard base compensation metrics.
+              * Projections combine EUS&apos;s tier-based commission payouts (ranging from <span className="text-amber-400 font-semibold">1.5% to 2.2%</span> of total closed volume) alongside standard base compensation metrics.
             </p>
           </div>
         </div>
@@ -557,7 +557,7 @@ export default function CareersPage() {
                 className="inline-flex items-center gap-2.5 px-4.5 py-2.5 bg-white/5 backdrop-blur-xl rounded-full text-xs md:text-sm font-bold border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.3)] mb-4"
               >
                 <Star size={14} className="fill-amber-400 text-amber-400 animate-pulse" />
-                <span className="tracking-widest uppercase text-amber-500 font-extrabold">Join Pune's Elite Real Estate Force</span>
+                <span className="tracking-widest uppercase text-amber-500 font-extrabold">Join Pune&apos;s Elite Real Estate Force</span>
               </motion.div>
 
               {/* Title */}
@@ -569,7 +569,7 @@ export default function CareersPage() {
               >
                 Close ₹1Cr+ Deals in <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600">
-                  West Pune's IT Hub.
+                  West Pune&apos;s IT Hub.
                 </span>
               </motion.h1>
 
@@ -580,7 +580,7 @@ export default function CareersPage() {
                 transition={{ duration: 1, delay: 0.6 }}
                 className="text-base sm:text-lg md:text-xl text-slate-300 font-light max-w-3xl mx-auto leading-relaxed mt-6"
               >
-                Work with top developers like Godrej, VTP, and Rohan in Baner, Wakad, and Hinjewadi. Build a ₹10L–₹30L+ career with Pune's most aggressive incentives.
+                Work with top developers like Godrej, VTP, and Rohan in Baner, Wakad, and Hinjewadi. Build a ₹10L–₹30L+ career with Pune&apos;s most aggressive incentives.
               </motion.p>
 
               {/* Buttons */}
@@ -756,7 +756,7 @@ export default function CareersPage() {
                 Your Career Roadmap
               </h2>
               <p className="text-slate-400 text-base sm:text-lg max-w-xl mx-auto font-light">
-                At EUS Realty, you don't just stay in sales — you grow into a real estate leader. Reach ₹50L+ as a Team Leader.
+                At EUS Realty, you don&apos;t just stay in sales — you grow into a real estate leader. Reach ₹50L+ as a Team Leader.
               </p>
             </div>
 
@@ -931,7 +931,7 @@ export default function CareersPage() {
                   Location
                 </span>
                 <h2 className="text-4xl md:text-5xl font-black mb-6 tracking-tight">Visit our Hub</h2>
-                <p className="text-slate-400 text-base leading-relaxed mb-10 font-light">Located in the heart of Pune's massive growth corridor. Drop by for a coffee and let's discuss your future.</p>
+                <p className="text-slate-400 text-base leading-relaxed mb-10 font-light">Located in the heart of Pune&apos;s massive growth corridor. Drop by for a coffee and let&apos;s discuss your future.</p>
                 
                 <div className="space-y-6 mb-12">
                   <div className="flex gap-4">

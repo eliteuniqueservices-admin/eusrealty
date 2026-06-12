@@ -24,7 +24,7 @@ import { getNavItems } from '@/lib/permissions';
 import {
   LayoutDashboard, Building2, Settings, LogOut, Bell,
   ChevronDown, Menu, X, User, Users, Key, ChevronRight, Briefcase,
-  MessageSquare,
+  MessageSquare, Banknote, Mail,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +37,8 @@ const ICON_MAP = {
   Briefcase,
   MessageSquare,
   Users,
+  Banknote,
+  Mail,
 };
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -174,14 +176,31 @@ function SidebarContent({
 export default function AdminShell({ children }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   const [collapsed, setCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
-  const role = session?.user?.role || 'admin';
+  // Client-side session protection (Defense in depth)
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-4 text-white">
+        <div className="w-10 h-10 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-xs font-black tracking-widest uppercase text-slate-500">Verifying Credentials...</p>
+      </div>
+    );
+  }
+
+  if (status === 'unauthenticated' || !session || session.user?.role !== 'admin') {
+    if (typeof window !== 'undefined') {
+      router.replace('/admin/login');
+    }
+    return null;
+  }
+
+  const role = session.user.role;
   const navItems = getNavItems(role);
 
   /** Maps role keys to Tailwind badge colour classes. */
