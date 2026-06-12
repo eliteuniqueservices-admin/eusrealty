@@ -241,28 +241,49 @@ export async function POST(request) {
     }
 
     // -------------------------------------------------------
-    // 2. SEND WHATSAPP via CallMeBot API
+    // 2. SEND TELEGRAM ALERT via Telegram Bot API (Admin & Sales Group)
     // -------------------------------------------------------
-    const whatsappMessage = encodeURIComponent(
-      `🏠 *New EUS Realty Lead*\n\n` +
-      `👤 *Name:* ${name}\n` +
-      `📞 *Phone:* ${phone}\n` +
-      `📧 *Email:* ${email || 'N/A'}\n` +
-      `🎯 *Objective:* ${objective}\n` +
-      (budget ? `💰 *Budget:* ${budget}\n` : '') +
-      (preferredLocation ? `📍 *Location:* ${preferredLocation}\n` : '') +
-      (propertyType ? `🏢 *Prop Type:* ${propertyType}\n` : '') +
-      (possession ? `🔑 *Possession:* ${possession}\n` : '') +
-      (position ? `💼 *Position:* ${position}\n` : '') +
-      (message ? `💬 *Message:* ${message}` : '')
-    );
+    try {
+      const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
+      const telegramChatId = process.env.TELEGRAM_CHAT_ID;
+      const telegramSalesChatId = process.env.TELEGRAM_SALES_CHAT_ID;
 
-    const whatsappUrl = `https://api.callmebot.com/whatsapp.php?phone=${process.env.WHATSAPP_PHONE}&text=${whatsappMessage}&apikey=${process.env.WHATSAPP_APIKEY}`;
+      if (telegramBotToken) {
+        const chatIds = [telegramChatId, telegramSalesChatId].filter(Boolean);
 
-    // Fire-and-forget — don't block the response if WhatsApp fails
-    fetch(whatsappUrl).catch((err) => {
-      console.error('WhatsApp notification failed:', err);
-    });
+        if (chatIds.length > 0) {
+          const telegramUrl = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
+          const telegramMessage = 
+            `🏠 *New EUS Realty Lead*\n\n` +
+            `👤 *Name:* ${name}\n` +
+            `📞 *Phone:* ${phone}\n` +
+            `📧 *Email:* ${email || 'N/A'}\n` +
+            `🎯 *Objective:* ${objective}\n` +
+            (budget ? `💰 *Budget:* ${budget}\n` : '') +
+            (preferredLocation ? `📍 *Location:* ${preferredLocation}\n` : '') +
+            (propertyType ? `🏢 *Prop Type:* ${propertyType}\n` : '') +
+            (possession ? `🔑 *Possession:* ${possession}\n` : '') +
+            (position ? `💼 *Position:* ${position}\n` : '') +
+            (message ? `💬 *Message:* ${message}` : '');
+
+          for (const chatId of chatIds) {
+            fetch(telegramUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                chat_id: chatId,
+                text: telegramMessage,
+                parse_mode: 'Markdown'
+              })
+            }).catch((err) => {
+              console.error(`Telegram notification failed for chat ID ${chatId}:`, err);
+            });
+          }
+        }
+      }
+    } catch (tgErr) {
+      console.error('Telegram integration error:', tgErr);
+    }
 
     return Response.json({ success: true, leadId: dbLead?._id }, { status: 200 });
 

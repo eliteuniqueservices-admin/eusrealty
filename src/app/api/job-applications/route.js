@@ -109,24 +109,43 @@ export async function POST(request) {
       console.error('Failed to send application email:', mailErr);
     }
 
-    // Send WhatsApp notification
+    // Send Telegram notification (Admin & Sales Group)
     try {
-      if (process.env.WHATSAPP_PHONE && process.env.WHATSAPP_APIKEY) {
-        const messageText = 
-          `💼 *New Job Application*\n\n` +
-          `👤 *Name:* ${name}\n` +
-          `🎯 *Position:* ${position}\n` +
-          `📞 *Phone:* ${phone}\n` +
-          `📧 *Email:* ${email}\n` +
-          `⏳ *Experience:* ${experience}\n` +
-          `📎 *Resume:* ${resumeUrl}`;
-        
-        const whatsappUrl = `https://api.callmebot.com/whatsapp.php?phone=${process.env.WHATSAPP_PHONE}&text=${encodeURIComponent(messageText)}&apikey=${process.env.WHATSAPP_APIKEY}`;
-        
-        fetch(whatsappUrl).catch(err => console.error('CallMeBot error:', err));
+      const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
+      const telegramChatId = process.env.TELEGRAM_CHAT_ID;
+      const telegramSalesChatId = process.env.TELEGRAM_SALES_CHAT_ID;
+
+      if (telegramBotToken) {
+        const chatIds = [telegramChatId, telegramSalesChatId].filter(Boolean);
+
+        if (chatIds.length > 0) {
+          const telegramUrl = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
+          const telegramMessageText = 
+            `💼 *New Job Application*\n\n` +
+            `👤 *Name:* ${name}\n` +
+            `🎯 *Position:* ${position}\n` +
+            `📞 *Phone:* ${phone}\n` +
+            `📧 *Email:* ${email}\n` +
+            `⏳ *Experience:* ${experience}\n` +
+            `📎 *Resume:* ${resumeUrl}`;
+
+          for (const chatId of chatIds) {
+            fetch(telegramUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                chat_id: chatId,
+                text: telegramMessageText,
+                parse_mode: 'Markdown'
+              })
+            }).catch((err) => {
+              console.error(`Telegram notification failed for chat ID ${chatId}:`, err);
+            });
+          }
+        }
       }
-    } catch (wsErr) {
-      console.error('Failed to send WhatsApp alert:', wsErr);
+    } catch (tgErr) {
+      console.error('Failed to send Telegram alert:', tgErr);
     }
 
     return NextResponse.json({ success: true, application }, { status: 201 });
