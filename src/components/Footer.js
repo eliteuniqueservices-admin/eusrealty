@@ -5,15 +5,15 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
 import Reveal from '@/components/Reveal';
-import { 
-  Facebook, 
-  Instagram, 
-  Linkedin, 
-  Youtube, 
-  MapPin, 
-  Phone, 
-  Mail, 
-  ArrowUp, 
+import {
+  Facebook,
+  Instagram,
+  Linkedin,
+  Youtube,
+  MapPin,
+  Phone,
+  Mail,
+  ArrowUp,
   ShieldCheck,
   ArrowRight,
   CheckCircle2,
@@ -68,7 +68,7 @@ function MagneticSocial({ children, link, label }) {
 
 export default function Footer() {
   const footerRef = useRef(null);
-  
+
   // States for interactive components
   const [isHovered, setIsHovered] = useState(false);
   const [copiedEmail, setCopiedEmail] = useState(false);
@@ -91,7 +91,7 @@ export default function Footer() {
   const handleCopyEmail = async (e) => {
     e.preventDefault();
     const email = 'eliteuniqueservices@gmail.com';
-    
+
     try {
       if (navigator?.clipboard?.writeText) {
         await navigator.clipboard.writeText(email);
@@ -138,7 +138,7 @@ export default function Footer() {
   };
 
   return (
-    <footer 
+    <footer
       ref={footerRef}
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
@@ -146,7 +146,7 @@ export default function Footer() {
       className="relative bg-slate-950 text-white pt-24 pb-12 overflow-hidden border-t border-slate-900 select-none"
     >
       {/* Dynamic Cursor Spotlight Glow */}
-      <div 
+      <div
         className="absolute inset-0 pointer-events-none z-0 transition-opacity duration-700 ease-out"
         style={{
           background: 'radial-gradient(circle 500px at var(--spotlight-x, 0px) var(--spotlight-y, 0px), rgba(245, 158, 11, 0.06) 0%, transparent 60%)',
@@ -165,7 +165,7 @@ export default function Footer() {
       <div className="max-w-[90rem] mx-auto px-6 sm:px-12 relative z-10">
         <Reveal>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-16 mb-20">
-            
+
             {/* ── COLUMN 1: BRANDING & SOCIAL (Span 4) ── */}
             <div className="lg:col-span-4 space-y-8 lg:pr-8">
               <div>
@@ -173,10 +173,10 @@ export default function Footer() {
                   EUS<span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-500">REALTY</span>
                 </h2>
                 <p className="text-slate-400 font-light leading-relaxed text-sm">
-                  Your trusted authorized channel partner for West Pune. Revolutionizing real estate through direct builder-to-buyer connections, 100% verified legal clarity, and transparent advisory.
+                  Your trusted authorized Strategic Partner for West Pune. Revolutionizing real estate through direct builder-to-buyer connections, 100% verified legal clarity, and transparent advisory.
                 </p>
               </div>
-              
+
               {/* Magnetic Social Icons */}
               <div className="flex gap-3 pt-2">
                 {[
@@ -249,11 +249,11 @@ export default function Footer() {
                   <div className="w-9 h-9 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center text-amber-500 group-hover:bg-amber-500 group-hover:text-slate-950 transition-colors duration-300 shrink-0">
                     <Phone size={16} />
                   </div>
-                  <a 
-                    href="tel:+917620733613" 
+                  <a
+                    href="tel:+917620733613"
                     className="text-sm text-slate-400 font-bold hover:text-white transition-colors"
                   >
-                    +91 7620733613
+                    +91 7620733613  ,  +91 9112229809
                   </a>
                 </li>
 
@@ -290,7 +290,7 @@ export default function Footer() {
             <div className="lg:col-span-3">
               <div className="bg-white/[0.02] p-8 rounded-[2rem] border border-white/[0.06] shadow-xl relative overflow-hidden h-full flex flex-col justify-between">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 blur-xl rounded-full" />
-                
+
                 <div>
                   <h4 className="text-base font-black text-slate-100 mb-2 tracking-wide font-outfit">Stay Vetted</h4>
                   <p className="text-xs text-slate-400 mb-6 font-light leading-relaxed">Join our private list to receive early pre-launch property notifications in West Pune.</p>
@@ -304,15 +304,15 @@ export default function Footer() {
                   </div>
                 ) : (
                   <form className="flex flex-col gap-3" onSubmit={handleSubscribe}>
-                    <input 
-                      type="email" 
+                    <input
+                      type="email"
                       value={emailInput}
                       onChange={(e) => setEmailInput(e.target.value)}
-                      placeholder="Email Address" 
+                      placeholder="Email Address"
                       required
                       className="w-full bg-slate-950 border border-white/5 px-4 py-3.5 rounded-xl text-xs text-white outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20 transition-all placeholder:text-slate-700 font-medium"
                     />
-                    <button 
+                    <button
                       type="submit"
                       className="relative overflow-hidden w-full bg-amber-500 text-slate-950 font-black py-3.5 rounded-xl text-xs uppercase tracking-widest shadow-lg transition-transform active:scale-[0.97] group/sub"
                     >
@@ -332,7 +332,7 @@ export default function Footer() {
 
         {/* ── BOTTOM ROW: RERA & LEGALS ── */}
         <div className="pt-8 border-t border-white/5 flex flex-col lg:flex-row justify-between items-center gap-8 z-10 relative">
-          
+
           {/* RERA Scanning Widget */}
           <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left w-full lg:w-auto">
             {/* Glass QR Container with Animated Laser scan line */}
@@ -347,7 +347,7 @@ export default function Footer() {
               {/* Scan Line Laser */}
               <div className="absolute left-0 right-0 h-[2px] bg-emerald-400 shadow-[0_0_8px_#34d399] animate-scan pointer-events-none" />
             </div>
-            
+
             <div className="flex flex-col gap-3">
               <div className="inline-flex items-center justify-center sm:justify-start gap-2 bg-slate-900 border border-white/5 px-4.5 py-1.5 rounded-full w-fit mx-auto sm:mx-0">
                 <ShieldCheck className="text-amber-500 animate-pulse" size={15} />
@@ -356,7 +356,7 @@ export default function Footer() {
                 </span>
               </div>
               <p className="text-slate-500 text-[11px] max-w-lg font-light leading-relaxed">
-                <strong className="font-bold text-slate-400">EusRealty is an authorized channel partner.</strong> Property descriptions, prices, and layouts are verified directly against developer database filings. MahaRERA registration is required before any financial transaction.
+                <strong className="font-bold text-slate-400">EusRealty is an authorized Strategic Partner.</strong> Property descriptions, prices, and layouts are verified directly against developer database filings. MahaRERA registration is required before any financial transaction.
               </p>
             </div>
           </div>
@@ -366,8 +366,8 @@ export default function Footer() {
             <div className="text-slate-500 text-xs font-semibold">
               © 2026 EusRealty. All rights reserved.
             </div>
-            
-            <motion.button 
+
+            <motion.button
               onClick={scrollToTop}
               whileHover={{ y: -4, scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-const MotionLink = motion(Link);
+const MotionLink = motion.create(Link);
 
 /* ─────────────────────────────────────────────────────────────
    ANIMATED NUMBER COUNTER  (counts up from 0 to value on mount)

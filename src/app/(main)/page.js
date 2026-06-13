@@ -216,7 +216,7 @@ export default async function Home() {
               {
                 icon: <TrendingUp size={28} />,
                 title: "Zero Brokerage",
-                desc: "As an official channel partner, our advisory and transaction services are completely free for buyers. Save lakhs.",
+                desc: "As an official Strategic Partner, our advisory and transaction services are completely free for buyers. Save lakhs.",
                 highlight: "₹0 fees",
                 color: "from-emerald-500/10 to-emerald-50/50",
                 iconBg: "bg-emerald-50 border-emerald-100 text-emerald-600",

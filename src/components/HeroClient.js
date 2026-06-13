@@ -44,7 +44,7 @@ export default function HeroClient() {
           <span className="flex h-5 w-5 md:h-6 md:w-6 items-center justify-center rounded-full bg-amber-500 text-white group-hover:scale-110 transition-transform duration-300 shadow-inner">
             <Star size={10} className="fill-white" />
           </span>
-          <span className="tracking-wide">Authorized Channel Partner</span>
+          <span className="tracking-wide">Authorized Strategic Partner</span>
           <span className="hidden sm:inline text-slate-300">•</span>
           <span className="hidden sm:inline font-bold text-amber-600">RERA Registered</span>
           <ChevronRight size={15} className="text-amber-500 group-hover:translate-x-1 transition-transform" />

@@ -5,7 +5,7 @@ import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from
 import { ArrowUpRight, Play, TrendingUp, Star } from "lucide-react";
 import Link from "next/link";
 
-const MotionLink = motion(Link);
+const MotionLink = motion.create(Link);
 
 export default function DarkProjectCard({ project, index }) {
   const cardRef = useRef(null);

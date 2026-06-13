@@ -17,7 +17,7 @@ import Link from "next/link";
 export default function SourcingManager() {
   return (
     <main className="min-h-screen bg-[#FDFDFD] py-16 px-4 sm:px-6 lg:px-8 selection:bg-amber-500 selection:text-white font-sans text-slate-900 relative overflow-hidden">
-      
+
       {/* Background Styling */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-slate-200/30 rounded-full blur-[100px] pointer-events-none" />
@@ -38,7 +38,7 @@ export default function SourcingManager() {
 
         {/* Job Card */}
         <div className="bg-white rounded-[2.5rem] p-8 sm:p-12 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.05)] border border-slate-100 relative">
-          
+
           {/* Top Decorative Line */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1.5 bg-amber-500 rounded-b-full"></div>
 
@@ -65,7 +65,7 @@ export default function SourcingManager() {
                 <p className="font-bold text-slate-900">West Pune (Baner / Wakad / Hinjewadi)</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4 text-slate-700 group">
               <div className="w-12 h-12 flex items-center justify-center bg-slate-50 border border-slate-100 rounded-2xl group-hover:bg-slate-950 group-hover:text-amber-400 transition-colors duration-300">
                 <Briefcase size={20} className="text-amber-500 group-hover:text-amber-400 transition-colors" />
@@ -75,7 +75,7 @@ export default function SourcingManager() {
                 <p className="font-bold text-slate-900">Full-time</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4 text-slate-700 group">
               <div className="w-12 h-12 flex items-center justify-center bg-slate-50 border border-slate-100 rounded-2xl group-hover:bg-slate-950 group-hover:text-amber-400 transition-colors duration-300">
                 <Calendar size={20} className="text-amber-500 group-hover:text-amber-400 transition-colors" />
@@ -85,7 +85,7 @@ export default function SourcingManager() {
                 <p className="font-bold text-slate-900">12 March 2026</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4 text-slate-700 group">
               <div className="w-12 h-12 flex items-center justify-center bg-slate-50 border border-slate-100 rounded-2xl group-hover:bg-slate-950 group-hover:text-amber-400 transition-colors duration-300">
                 <Clock size={20} className="text-amber-500 group-hover:text-amber-400 transition-colors" />
@@ -95,7 +95,7 @@ export default function SourcingManager() {
                 <p className="font-bold text-slate-900">12 April 2026</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4 text-slate-700 group">
               <div className="w-12 h-12 flex items-center justify-center bg-slate-50 border border-slate-100 rounded-2xl group-hover:bg-slate-950 group-hover:text-amber-400 transition-colors duration-300">
                 <Building2 size={20} className="text-amber-500 group-hover:text-amber-400 transition-colors" />
@@ -105,7 +105,7 @@ export default function SourcingManager() {
                 <p className="font-bold text-slate-900">Tathawade HQ</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4 text-slate-700 group">
               <div className="w-12 h-12 flex items-center justify-center bg-amber-50 border border-amber-100 rounded-2xl group-hover:bg-amber-500 group-hover:text-slate-950 transition-colors duration-300">
                 <Handshake size={20} className="text-amber-600 group-hover:text-slate-950 transition-colors" />
@@ -129,7 +129,7 @@ export default function SourcingManager() {
                 Eus Realty is seeking a proactive Sourcing Manager responsible
                 for building and maintaining relationships with real estate
                 developers across Pune. The role focuses on sourcing premium
-                residential projects, securing exclusive channel partner
+                residential projects, securing exclusive Strategic Partner
                 mandates, and expanding our property inventory to meet growing
                 client demand.
               </p>
@@ -145,7 +145,7 @@ export default function SourcingManager() {
                 {[
                   "Identify and onboard new real estate developers and projects.",
                   "Maintain relationships with builder sales teams.",
-                  "Negotiate channel partner terms and project inventory allocations.",
+                  "Negotiate Strategic Partner terms and project inventory allocations.",
                   "Keep updated records of all project inventories and pricing.",
                   "Coordinate with the internal sales team for project launches.",
                   "Monitor market trends and identify high-demand projects."
@@ -220,7 +220,7 @@ export default function SourcingManager() {
               <h3 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">Ready to join the elite?</h3>
               <p className="text-slate-500 font-light">Send your resume and a brief cover letter.</p>
             </div>
-            
+
             {/* PRIMARY BUTTON: "Building Rise" Animation */}
             <a
               href="https://mail.google.com/mail/?view=cm&fs=1&to=eliteuniqueservices@gmail.com&su=Application%20for%20Sourcing%20Manager"

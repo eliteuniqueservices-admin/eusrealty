@@ -586,7 +586,7 @@ function loadYoutubeAPI(callback) {
 
   if (!apiLoaded) {
     apiLoaded = true;
-    
+
     const existingAPIReady = window.onYouTubeIframeAPIReady;
     window.onYouTubeIframeAPIReady = () => {
       if (existingAPIReady) existingAPIReady();
@@ -622,7 +622,7 @@ function VideoSection() {
 
     loadYoutubeAPI(() => {
       if (!iframeRef.current) return;
-      
+
       player = new window.YT.Player(iframeRef.current, {
         events: {
           onReady: (event) => {
@@ -712,7 +712,7 @@ function VideoSection() {
   };
 
   return (
-    <section 
+    <section
       ref={sectionRef}
       className="w-full h-[60vh] md:h-[85vh] lg:h-screen relative overflow-hidden bg-black border-y border-white/5 shadow-2xl"
     >
@@ -887,7 +887,7 @@ export default function AboutClient() {
           <div className="absolute top-[25%] left-[50%] -translate-x-1/2 w-[600px] h-[300px] bg-amber-500/10 rounded-full blur-[140px] pointer-events-none mix-blend-screen" />
 
           {/* Floating Luxury Badges (Parallax Scrolling) */}
-          <motion.div 
+          <motion.div
             style={{ y: yWidgetLeft }}
             className="absolute left-[8%] top-[55%] hidden xl:flex items-center gap-3.5 px-5 py-4 bg-slate-950/80 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] max-w-xs transition-colors hover:border-amber-500/30"
           >
@@ -900,7 +900,7 @@ export default function AboutClient() {
             </div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             style={{ y: yWidgetRight }}
             className="absolute right-[8%] top-[60%] hidden xl:flex items-center gap-3.5 px-5 py-4 bg-slate-950/80 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] max-w-xs transition-colors hover:border-amber-500/30"
           >
@@ -977,7 +977,7 @@ export default function AboutClient() {
         ══════════════════════════════════════ */}
         <section ref={timelineRef} className="py-24 md:py-36 relative overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 relative">
-            
+
             {/* Horizontal Section Indicator Header */}
             <div className="text-center mb-20 md:mb-28">
               <span className="text-amber-500 font-black tracking-widest uppercase text-xs mb-3 block">
@@ -1031,7 +1031,7 @@ export default function AboutClient() {
                   <p>
                     When Pune&apos;s top-tier developers needed to market massive luxury ventures—like the legendary{' '}
                     <strong className="text-amber-400 font-semibold">Omega Paradise in Wakad</strong>—they didn&apos;t rely solely on ad campaigns. They called
-                    Amarpal. As an elite channel partner, he guided thousands of homebuyers and investors based purely on uncompromising ethics.
+                    Amarpal. As an elite Strategic Partner, he guided thousands of homebuyers and investors based purely on uncompromising ethics.
                   </p>
                 </div>
               </motion.div>
@@ -1339,7 +1339,7 @@ export default function AboutClient() {
         ══════════════════════════════════════ */}
         <section className="py-24 md:py-36 relative overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
-            
+
             <div className="bg-slate-950/80 rounded-[2.5rem] md:rounded-[4rem] p-8 sm:p-14 md:p-20 lg:p-28 text-center text-white overflow-hidden relative shadow-[0_30px_70px_-15px_rgba(0,0,0,0.9)] border border-white/10 backdrop-blur-2xl">
               {/* Background ambient lighting */}
               <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-amber-500/10 blur-[130px] rounded-full animate-[pulse_6s_ease-in-out_infinite]" />

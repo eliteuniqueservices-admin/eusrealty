@@ -18,21 +18,21 @@ export default function ROICalculator() {
   const [downPayment, setDownPayment] = useState(2000000);
   const [interestRate, setInterestRate] = useState(8.5);
   const [loanYears, setLoanYears] = useState(20);
-  const [stampDutyRate, setStampDutyRate] = useState(6.0); 
-  const [brokerageBuy, setBrokerageBuy] = useState(0.0); // Defaulted to 0 for Zero Brokerage Channel Partner
+  const [stampDutyRate, setStampDutyRate] = useState(6.0);
+  const [brokerageBuy, setBrokerageBuy] = useState(0.0); // Defaulted to 0 for Zero Brokerage Strategic Partner
 
   // 2. Income & Operations (Annual)
   const [rentalYield, setRentalYield] = useState(3.0);
-  const [rentalGrowth, setRentalGrowth] = useState(5.0); 
-  const [propertyTax, setPropertyTax] = useState(0.3); 
-  const [maintenance, setMaintenance] = useState(0.2); 
+  const [rentalGrowth, setRentalGrowth] = useState(5.0);
+  const [propertyTax, setPropertyTax] = useState(0.3);
+  const [maintenance, setMaintenance] = useState(0.2);
 
   // 3. Disposition (Selling)
   const [sellingPrice, setSellingPrice] = useState(18000000);
   const [purchaseYear, setPurchaseYear] = useState(new Date().getFullYear());
   const [yearsHeld, setYearsHeld] = useState(10);
   const [brokerageSell, setBrokerageSell] = useState(1.0);
-  const [capitalGainsTaxRate, setCapitalGainsTaxRate] = useState(20.0); 
+  const [capitalGainsTaxRate, setCapitalGainsTaxRate] = useState(20.0);
 
   // 4. Meta
   const [location, setLocation] = useState("Pune");
@@ -64,23 +64,23 @@ export default function ROICalculator() {
   // FINANCIAL CALCULATIONS (Unchanged)
   // ==========================================
   const loanAmount = financingType === "loan" ? Math.max(cost - downPayment, 0) : 0;
-  
+
   const stampDutyCost = cost * (stampDutyRate / 100);
   const buyBrokerageCost = cost * (brokerageBuy / 100);
   const totalAcquisitionCost = cost + stampDutyCost + buyBrokerageCost;
-  
-  const initialCashInvested = financingType === "loan" 
-    ? downPayment + stampDutyCost + buyBrokerageCost 
+
+  const initialCashInvested = financingType === "loan"
+    ? downPayment + stampDutyCost + buyBrokerageCost
     : totalAcquisitionCost;
 
   const monthlyRate = interestRate / 12 / 100;
   const totalMonths = loanYears * 12;
   const monthsHeld = yearsHeld * 12;
-  
-  const emi = loanAmount > 0 
+
+  const emi = loanAmount > 0
     ? (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, totalMonths)) / (Math.pow(1 + monthlyRate, totalMonths) - 1)
     : 0;
-  
+
   const annualEMI = emi * 12;
 
   const remainingLoanBalance = loanAmount > 0 && monthsHeld < totalMonths
@@ -93,13 +93,13 @@ export default function ROICalculator() {
 
   for (let i = 0; i < yearsHeld; i++) {
     totalRentalIncome += currentRent;
-    currentRent *= (1 + rentalGrowth / 100); 
+    currentRent *= (1 + rentalGrowth / 100);
     totalMaintenanceAndTaxes += (cost * (propertyTax / 100)) + (cost * (maintenance / 100));
   }
 
   const totalHoldingCost = totalMaintenanceAndTaxes + (annualEMI * yearsHeld);
   const totalNetOperatingIncome = totalRentalIncome - totalMaintenanceAndTaxes;
-  const totalCashFlow = totalNetOperatingIncome - (annualEMI * yearsHeld); 
+  const totalCashFlow = totalNetOperatingIncome - (annualEMI * yearsHeld);
 
   const sellBrokerageCost = sellingPrice * (brokerageSell / 100);
   const capitalGains = Math.max((sellingPrice - sellBrokerageCost) - totalAcquisitionCost, 0);
@@ -107,28 +107,28 @@ export default function ROICalculator() {
 
   const netProceedsFromSale = sellingPrice - sellBrokerageCost - remainingLoanBalance - taxPaid;
   const totalNetProfit = netProceedsFromSale + totalCashFlow - initialCashInvested;
-  
+
   const averageAnnualCashFlow = totalCashFlow / yearsHeld;
   const cashOnCashReturn = initialCashInvested > 0 ? (averageAnnualCashFlow / initialCashInvested) * 100 : 0;
 
   const totalReturnMultiplier = (netProceedsFromSale + totalRentalIncome - totalHoldingCost - taxPaid) / initialCashInvested;
-  const annualizedROI = initialCashInvested > 0 && totalReturnMultiplier > 0 
-    ? (Math.pow(totalReturnMultiplier, 1 / yearsHeld) - 1) * 100 
+  const annualizedROI = initialCashInvested > 0 && totalReturnMultiplier > 0
+    ? (Math.pow(totalReturnMultiplier, 1 / yearsHeld) - 1) * 100
     : 0;
 
-  const riskLevel = financingType === "loan" && cashOnCashReturn < 0 && emi > (currentRent/12) ? "High" : annualizedROI > 12 ? "Low" : "Medium";
+  const riskLevel = financingType === "loan" && cashOnCashReturn < 0 && emi > (currentRent / 12) ? "High" : annualizedROI > 12 ? "Low" : "Medium";
 
   // Chart Data
   const chartData = useMemo(() => {
     const labels = [];
-    const equityData = []; 
-    
+    const equityData = [];
+
     let currentPropValue = cost;
-    const valueGrowthRate = Math.pow(sellingPrice / cost, 1 / yearsHeld) - 1; 
-    
+    const valueGrowthRate = Math.pow(sellingPrice / cost, 1 / yearsHeld) - 1;
+
     for (let i = 0; i <= yearsHeld; i++) {
       labels.push(purchaseYear + i);
-      
+
       const mos = i * 12;
       const loanRem = loanAmount > 0 && mos < totalMonths
         ? loanAmount * (Math.pow(1 + monthlyRate, totalMonths) - Math.pow(1 + monthlyRate, mos)) / (Math.pow(1 + monthlyRate, totalMonths) - 1)
@@ -136,7 +136,7 @@ export default function ROICalculator() {
 
       const equity = currentPropValue - loanRem;
       equityData.push(equity);
-      
+
       currentPropValue *= (1 + valueGrowthRate);
     }
     return { labels, equityData };
@@ -195,28 +195,28 @@ export default function ROICalculator() {
     canvas.width = 1000;
     canvas.height = 450;
     const ctx = canvas.getContext("2d");
-    
+
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     const chart = new Chart(ctx, {
       type: "line",
-      data: { 
-        labels: chartData.labels, 
-        datasets: [{ 
-          label: "Equity Built (Value - Debt)", 
-          data: chartData.equityData, 
-          borderWidth: 4, 
+      data: {
+        labels: chartData.labels,
+        datasets: [{
+          label: "Equity Built (Value - Debt)",
+          data: chartData.equityData,
+          borderWidth: 4,
           tension: 0.4,
           borderColor: '#f59e0b', // Amber
           backgroundColor: 'rgba(245, 158, 11, 0.1)',
           fill: true,
           pointRadius: 4,
           pointBackgroundColor: '#0f172a' // Slate
-        }] 
+        }]
       },
-      options: { 
-        responsive: false, 
+      options: {
+        responsive: false,
         animation: false,
         scales: {
           y: { ticks: { font: { size: 14 }, callback: (value) => formatINR(value) } },
@@ -224,8 +224,8 @@ export default function ROICalculator() {
         }
       }
     });
-    
-    await new Promise(resolve => setTimeout(resolve, 600)); 
+
+    await new Promise(resolve => setTimeout(resolve, 600));
     const image = canvas.toDataURL("image/jpeg", 1.0);
     chart.destroy();
     return image;
@@ -235,21 +235,21 @@ export default function ROICalculator() {
     const pdf = new jsPDF("p", "mm", "a4");
     const pageWidth = pdf.internal.pageSize.getWidth();
     const chartImage = await createChartImage();
-    
+
     let logo = null, qr = null;
-    try { logo = await loadImage("/logo.png"); } catch (e) {}
-    try { qr = await loadImage("/MahaRERA QR_CODE.png"); } catch (e) {}
+    try { logo = await loadImage("/logo.png"); } catch (e) { }
+    try { qr = await loadImage("/MahaRERA QR_CODE.png"); } catch (e) { }
 
     const drawRow = (y, label, value, isBold = false) => {
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(10);
-      pdf.setTextColor(100, 100, 100); 
-      
-      const wrappedLabel = pdf.splitTextToSize(label, 100); 
+      pdf.setTextColor(100, 100, 100);
+
+      const wrappedLabel = pdf.splitTextToSize(label, 100);
       pdf.text(wrappedLabel, 25, y);
 
       const labelHeight = wrappedLabel.length * 4.5;
-      
+
       pdf.setFont("helvetica", isBold ? "bold" : "normal");
       pdf.setFontSize(isBold ? 11 : 10);
 
@@ -261,9 +261,9 @@ export default function ROICalculator() {
       } else {
         pdf.setTextColor("#334155"); // Slate-700
       }
-      
+
       pdf.text(stringValue, pageWidth - 25, y + (labelHeight / 2) - 2, { align: "right" });
-      
+
       pdf.setDrawColor(240, 240, 240);
       const nextY = y + Math.max(labelHeight, 8) + 2;
       pdf.line(25, nextY, pageWidth - 25, nextY);
@@ -271,25 +271,25 @@ export default function ROICalculator() {
     };
 
     // Header updated to Slate-950
-    pdf.setFillColor(2, 6, 23); 
+    pdf.setFillColor(2, 6, 23);
     pdf.rect(0, 0, pageWidth, 45, "F");
     if (logo) pdf.addImage(logo, "PNG", 15, 10, 25, 25);
-    
+
     pdf.setTextColor(255, 255, 255);
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(20);
     pdf.text("Investment Analysis Report", 45, 22);
-    
+
     pdf.setFontSize(9);
     pdf.setFont("helvetica", "normal");
-    pdf.text("Authorized Channel Partner | MahaRERA: A041262501741", 45, 28);
+    pdf.text("Authorized Strategic Partner | MahaRERA: A041262501741", 45, 28);
     pdf.text("Pune, Maharashtra | Ph: 7620733613", 45, 33);
     if (qr) pdf.addImage(qr, "PNG", pageWidth - 35, 10, 25, 25);
 
     let y = 60;
     pdf.setFillColor(248, 250, 252); // Slate-50
     pdf.roundedRect(20, y, pageWidth - 40, 30, 2, 2, "F");
-    
+
     pdf.setTextColor(15, 23, 42); // Slate-900
     pdf.setFontSize(11);
     pdf.text("ANNUALIZED ROI (IRR)", 30, y + 12);
@@ -313,7 +313,7 @@ export default function ROICalculator() {
     y = drawRow(y, "Acquisition Costs (Stamp Duty/Fees)", formatINR(initialCashInvested - downPayment));
     y = drawRow(y, "Total Capital Committed", formatINR(initialCashInvested), true);
     y = drawRow(y, "Projected Selling Price", formatINR(sellingPrice));
-    y = drawRow(y, "Estimated Rental Income (Holding Period)", formatINR(totalNetOperatingIncome)); 
+    y = drawRow(y, "Estimated Rental Income (Holding Period)", formatINR(totalNetOperatingIncome));
     y = drawRow(y, "Post-Tax Net Proceeds", formatINR(netProceedsFromSale));
     y = drawRow(y, "Cash on Cash Return", `${cashOnCashReturn.toFixed(2)}%`, true);
 
@@ -335,7 +335,7 @@ export default function ROICalculator() {
   return (
     <main className="min-h-screen bg-[#FDFDFD] selection:bg-amber-500 selection:text-white py-16 md:py-24 font-sans text-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        
+
         <Reveal>
           <div className="text-center mb-12 md:mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-50 border border-slate-200 rounded-full text-xs md:text-sm font-bold shadow-sm mb-6">
@@ -348,7 +348,7 @@ export default function ROICalculator() {
             <p className="text-slate-500 max-w-2xl mx-auto font-light md:text-lg mb-8">
               Forecast your exact net returns by factoring in taxes, closing costs, loan amortization, and operational cash flow.
             </p>
-            
+
             <div className="flex flex-wrap justify-center gap-4">
               <button onClick={applyPreset1} className="px-5 py-2.5 rounded-full bg-slate-900 text-white font-bold text-sm hover:bg-slate-800 transition-colors border border-slate-700 flex items-center gap-2 shadow-sm">
                 <Activity size={14} className="text-amber-400" /> Load Scenario: Premium 2BHK (₹1.5 Cr)
@@ -361,7 +361,7 @@ export default function ROICalculator() {
         </Reveal>
 
         <div className="grid lg:grid-cols-12 gap-8 items-start">
-          
+
           {/* Controls Panel (Luxury Dark Card) */}
           <div className="lg:col-span-8 space-y-6">
             <Reveal>
@@ -370,7 +370,7 @@ export default function ROICalculator() {
                 <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 blur-[100px] rounded-full pointer-events-none" />
 
                 <h3 className="text-xl md:text-2xl font-black mb-6 flex items-center gap-3 border-b border-slate-800 pb-5 tracking-tight">
-                  <span className="bg-amber-500/20 text-amber-400 border border-amber-500/30 w-8 h-8 rounded-full flex items-center justify-center text-sm">1</span> 
+                  <span className="bg-amber-500/20 text-amber-400 border border-amber-500/30 w-8 h-8 rounded-full flex items-center justify-center text-sm">1</span>
                   Acquisition & Financing
                 </h3>
 
@@ -389,14 +389,14 @@ export default function ROICalculator() {
                 <div className="mb-8">
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-4">Financing Type</label>
                   <div className="flex gap-4 p-1.5 bg-slate-900 rounded-2xl border border-slate-800">
-                    <button 
-                      onClick={() => setFinancingType("cash")} 
+                    <button
+                      onClick={() => setFinancingType("cash")}
                       className={`flex-1 py-3 rounded-xl font-bold transition-all duration-300 ${financingType === "cash" ? "bg-amber-500 text-slate-950 shadow-md" : "text-slate-400 hover:text-white"}`}
                     >
                       All Cash
                     </button>
-                    <button 
-                      onClick={() => setFinancingType("loan")} 
+                    <button
+                      onClick={() => setFinancingType("loan")}
                       className={`flex-1 py-3 rounded-xl font-bold transition-all duration-300 ${financingType === "loan" ? "bg-amber-500 text-slate-950 shadow-md" : "text-slate-400 hover:text-white"}`}
                     >
                       Bank Loan
@@ -422,7 +422,7 @@ export default function ROICalculator() {
                 )}
 
                 <h3 className="text-xl md:text-2xl font-black mb-6 mt-12 flex items-center gap-3 border-b border-slate-800 pb-5 tracking-tight">
-                  <span className="bg-amber-500/20 text-amber-400 border border-amber-500/30 w-8 h-8 rounded-full flex items-center justify-center text-sm">2</span> 
+                  <span className="bg-amber-500/20 text-amber-400 border border-amber-500/30 w-8 h-8 rounded-full flex items-center justify-center text-sm">2</span>
                   Income & Exit Strategy
                 </h3>
 
@@ -480,13 +480,13 @@ export default function ROICalculator() {
           <div className="lg:col-span-4">
             <Reveal>
               <div className="bg-slate-950 rounded-[2.5rem] p-8 text-white sticky top-8 border border-slate-800 shadow-2xl">
-                
+
                 <p className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-3">Net Annualized Return</p>
                 <h2 className="text-6xl font-black mb-2 tracking-tighter">{annualizedROI.toFixed(1)}<span className="text-3xl text-slate-500 ml-1">%</span></h2>
                 <p className="text-sm text-slate-400 mb-8 border-b border-slate-800 pb-6 font-light">Post-tax, post-debt IRR equivalent</p>
 
                 <div className="space-y-4 text-sm font-medium">
-                  
+
                   {/* Invested */}
                   <div className="flex justify-between items-center bg-slate-900 p-4 rounded-2xl border border-slate-800">
                     <span className="text-slate-400">Total Cash Invested</span>
@@ -500,7 +500,7 @@ export default function ROICalculator() {
                       {formatINR(averageAnnualCashFlow)}
                     </span>
                   </div>
-                  
+
                   {/* Out at Sale */}
                   <div className="flex justify-between items-center p-2 px-1">
                     <span className="text-slate-400">Net Proceeds at Sale</span>
@@ -530,8 +530,8 @@ export default function ROICalculator() {
                 </div>
 
                 {/* PRIMARY CTA: "Building Rise" Animation applied to PDF Export */}
-                <button 
-                  onClick={downloadPDF} 
+                <button
+                  onClick={downloadPDF}
                   className="relative overflow-hidden w-full bg-white text-slate-950 font-bold py-5 rounded-2xl mt-8 shadow-xl tracking-wide group transition-all"
                 >
                   <span className="absolute inset-0 w-full h-full bg-amber-500 origin-bottom transform scale-y-0 transition-transform duration-300 ease-out group-hover:scale-y-100" />
