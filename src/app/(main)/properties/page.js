@@ -472,14 +472,6 @@ export default function PropertiesPage() {
                   {viewMode === "grid" ? (
                     /* --- GRID VIEW CARD --- */
                     <div className="group relative bg-white border border-slate-100 rounded-[2rem] p-3 hover:shadow-[0_30px_60px_-15px_rgba(15,23,42,0.1)] transition-all duration-500">
-                      <div className="absolute top-6 left-6 z-10 flex flex-col gap-2">
-                        <span className="px-3 py-1.5 bg-white/90 backdrop-blur-md text-slate-900 border border-slate-100 text-xs font-bold rounded-lg shadow-sm tracking-wide">
-                          {prop.type}
-                        </span>
-                        <span className={`px-3 py-1.5 text-xs font-bold rounded-lg shadow-sm backdrop-blur-md tracking-wide border border-slate-800/50 ${prop.status === 'Ready to Move' ? 'bg-slate-950/90 text-amber-400' : 'bg-white/90 text-slate-900'}`}>
-                          {prop.status}
-                        </span>
-                      </div>
                       <div className="rounded-[1.5rem] overflow-hidden h-full">
                         <PropertyCard {...prop} />
                       </div>

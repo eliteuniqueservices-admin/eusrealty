@@ -126,6 +126,8 @@ export default function PropertyCard({
   views = "2.4k",
   isNew = false,
   id,
+  type,
+  status,
 }) {
   const displayBeds = beds || bhk;
   const cardRef = useRef(null);
@@ -242,16 +244,46 @@ export default function PropertyCard({
             className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-900/20 to-transparent"
           />
 
-          {/* ── BADGE TOP-LEFT ── */}
-          <motion.div
-            initial={{ x: -30, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute top-4 left-4 flex items-center gap-1.5 bg-slate-950/80 backdrop-blur-xl border border-white/10 text-amber-400 text-xs font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg"
-          >
-            <Sparkles size={11} className="fill-amber-400" />
-            {badge}
-          </motion.div>
+          {/* ── BADGES TOP-LEFT ── */}
+          <div className="absolute top-4 left-4 z-20 flex flex-col gap-1.5 items-start">
+            {badge && (
+              <motion.div
+                initial={{ x: -30, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                className="flex items-center gap-1.5 bg-slate-950/80 backdrop-blur-xl border border-white/10 text-amber-400 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full shadow-md"
+              >
+                <Sparkles size={10} className="fill-amber-400" />
+                {badge}
+              </motion.div>
+            )}
+
+            {type && type !== badge && (
+              <motion.div
+                initial={{ x: -30, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.25, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                className="px-2.5 py-1 bg-white/95 backdrop-blur-md text-slate-900 border border-slate-200 text-[10px] font-extrabold rounded-full shadow-sm tracking-wide"
+              >
+                {type}
+              </motion.div>
+            )}
+
+            {status && status !== badge && (
+              <motion.div
+                initial={{ x: -30, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                className={`px-2.5 py-1 text-[10px] font-extrabold rounded-full shadow-sm backdrop-blur-md tracking-wide border ${
+                  status === "Ready to Move"
+                    ? "bg-slate-950/90 text-amber-400 border-slate-800/50"
+                    : "bg-white/95 text-slate-900 border-slate-200"
+                }`}
+              >
+                {status}
+              </motion.div>
+            )}
+          </div>
 
           {/* ── NEW badge ── */}
           {isNew && (
