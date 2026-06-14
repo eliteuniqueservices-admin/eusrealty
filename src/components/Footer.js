@@ -363,8 +363,17 @@ export default function Footer() {
 
           {/* Legal and Top Actions */}
           <div className="flex flex-col-reverse sm:flex-row items-center gap-6 w-full lg:w-auto justify-between lg:justify-end">
-            <div className="text-slate-500 text-xs font-semibold">
-              © 2026 EusRealty. All rights reserved.
+            <div className="text-slate-500 text-xs font-semibold text-center sm:text-right">
+              <div>© 2026 EusRealty. All rights reserved.</div>
+              <div className="text-[10px] text-slate-600 mt-1 font-light tracking-wide">
+                Developed by{' '}
+                <a
+                  href="mailto:rahulmohanupadhyay@gmail.com"
+                  className="hover:text-amber-500 transition-colors duration-300 font-semibold underline underline-offset-2 decoration-slate-700 hover:decoration-amber-500"
+                >
+                  Rahul Upadhyay
+                </a>
+              </div>
             </div>
 
             <motion.button

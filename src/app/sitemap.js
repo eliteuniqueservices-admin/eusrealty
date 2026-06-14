@@ -2,7 +2,7 @@ import dbConnect from '@/lib/mongodb';
 import Property from '@/models/Property';
 
 export default async function sitemap() {
-  const baseUrl = 'https://eusrealty.com';
+  const baseUrl = 'https://eusrealty.co.in';
 
   // Base static routes
   const staticRoutes = [
@@ -20,6 +20,15 @@ export default async function sitemap() {
     priority: route === '' ? 1.0 : 0.8,
   }));
 
+  // Locality guides routes
+  const localities = ['baner', 'wakad', 'hinjawadi', 'tathawade', 'aundh'];
+  const localityRoutes = localities.map((slug) => ({
+    url: `${baseUrl}/localities/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'daily',
+    priority: 0.85,
+  }));
+
   // Dynamic property details pages
   let propertyRoutes = [];
   try {
@@ -35,5 +44,5 @@ export default async function sitemap() {
     console.error('Sitemap generation database error:', error);
   }
 
-  return [...staticRoutes, ...propertyRoutes];
+  return [...staticRoutes, ...localityRoutes, ...propertyRoutes];
 }

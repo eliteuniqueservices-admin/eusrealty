@@ -8,6 +8,7 @@ import {
   Clock, X, ChevronDown, Star, ArrowRight, Bath, Maximize
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const defaultPropertyTypes = ["All", "Apartments", "Villas", "Penthouses", "Plots", "Commercial"];
 const bhkOptions = ["All", "1", "2", "3", "4", "5", "5+"];
@@ -488,10 +489,13 @@ export default function PropertiesPage() {
                     <div className="group flex flex-col md:flex-row bg-white border border-slate-100 rounded-[2rem] p-4 hover:shadow-[0_20px_40px_-15px_rgba(15,23,42,0.1)] transition-all duration-500 gap-6">
                       {/* Image Area placeholder */}
                       <div className="w-full md:w-80 h-64 rounded-2xl bg-slate-100 relative overflow-hidden flex-shrink-0">
-                        <img
+                        <Image
                           src={prop.image || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80"}
-                          alt={prop.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
+                          alt={prop.title || "Property image"}
+                          fill
+                          sizes="(max-width: 768px) 100vw, 320px"
+                          priority={false}
+                          className="object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
                         />
                         <div className="absolute inset-0 bg-gradient-to-br from-slate-900/40 to-transparent group-hover:opacity-100 transition-opacity duration-500" />
                         <div className="absolute top-4 left-4 z-10 flex gap-2">

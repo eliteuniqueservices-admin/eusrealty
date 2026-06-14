@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import LoanApplication from '@/models/LoanApplication';
 import { auth } from '@/auth'; // Adjust based on your auth setup, we'll try to protect GET
+import { isRateLimited } from '@/lib/rateLimit';
 
 // Ensure DB connection
 const connectDB = async () => {
@@ -30,17 +31,87 @@ const generateAppNumber = async () => {
 
 export async function POST(req) {
   try {
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || req.headers.get('x-real-ip') || '127.0.0.1';
+    
+    // Rate limit: Max 5 applications per minute per IP
+    if (isRateLimited(ip, 5, 60000)) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please wait a minute before submitting again.' },
+        { status: 429 }
+      );
+    }
+
     await connectDB();
     const data = await req.json();
     
     console.log("=== NEW HOME LOAN APPLICATION RECEIVED ===");
     console.log(JSON.stringify(data, null, 2));
 
+    // Sanitization and extraction of personal and financial fields to prevent injection
+    const cleanData = {
+      personalDetails: {
+        fullName: data.personalDetails?.fullName?.trim()?.substring(0, 100) || '',
+        mobile: data.personalDetails?.mobile?.trim()?.replace(/[^\d+-\s()]/g, '')?.substring(0, 20) || '',
+        email: data.personalDetails?.email?.trim()?.toLowerCase()?.substring(0, 150) || '',
+        dob: data.personalDetails?.dob ? new Date(data.personalDetails.dob) : null,
+        age: parseInt(data.personalDetails?.age) || 0,
+        city: data.personalDetails?.city?.trim()?.substring(0, 100) || '',
+        state: data.personalDetails?.state?.trim()?.substring(0, 100) || '',
+      },
+      employment: {
+        employmentType: data.employment?.employmentType || 'Salaried',
+        companyOrBusiness: data.employment?.companyOrBusiness?.trim()?.substring(0, 150) || '',
+        grossSalary: parseFloat(data.employment?.grossSalary) || 0,
+        netSalary: parseFloat(data.employment?.netSalary) || 0,
+        annualIncome: parseFloat(data.employment?.annualIncome) || 0,
+        experience: parseFloat(data.employment?.experience) || 0,
+        vintage: parseFloat(data.employment?.vintage) || 0,
+        gstNumber: data.employment?.gstNumber?.trim()?.substring(0, 30) || '',
+      },
+      obligations: {
+        personalLoanEmi: parseFloat(data.obligations?.personalLoanEmi) || 0,
+        carLoanEmi: parseFloat(data.obligations?.carLoanEmi) || 0,
+        creditCardEmi: parseFloat(data.obligations?.creditCardEmi) || 0,
+        otherEmi: parseFloat(data.obligations?.otherEmi) || 0,
+        totalExistingEmi: parseFloat(data.obligations?.totalExistingEmi) || 0,
+      },
+      property: {
+        propertyType: data.property?.propertyType || 'Flat',
+        propertyValue: parseFloat(data.property?.propertyValue) || 0,
+        location: data.property?.location?.trim()?.substring(0, 200) || '',
+        downPayment: parseFloat(data.property?.downPayment) || 0,
+        loanRequirement: parseFloat(data.property?.loanRequirement) || 0,
+      },
+      creditInfo: {
+        creditScore: parseInt(data.creditInfo?.creditScore) || 0,
+        existingHomeLoan: data.creditInfo?.existingHomeLoan || 'No',
+        defaults: data.creditInfo?.defaults || 'No',
+      }
+    };
+
+    // Server-side validation
+    if (!cleanData.personalDetails.fullName || !cleanData.personalDetails.mobile || !cleanData.personalDetails.email) {
+      return NextResponse.json({ error: 'Missing required personal details.' }, { status: 400 });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanData.personalDetails.email)) {
+      return NextResponse.json({ error: 'Invalid email address format.' }, { status: 400 });
+    }
+    const mobileDigits = cleanData.personalDetails.mobile.replace(/\D/g, '').length;
+    if (mobileDigits < 8 || mobileDigits > 15) {
+      return NextResponse.json({ error: 'Invalid mobile number.' }, { status: 400 });
+    }
+    if (cleanData.personalDetails.age <= 0 || cleanData.personalDetails.age > 120) {
+      return NextResponse.json({ error: 'Invalid age value.' }, { status: 400 });
+    }
+    if (cleanData.property.propertyValue <= 0 || cleanData.property.loanRequirement <= 0) {
+      return NextResponse.json({ error: 'Invalid property value or loan requirement.' }, { status: 400 });
+    }
+
     // Re-calculate rules to prevent client tampering
-    const monthlyIncome = data.employment.netSalary || (data.employment.annualIncome / 12) || 0;
-    const propertyValue = data.property.propertyValue || 0;
-    const loanRequirement = data.property.loanRequirement || 0;
-    const totalExistingEmi = data.obligations.totalExistingEmi || 0;
+    const monthlyIncome = cleanData.employment.netSalary || (cleanData.employment.annualIncome / 12) || 0;
+    const propertyValue = cleanData.property.propertyValue || 0;
+    const loanRequirement = cleanData.property.loanRequirement || 0;
+    const totalExistingEmi = cleanData.obligations.totalExistingEmi || 0;
 
     // 1. Calculate FOIR Limit
     let maxFoirLimit = 0.50;
@@ -57,8 +128,6 @@ export async function POST(req) {
     const maxEligibleLoanByLtv = propertyValue * maxLtvLimit;
 
     // Determine actual eligible loan based on standard interest rate (e.g., 8.5% for 20 years)
-    // Approximate: EMI = P * r * (1+r)^n / ((1+r)^n - 1)
-    // P = EMI / [ r * (1+r)^n / ((1+r)^n - 1) ]
     const rate = 8.5 / 12 / 100;
     const tenureMonths = 240; // 20 years default
     const mathFactor = (rate * Math.pow(1 + rate, tenureMonths)) / (Math.pow(1 + rate, tenureMonths) - 1);
@@ -76,10 +145,10 @@ export async function POST(req) {
 
     // Credit Risk
     let riskLevel = 'Average';
-    const score = data.creditInfo.creditScore;
+    const score = cleanData.creditInfo.creditScore;
     if (score >= 750) riskLevel = 'Excellent';
     else if (score >= 700) riskLevel = 'Good';
-    else if (score < 650 || data.creditInfo.defaults === 'Yes') riskLevel = 'High Risk';
+    else if (score < 650 || cleanData.creditInfo.defaults === 'Yes') riskLevel = 'High Risk';
 
     // Decision Logic
     let eligibilityStatus = 'Eligible';
@@ -90,7 +159,7 @@ export async function POST(req) {
     }
 
     // Attach server calculations to payload
-    data.calculatedMetrics = {
+    cleanData.calculatedMetrics = {
         foir: parseFloat(actualFoir.toFixed(2)),
         ltv: parseFloat(actualLtv.toFixed(2)),
         maxEligibleEmi: Math.round(maxEligibleEmi),
@@ -98,11 +167,11 @@ export async function POST(req) {
         suggestedEmi: Math.round(suggestedEmi),
         riskLevel
     };
-    data.eligibilityStatus = eligibilityStatus;
-    data.applicationNumber = await generateAppNumber();
+    cleanData.eligibilityStatus = eligibilityStatus;
+    cleanData.applicationNumber = await generateAppNumber();
 
     // Save
-    const application = await LoanApplication.create(data);
+    const application = await LoanApplication.create(cleanData);
 
     // SEND EMAIL NOTIFICATION
     try {
@@ -137,17 +206,17 @@ export async function POST(req) {
             <div class="wrapper">
               <div class="header">
                 <h1>🏦 New Home Loan Application</h1>
-                <p>Application ID: ${data.applicationNumber}</p>
+                <p>Application ID: ${cleanData.applicationNumber}</p>
               </div>
               <div class="body">
                 <div class="label">Applicant Name</div>
-                <div class="value">${data.personalDetails.fullName}</div>
+                <div class="value">${cleanData.personalDetails.fullName}</div>
 
                 <div class="label">Contact</div>
-                <div class="value"><a href="tel:${data.personalDetails.mobile}" style="color:#f59e0b;">${data.personalDetails.mobile}</a> | ${data.personalDetails.email}</div>
+                <div class="value"><a href="tel:${cleanData.personalDetails.mobile}" style="color:#f59e0b;">${cleanData.personalDetails.mobile}</a> | ${cleanData.personalDetails.email}</div>
 
                 <div class="label">Loan Requirement</div>
-                <div class="value">₹${data.property.loanRequirement.toLocaleString('en-IN')}</div>
+                <div class="value">₹${cleanData.property.loanRequirement.toLocaleString('en-IN')}</div>
 
                 <div class="label">System Eligibility Decision</div>
                 <div class="value">
@@ -170,9 +239,9 @@ export async function POST(req) {
       const mailOptions = {
         from: `"EUS Realty Loans" <${process.env.GMAIL_USER}>`,
         to: [process.env.NOTIFY_EMAIL_1, process.env.NOTIFY_EMAIL_2].filter(Boolean).join(', '),
-        subject: `🏦 New Home Loan Application: ${data.personalDetails.fullName} (${data.applicationNumber})`,
+        subject: `🏦 New Home Loan Application: ${cleanData.personalDetails.fullName} (${cleanData.applicationNumber})`,
         html: emailHtml,
-        replyTo: data.personalDetails.email,
+        replyTo: cleanData.personalDetails.email,
       };
 
       await transporter.sendMail(mailOptions);
@@ -202,19 +271,19 @@ export async function POST(req) {
                 <h1>EUS Realty</h1>
               </div>
               <div class="body">
-                <p>Hi <span class="highlight">${data.personalDetails.fullName}</span>,</p>
+                <p>Hi <span class="highlight">${cleanData.personalDetails.fullName}</span>,</p>
                 <p>Thank you for choosing EUS Realty for your home loan advisory. We have successfully received your application!</p>
                 
                 <div style="background: #f1f5f9; padding: 15px; border-radius: 10px; margin: 20px 0;">
                   <p style="margin: 0; font-size: 14px; color: #475569;">Application ID</p>
-                  <p style="margin: 5px 0 0 0; font-size: 18px; font-weight: 800; color: #0f172a;">${data.applicationNumber}</p>
+                  <p style="margin: 5px 0 0 0; font-size: 18px; font-weight: 800; color: #0f172a;">${cleanData.applicationNumber}</p>
                 </div>
 
                 <p>Our dedicated mortgage advisors are currently reviewing your financial profile and property requirements. <strong>We will connect with you within the next 30 minutes</strong> to discuss your eligibility and guide you through the next steps to secure your loan.</p>
                 
                 <p>In the meantime, feel free to explore our exclusive collection of premium properties in Pune.</p>
                 <div style="text-align: center; margin-top: 30px;">
-                  <a href="https://eusrealty.com/properties" class="btn">Explore Properties</a>
+                  <a href="https://eusrealty.co.in/properties" class="btn">Explore Properties</a>
                 </div>
               </div>
               <div class="footer">
@@ -228,7 +297,7 @@ export async function POST(req) {
 
       const autoReplyOptions = {
         from: `"EUS Realty" <${process.env.GMAIL_USER}>`,
-        to: data.personalDetails.email,
+        to: cleanData.personalDetails.email,
         subject: "Your Home Loan Application is Under Review | EUS Realty",
         html: autoReplyHtml,
       };

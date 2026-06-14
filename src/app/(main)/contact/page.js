@@ -8,6 +8,7 @@ import {
   Star, AlertCircle, MessageCircle, ChevronDown, Sparkles, Home,
   Facebook, Instagram, Linkedin, Youtube, ArrowUpRight
 } from 'lucide-react';
+import { speakCongratulation, cancelSpeech } from '@/lib/elevenLabsTTS';
 
 /* ──────────────────────────────────────────────────────────
    FLOATING AMBIENT PARTICLE (background decoration)
@@ -133,143 +134,8 @@ function ConfettiCanvas({ active }) {
 }
 
 /* ──────────────────────────────────────────────────────────
-   VOICE CONGRATULATION (Web Speech API — female, calming)
+   VOICE: Using ElevenLabs Anika voice (imported from @/lib/elevenLabsTTS)
 ────────────────────────────────────────────────────────── */
-const currentSpeechController = {
-  active: false,
-  cancel: function() {
-    this.active = false;
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-    }
-  }
-};
-
-function speakCongratulation(name) {
-  if (typeof window === 'undefined' || !window.speechSynthesis) return;
-
-  currentSpeechController.cancel();
-  currentSpeechController.active = true;
-
-  const firstName = name?.trim().split(' ')[0] || 'there';
-
-  const doSpeak = () => {
-    if (!currentSpeechController.active) return;
-    const voices = window.speechSynthesis.getVoices();
-
-    const preferred = [
-      'Microsoft Neerja Online (Natural) - English (India)',
-      'Microsoft Heera Online (Natural) - English (India)',
-      'Google हिन्दी',
-      'Google Hindi',
-      'Microsoft Hemant - Hindi (India)',
-      'Microsoft Kalpana - Hindi (India)',
-      'Lekha',
-      'Veena',
-      'Microsoft Heera',
-      'Microsoft Neerja',
-      'Google en-IN',
-      'Google UK English Female',
-      'Microsoft Zira Desktop',
-      'Samantha',
-    ];
-
-    let chosenVoice = null;
-    for (const pref of preferred) {
-      chosenVoice = voices.find(v => v.name === pref || v.name.includes(pref));
-      if (chosenVoice) break;
-    }
-
-    if (!chosenVoice) {
-      chosenVoice = voices.find(v =>
-        v.lang === 'hi-IN' || v.lang.startsWith('hi') ||
-        v.lang === 'en-IN' ||
-        v.name.toLowerCase().includes('hindi') ||
-        v.name.toLowerCase().includes('neerja') ||
-        v.name.toLowerCase().includes('heera') ||
-        v.name.toLowerCase().includes('lekha') ||
-        v.name.toLowerCase().includes('kalpana')
-      );
-    }
-
-    if (!chosenVoice) {
-      chosenVoice = voices.find(v =>
-        v.name.toLowerCase().includes('female') ||
-        v.name.toLowerCase().includes('zira') ||
-        v.name.toLowerCase().includes('samantha') ||
-        v.name.toLowerCase().includes('google uk english female')
-      );
-    }
-
-    const isHindi = chosenVoice && (
-      chosenVoice.lang.startsWith('hi') ||
-      chosenVoice.name.toLowerCase().includes('hindi')
-    );
-
-    const sentences = isHindi ? [
-      `Bahut bahut badhai ho, ${firstName}!`,
-      `Aap apne sapno ke ghar ke ek kadam aur paas aa gaye hain.`,
-      `Hamare senior consultant aapko personally call karenge agle do ghante mein.`,
-      `Hum bahut khush hain aapki madad karne ke liye.`,
-      `EUS Realty parivar mein aapka swagat hai.`
-    ] : [
-      `Congratulations, ${firstName}!`,
-      `You are one step closer to your dream home.`,
-      `Our senior consultant will call you personally within the next two hours.`,
-      `We are delighted to assist you in this journey.`,
-      `Welcome to the E-U-S Realty family.`
-    ];
-
-    const lang = isHindi ? 'hi-IN' : (chosenVoice?.lang || 'en-IN');
-    let index = 0;
-
-    const speakNext = () => {
-      if (!currentSpeechController.active) return;
-      if (index >= sentences.length) return;
-
-      const utter = new SpeechSynthesisUtterance(sentences[index]);
-      utter.rate = isHindi ? 0.85 : 0.9;
-      utter.pitch = 1.05;
-      utter.volume = 1;
-      utter.lang = lang;
-      if (chosenVoice) utter.voice = chosenVoice;
-
-      utter.onend = () => {
-        if (!currentSpeechController.active) return;
-        setTimeout(() => {
-          if (!currentSpeechController.active) return;
-          index++;
-          speakNext();
-        }, 600);
-      };
-
-      utter.onerror = () => {
-        if (!currentSpeechController.active) return;
-        index++;
-        speakNext();
-      };
-
-      window.speechSynthesis.speak(utter);
-    };
-
-    speakNext();
-  };
-
-  const voices = window.speechSynthesis.getVoices();
-  if (voices.length > 0) {
-    doSpeak();
-  } else {
-    const onVoicesLoaded = () => {
-      window.speechSynthesis.removeEventListener('voiceschanged', onVoicesLoaded);
-      doSpeak();
-    };
-    window.speechSynthesis.addEventListener('voiceschanged', onVoicesLoaded);
-    setTimeout(() => {
-      window.speechSynthesis.removeEventListener('voiceschanged', onVoicesLoaded);
-      doSpeak();
-    }, 1500);
-  }
-}
 
 /* ──────────────────────────────────────────────────────────
    SUCCESS / CELEBRATION POPUP
@@ -689,11 +555,7 @@ export default function ContactPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.getVoices();
-    }
-  }, []);
+  // Voice preloading no longer needed — using ElevenLabs API
 
   const handleChange = (e) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -704,11 +566,7 @@ export default function ContactPage() {
     if (!form.objective) { setErrorMsg('Please select your objective.'); return; }
     if (form.objective === 'Career Inquiry' && !form.position) { setErrorMsg('Please select the position you are applying for.'); return; }
 
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      const silentUtterance = new SpeechSynthesisUtterance('');
-      silentUtterance.volume = 0;
-      window.speechSynthesis.speak(silentUtterance);
-    }
+    // No silent utterance needed — ElevenLabs uses Audio API, not SpeechSynthesis
 
     setFormState('submitting');
     setErrorMsg('');
@@ -740,7 +598,7 @@ export default function ContactPage() {
   const closeCelebration = useCallback(() => {
     setShowCelebration(false);
     setFormState('idle');
-    if (typeof window !== 'undefined') currentSpeechController.cancel();
+    cancelSpeech();
   }, []);
 
   const fadeUp = {

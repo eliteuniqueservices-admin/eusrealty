@@ -3,9 +3,21 @@ import dbConnect from '@/lib/mongodb';
 import Lead from '@/models/Lead';
 import Notification from '@/models/Notification';
 import { calculateLeadScore } from '@/lib/leadScoring';
+import { isRateLimited } from '@/lib/rateLimit';
 
 export async function POST(request) {
   try {
+    // Determine client IP for rate limiting
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || request.headers.get('x-real-ip') || '127.0.0.1';
+    
+    // Rate limit: Max 5 form submissions per minute per IP
+    if (isRateLimited(ip, 5, 60000)) {
+      return Response.json(
+        { error: 'Too many requests. Please wait a minute before trying again.' },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { 
       name, 
@@ -21,9 +33,33 @@ export async function POST(request) {
       sessionId
     } = body;
 
+    // --- Input Sanitization & Length Restrictions ---
+    const cleanName = name?.trim()?.substring(0, 100);
+    const cleanPhone = phone?.trim()?.replace(/[^\d+-\s()]/g, '')?.substring(0, 20);
+    const cleanEmail = email?.trim()?.toLowerCase()?.substring(0, 150);
+    const cleanMessage = message?.trim()?.substring(0, 2000);
+    const cleanObjective = objective?.trim()?.substring(0, 100);
+    const cleanPosition = position?.trim()?.substring(0, 100);
+    const cleanBudget = budget?.trim()?.substring(0, 100);
+    const cleanPreferredLocation = preferredLocation?.trim()?.substring(0, 200);
+    const cleanPropertyType = propertyType?.trim()?.substring(0, 100);
+    const cleanPossession = possession?.trim()?.substring(0, 100);
+    const cleanSessionId = sessionId?.trim()?.substring(0, 150);
+
     // --- Basic validation (email is optional — chatbot form may omit it) ---
-    if (!name || !phone || !objective) {
-      return Response.json({ error: 'Missing required fields.' }, { status: 400 });
+    if (!cleanName || !cleanPhone || !cleanObjective) {
+      return Response.json({ error: 'Missing required fields or invalid input.' }, { status: 400 });
+    }
+
+    // Validate email format if provided
+    if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      return Response.json({ error: 'Invalid email address format.' }, { status: 400 });
+    }
+
+    // Validate phone has between 8 and 15 digits
+    const digitCount = cleanPhone.replace(/\D/g, '').length;
+    if (digitCount < 8 || digitCount > 15) {
+      return Response.json({ error: 'Invalid phone number length. Must be between 8 and 15 digits.' }, { status: 400 });
     }
 
     // -------------------------------------------------------
@@ -33,45 +69,43 @@ export async function POST(request) {
     try {
       await dbConnect();
       
-      const cleanPhone = phone.trim();
-      
       // Calculate score & quality
       const leadDataForScore = {
-        name: name.trim(),
+        name: cleanName,
         phone: cleanPhone,
-        email: email || '',
-        budget: budget || '',
-        preferredLocation: preferredLocation || (objective !== 'Home Loan Help' && objective !== 'Free Site Visit' ? objective : ''),
-        propertyType: propertyType || '',
-        possession: possession || '',
-        siteVisitRequested: objective === 'Free Site Visit',
+        email: cleanEmail || '',
+        budget: cleanBudget || '',
+        preferredLocation: cleanPreferredLocation || (cleanObjective !== 'Home Loan Help' && cleanObjective !== 'Free Site Visit' ? cleanObjective : ''),
+        propertyType: cleanPropertyType || '',
+        possession: cleanPossession || '',
+        siteVisitRequested: cleanObjective === 'Free Site Visit',
         callbackRequested: true
       };
       
       const { score, quality } = calculateLeadScore(leadDataForScore);
 
       dbLead = await Lead.create({
-        name: name.trim(),
+        name: cleanName,
         phone: cleanPhone,
-        email: email || '',
-        budget: budget || '',
-        preferredLocation: preferredLocation || leadDataForScore.preferredLocation,
-        propertyType: propertyType || '',
-        possession: possession || '',
+        email: cleanEmail || '',
+        budget: cleanBudget || '',
+        preferredLocation: cleanPreferredLocation || leadDataForScore.preferredLocation,
+        propertyType: cleanPropertyType || '',
+        possession: cleanPossession || '',
         leadScore: score,
         leadQuality: quality,
         status: 'New',
         source: body.source === 'Chatbot Widget' ? 'chatbot' : 'contact_form',
-        sessionId: sessionId || '',
-        siteVisitRequested: objective === 'Free Site Visit',
+        sessionId: cleanSessionId || '',
+        siteVisitRequested: cleanObjective === 'Free Site Visit',
         callbackRequested: true,
-        notes: message ? [{ text: message, addedBy: 'System', addedAt: new Date() }] : []
+        notes: cleanMessage ? [{ text: cleanMessage, addedBy: 'System', addedAt: new Date() }] : []
       });
 
       // Create Admin Notification in DB
       await Notification.create({
         title: `${quality === 'Hot' ? '🔥 Hot' : quality === 'Warm' ? '🟡 Warm' : '❄️ Cold'} Lead: ${dbLead.name}`,
-        message: `${dbLead.name} (${dbLead.phone}) requested callback for: ${objective}${budget ? ` | Budget: ${budget}` : ''}`,
+        message: `${dbLead.name} (${dbLead.phone}) requested callback for: ${cleanObjective}${cleanBudget ? ` | Budget: ${cleanBudget}` : ''}`,
         type: quality === 'Hot' ? 'hot_lead' : 'lead',
         isRead: false,
         relatedId: dbLead._id.toString(),
@@ -121,54 +155,54 @@ export async function POST(request) {
               </div>
               <div class="body">
                 <div class="label">Full Name</div>
-                <div class="value">${name}</div>
+                <div class="value">${cleanName}</div>
 
                 <div class="label">Phone</div>
-                <div class="value"><a href="tel:${phone}" style="color:#f59e0b;">${phone}</a></div>
+                <div class="value"><a href="tel:${cleanPhone}" style="color:#f59e0b;">${cleanPhone}</a></div>
 
-                ${email ? `
+                ${cleanEmail ? `
                 <div class="label">Email</div>
-                <div class="value"><a href="mailto:${email}" style="color:#f59e0b;">${email}</a></div>
+                <div class="value"><a href="mailto:${cleanEmail}" style="color:#f59e0b;">${cleanEmail}</a></div>
                 ` : ''}
 
                 <div class="label">Objective / Interest</div>
-                <div class="value"><span class="badge">${objective}</span></div>
+                <div class="value"><span class="badge">${cleanObjective}</span></div>
 
-                ${budget ? `
+                ${cleanBudget ? `
                 <div class="label">Budget</div>
-                <div class="value">${budget}</div>
+                <div class="value">${cleanBudget}</div>
                 ` : ''}
 
-                ${preferredLocation ? `
+                ${cleanPreferredLocation ? `
                 <div class="label">Preferred Location</div>
-                <div class="value">${preferredLocation}</div>
+                <div class="value">${cleanPreferredLocation}</div>
                 ` : ''}
 
-                ${propertyType ? `
+                ${cleanPropertyType ? `
                 <div class="label">Property Type</div>
-                <div class="value">${propertyType}</div>
+                <div class="value">${cleanPropertyType}</div>
                 ` : ''}
 
-                ${possession ? `
+                ${cleanPossession ? `
                 <div class="label">Possession Requirement</div>
-                <div class="value">${possession}</div>
+                <div class="value">${cleanPossession}</div>
                 ` : ''}
 
-                ${position ? `
+                ${cleanPosition ? `
                 <div class="label">Applying for Position</div>
-                <div class="value">${position}</div>
+                <div class="value">${cleanPosition}</div>
                 ` : ''}
 
-                ${message ? `
+                ${cleanMessage ? `
                 <div class="label">Message / Notes</div>
-                <div class="message-box">${message}</div>
+                <div class="message-box">${cleanMessage}</div>
                 ` : ''}
 
                 <div class="label">Lead Source</div>
                 <div class="value" style="font-size:13px;color:#64748b;">${body.source || 'Contact Page'}</div>
               </div>
               <div class="footer">
-                Received from eusrealty.com · ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST
+                Received from eusrealty.co.in · ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST
               </div>
             </div>
           </body>
@@ -178,15 +212,15 @@ export async function POST(request) {
       const mailOptions = {
         from: `"EUS Realty Leads" <${process.env.GMAIL_USER}>`,
         to: [process.env.NOTIFY_EMAIL_1, process.env.NOTIFY_EMAIL_2].filter(Boolean).join(', '),
-        subject: `🏠 New Lead: ${name} — ${objective}`,
+        subject: `🏠 New Lead: ${cleanName} — ${cleanObjective}`,
         html: emailHtml,
-        replyTo: email || undefined,
+        replyTo: cleanEmail || undefined,
       };
 
       await transporter.sendMail(mailOptions);
 
       // Send Professional Auto-Reply to the Customer
-      if (email) {
+      if (cleanEmail) {
         const autoReplyHtml = `
           <!DOCTYPE html>
           <html>
@@ -210,12 +244,12 @@ export async function POST(request) {
                   <h1>EUS Realty</h1>
                 </div>
                 <div class="body">
-                  <p>Hi <span class="highlight">${name}</span>,</p>
-                  <p>Thank you for reaching out to EUS Realty! We have received your request for <strong>${objective}</strong>.</p>
+                  <p>Hi <span class="highlight">${cleanName}</span>,</p>
+                  <p>Thank you for reaching out to EUS Realty! We have received your request for <strong>${cleanObjective}</strong>.</p>
                   <p>Our premium real estate advisors are currently reviewing your details. <strong>We will connect with you within the next 30 minutes</strong> to discuss how we can best assist you.</p>
                   <p>In the meantime, feel free to explore our exclusive collection of luxury properties in Pune.</p>
                   <div style="text-align: center; margin-top: 30px;">
-                    <a href="https://eusrealty.com/properties" class="btn">Explore Properties</a>
+                    <a href="https://eusrealty.co.in/properties" class="btn">Explore Properties</a>
                   </div>
                 </div>
                 <div class="footer">
@@ -229,7 +263,7 @@ export async function POST(request) {
 
         const autoReplyOptions = {
           from: `"EUS Realty" <${process.env.GMAIL_USER}>`,
-          to: email,
+          to: cleanEmail,
           subject: "We've received your request! | EUS Realty",
           html: autoReplyHtml,
         };
@@ -255,16 +289,16 @@ export async function POST(request) {
           const telegramUrl = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
           const telegramMessage = 
             `🏠 *New EUS Realty Lead*\n\n` +
-            `👤 *Name:* ${name}\n` +
-            `📞 *Phone:* ${phone}\n` +
-            `📧 *Email:* ${email || 'N/A'}\n` +
-            `🎯 *Objective:* ${objective}\n` +
-            (budget ? `💰 *Budget:* ${budget}\n` : '') +
-            (preferredLocation ? `📍 *Location:* ${preferredLocation}\n` : '') +
-            (propertyType ? `🏢 *Prop Type:* ${propertyType}\n` : '') +
-            (possession ? `🔑 *Possession:* ${possession}\n` : '') +
-            (position ? `💼 *Position:* ${position}\n` : '') +
-            (message ? `💬 *Message:* ${message}` : '');
+            `👤 *Name:* ${cleanName}\n` +
+            `📞 *Phone:* ${cleanPhone}\n` +
+            `📧 *Email:* ${cleanEmail || 'N/A'}\n` +
+            `🎯 *Objective:* ${cleanObjective}\n` +
+            (cleanBudget ? `💰 *Budget:* ${cleanBudget}\n` : '') +
+            (cleanPreferredLocation ? `📍 *Location:* ${cleanPreferredLocation}\n` : '') +
+            (cleanPropertyType ? `🏢 *Prop Type:* ${cleanPropertyType}\n` : '') +
+            (cleanPossession ? `🔑 *Possession:* ${cleanPossession}\n` : '') +
+            (cleanPosition ? `💼 *Position:* ${cleanPosition}\n` : '') +
+            (cleanMessage ? `💬 *Message:* ${cleanMessage}` : '');
 
           for (const chatId of chatIds) {
             fetch(telegramUrl, {

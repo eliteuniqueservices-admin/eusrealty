@@ -5,6 +5,6 @@ export default function robots() {
       allow: '/',
       disallow: ['/admin/', '/api/'],
     },
-    sitemap: 'https://eusrealty.com/sitemap.xml',
+    sitemap: 'https://eusrealty.co.in/sitemap.xml',
   };
 }

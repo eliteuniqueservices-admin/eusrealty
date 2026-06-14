@@ -12,9 +12,9 @@ import Property from '@/models/Property';
 import HeroClient from '@/components/HeroClient';
 import StatsCounter from '@/components/StatsCounter';
 import MarqueeBanner from '@/components/MarqueeBanner';
-import SuccessStoriesSection from '@/components/SuccessStoriesSection';
 import HeroSuccessStories from '@/components/HeroSuccessStories';
 import HeroSearchBar from '@/components/HeroSearchBar';
+import SuccessStoriesSection from '@/components/SuccessStoriesSection';
 
 export const dynamic = 'force-dynamic';
 

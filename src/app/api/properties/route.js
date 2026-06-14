@@ -124,7 +124,7 @@ export const POST = auth(async function POST(req) {
                   <p style="color: #334155; line-height: 1.6;">${property.description || 'Explore our newest luxury addition in Pune. Designed for premium living.'}</p>
                   
                   <div style="text-align: center; margin-top: 30px;">
-                    <a href="https://eusrealty.com/properties" style="display: inline-block; background: #f59e0b; color: #0f172a; padding: 12px 25px; border-radius: 6px; text-decoration: none; font-weight: bold;">View Details</a>
+                    <a href="https://eusrealty.co.in/properties" style="display: inline-block; background: #f59e0b; color: #0f172a; padding: 12px 25px; border-radius: 6px; text-decoration: none; font-weight: bold;">View Details</a>
                   </div>
                 </div>
                 <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">

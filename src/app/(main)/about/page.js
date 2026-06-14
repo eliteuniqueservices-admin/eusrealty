@@ -287,22 +287,35 @@ function TeamCard({ member, index }) {
         <div className="relative z-10 flex flex-col sm:flex-row">
 
           {/* LEFT — Photo Panel */}
-          <div className="relative flex-shrink-0 w-full sm:w-48 lg:w-56 overflow-hidden" style={{ minHeight: '240px' }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+          <div className="relative flex-shrink-0 w-full sm:w-64 lg:w-72 overflow-hidden bg-[#07070d] flex items-center justify-center min-h-[350px] sm:min-h-[400px]">
+            {/* Blurred background image to fill any empty space premium-style */}
+            <Image
+              src={member.img}
+              alt=""
+              fill
+              sizes="(max-width: 640px) 100vw, 288px"
+              priority={false}
+              className="object-cover blur-2xl opacity-20 pointer-events-none"
+            />
+
+            {/* Foreground actual image */}
+            <Image
               src={member.img}
               alt={`${member.name} – ${member.role}`}
-              className="absolute inset-0 w-full h-full object-cover object-top"
+              fill
+              sizes="(max-width: 640px) 100vw, 288px"
+              priority={false}
+              className="z-10 object-cover object-center"
               style={{
                 transition: 'transform 0.8s cubic-bezier(0.16,1,0.3,1), filter 0.7s ease',
-                transform: hovered ? 'scale(1.08)' : 'scale(1)',
+                transform: hovered ? 'scale(1.04)' : 'scale(1)',
                 filter: hovered ? 'brightness(1.15) saturate(1.1)' : 'brightness(1)',
               }}
             />
 
             {/* Photo gradient overlays */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#07070d] opacity-0 sm:opacity-100 pointer-events-none" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#07070d] via-transparent to-transparent opacity-80 sm:opacity-0 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#07070d] opacity-0 sm:opacity-100 pointer-events-none z-20" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#07070d] via-transparent to-transparent opacity-80 sm:opacity-0 pointer-events-none z-20" />
 
             {/* ── Badge ── */}
             <motion.span
@@ -311,7 +324,7 @@ function TeamCard({ member, index }) {
                 : { scale: 1, borderColor: 'rgba(251,191,36,0.45)' }
               }
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              className="absolute top-3.5 left-3.5 text-[8px] font-black tracking-[0.12em] uppercase px-2.5 py-1 rounded-lg z-10 text-amber-400"
+              className="absolute top-3.5 left-3.5 text-[8px] font-black tracking-[0.12em] uppercase px-2.5 py-1 rounded-lg z-30 text-amber-400"
               style={{
                 background: 'rgba(5,5,10,0.9)',
                 backdropFilter: 'blur(12px)',
@@ -323,7 +336,7 @@ function TeamCard({ member, index }) {
             </motion.span>
 
             {/* ── Index number ── */}
-            <div className="absolute bottom-3.5 left-3.5 sm:hidden text-[10px] font-black text-slate-500 tabular-nums">
+            <div className="absolute bottom-3.5 left-3.5 sm:hidden text-[10px] font-black text-slate-500 tabular-nums z-30">
               {String(index + 1).padStart(2, '0')}
             </div>
           </div>
