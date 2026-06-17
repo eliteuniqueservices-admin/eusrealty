@@ -136,7 +136,7 @@ function StoryCard({ story }) {
     <div className="w-[290px] xs:w-[380px] sm:w-[450px] shrink-0 bg-white border border-slate-100 hover:border-amber-200 shadow-sm hover:shadow-[0_20px_50px_-15px_rgba(245,158,11,0.08)] rounded-[2rem] p-5 sm:p-7 flex flex-col relative transition-all duration-500 hover:-translate-y-1.5 overflow-hidden group select-none mr-4 sm:mr-6">
       {/* Glow highlight */}
       <div className="absolute inset-0 bg-gradient-to-br from-amber-50/0 to-transparent group-hover:from-amber-50/50 transition-all duration-500 rounded-[2rem] pointer-events-none" />
-      
+
       {/* Decorative Quote Icon on hover */}
       <Quote className="absolute right-6 top-6 text-slate-100 w-12 h-12 sm:w-16 sm:h-16 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
@@ -229,7 +229,7 @@ export default function SuccessStoriesSection() {
           </div>
         </div>
       </div>
-      
+
       {/* Stats trust banner directly below tickers */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 mt-16 text-center">
         <div className="inline-flex flex-wrap justify-center gap-x-8 gap-y-4 px-8 py-5 bg-white/80 backdrop-blur-md border border-slate-100 rounded-3xl shadow-sm text-sm font-semibold text-slate-600">

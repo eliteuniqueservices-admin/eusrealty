@@ -15,12 +15,60 @@ import MarqueeBanner from '@/components/MarqueeBanner';
 import HeroSuccessStories from '@/components/HeroSuccessStories';
 import HeroSearchBar from '@/components/HeroSearchBar';
 import SuccessStoriesSection from '@/components/SuccessStoriesSection';
+import HomeFaq from '@/components/HomeFaq';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600; // Cache homepage for 1 hour
 
 export default async function Home() {
   let featuredProjects = [];
   let signatureProperties = [];
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Do you charge brokerage for property purchases?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No, EusRealty is an official MahaRERA registered strategic channel partner with Pune's top-tier developers. Our advisory, comparative market analysis, project reports, site visits, and legal transaction support are 100% free of charge to buyers. We receive marketing fee payouts directly from builders, ensuring you save lakhs in intermediate broker commissions."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is 'Direct-Builder Pricing' and how does it benefit me?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Direct-Builder Pricing means we connect you directly with the developer's senior corporate sales desk, bypassing traditional brokers who mark up rates or control/hide premium inventory. Due to our high transaction volumes, we secure launch benefits, flexible custom payment schedules, and exclusive pre-launch inventory before it is published to the general public."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Which specific localities in Pune does EusRealty specialize in?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "We specialize in the high-growth residential corridors of West Pune and premium central zones, including Baner, Wakad, Hinjewadi, Kothrud, Aundh, Tathawade, and Koregaon Park. We analyze local infrastructural developments, corporate tech hubs, and upcoming metro line data to recommend properties with maximum capital appreciation."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do you ensure the safety and RERA compliance of listed projects?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Every project listed on EusRealty undergoes a rigorous due diligence process. We verify developer track records, structural stability audits, exact carpet area layouts, and official MahaRERA registration certificates. EusRealty is a registered agent (MahaRERA Registration No. A041262501741), guaranteeing complete transparency and zero legal hassles."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does the strategic advisory and booking process work?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "It begins with a free 45-minute strategy call with our expert analysts to align your investment goals and budget. We then provide a curated portfolio comparison report, organize chauffeured site visits with developer sales heads, assist in price negotiations, and support you completely through legal registration, tax paperwork, and key handover."
+        }
+      }
+    ]
+  };
 
   try {
     await dbConnect();
@@ -81,6 +129,11 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-[#FAFAFA] overflow-x-hidden font-sans text-slate-900">
+      {/* FAQ Schema for AEO/GEO/SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
 
       {/* ═══════════════════════════════════════════════════════════
           HERO SECTION — Immersive full-viewport entry
@@ -585,6 +638,11 @@ export default async function Home() {
           TESTIMONIALS SECTION
       ═══════════════════════════════════════════════════════════ */}
       <SuccessStoriesSection />
+
+      {/* ═══════════════════════════════════════════════════════════
+          FAQ SECTION — Optimized Accordion
+      ═══════════════════════════════════════════════════════════ */}
+      <HomeFaq />
 
       {/* ═══════════════════════════════════════════════════════════
           FINAL CTA BANNER

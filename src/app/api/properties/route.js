@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
-import Property from '@/models/Property';
 import { auth } from '@/auth';
+import Property from '@/models/Property';
+import { logAdminAction } from '@/lib/audit';
+import { revalidatePath } from 'next/cache';
 
 const MOCK_PROPERTIES = [
   {
@@ -83,6 +85,13 @@ export const POST = auth(async function POST(req) {
     await dbConnect();
     const data = await req.json();
     const property = await Property.create(data);
+
+    // Trigger cache revalidation
+    revalidatePath('/properties');
+    revalidatePath('/');
+
+    // Log the change
+    await logAdminAction(req, 'Property Created', `Property "${property.name}" in ${property.location} created.`);
 
     // Send New Property Alert to Subscribers
     try {

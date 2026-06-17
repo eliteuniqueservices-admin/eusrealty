@@ -8,6 +8,8 @@ import { Building2, Lock, Mail, ArrowRight } from "lucide-react";
 export default function AdminLogin() {
   const router = useRouter();
   const [form, setForm] = useState({ email: "", password: "" });
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState("credentials"); // 'credentials' | 'otp'
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -16,18 +18,52 @@ export default function AdminLogin() {
     setLoading(true);
     setError("");
 
-    const res = await signIn("credentials", {
-      email: form.email,
-      password: form.password,
-      redirect: false,
-    });
+    if (step === "credentials") {
+      try {
+        const response = await fetch("/api/auth/login-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: form.email, password: form.password }),
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          setError(data.error || "Invalid credentials. Please try again.");
+          setLoading(false);
+          return;
+        }
 
-    if (res?.error) {
-      setError("Invalid credentials. Please try again.");
-      setLoading(false);
+        if (data.status === "OTP_REQUIRED") {
+          setStep("otp");
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error("Login verification failed:", err);
+        setError("Network error. Please try again.");
+        setLoading(false);
+      }
     } else {
-      router.push("/admin/dashboard");
-      router.refresh();
+      try {
+        const res = await signIn("credentials", {
+          email: form.email,
+          password: form.password,
+          otp: otp,
+          redirect: false,
+        });
+
+        if (res?.error) {
+          setError("Invalid or expired verification code.");
+          setLoading(false);
+        } else {
+          router.push("/admin/dashboard");
+          router.refresh();
+        }
+      } catch (err) {
+        console.error("OTP login failed:", err);
+        setError("Something went wrong. Please try again.");
+        setLoading(false);
+      }
     }
   };
 
@@ -48,7 +84,9 @@ export default function AdminLogin() {
             <h1 className="text-2xl font-black text-white tracking-tighter">
               EUS<span className="text-blue-500">ADMIN</span>
             </h1>
-            <p className="text-slate-400 text-sm mt-2">Secure Gateway Access</p>
+            <p className="text-slate-400 text-sm mt-2">
+              {step === "credentials" ? "Secure Gateway Access" : "Two-Factor Authentication"}
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -58,35 +96,60 @@ export default function AdminLogin() {
               </div>
             )}
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Email</label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-slate-900/50 border border-slate-700 text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium"
-                  placeholder="admin@eusrealty.com"
-                  required
-                />
-              </div>
-            </div>
+            {step === "credentials" ? (
+              <>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Email</label>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                    <input
+                      type="email"
+                      value={form.email}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-slate-900/50 border border-slate-700 text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium"
+                      placeholder="admin@eusrealty.com"
+                      required
+                    />
+                  </div>
+                </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-                <input
-                  type="password"
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-slate-900/50 border border-slate-700 text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium"
-                  placeholder="••••••••"
-                  required
-                />
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Password</label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                    <input
+                      type="password"
+                      value={form.password}
+                      onChange={(e) => setForm({ ...form, password: e.target.value })}
+                      className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-slate-900/50 border border-slate-700 text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium"
+                      placeholder="••••••••"
+                      required
+                    />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-4">
+                <p className="text-xs text-slate-400 text-center font-medium leading-relaxed">
+                  We have dispatched a 6-digit verification code to <span className="text-slate-200 font-bold">{form.email}</span>. Please input it below to complete authorization.
+                </p>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Verification Code</label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                    <input
+                      type="text"
+                      maxLength={6}
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                      className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-slate-900/50 border border-slate-700 text-white placeholder:text-slate-600 tracking-[0.5em] text-center text-lg font-black focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                      placeholder="000000"
+                      required
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
 
             <button
               type="submit"
@@ -95,9 +158,29 @@ export default function AdminLogin() {
                 loading ? "bg-blue-600/50 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-500/25"
               }`}
             >
-              {loading ? "Authenticating..." : "Secure Login"}
+              {loading
+                ? step === "credentials"
+                  ? "Verifying..."
+                  : "Authorizing..."
+                : step === "credentials"
+                ? "Request Access"
+                : "Confirm Verification"}
               {!loading && <ArrowRight size={18} />}
             </button>
+
+            {step === "otp" && (
+              <button
+                type="button"
+                onClick={() => {
+                  setStep("credentials");
+                  setOtp("");
+                  setError("");
+                }}
+                className="w-full text-center text-xs font-semibold text-slate-500 hover:text-slate-300 mt-2 block transition-colors"
+              >
+                ← Back to credentials
+              </button>
+            )}
           </form>
         </div>
         

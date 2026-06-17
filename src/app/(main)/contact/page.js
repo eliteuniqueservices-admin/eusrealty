@@ -665,6 +665,42 @@ export default function ContactPage() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "RealEstateAgent",
+            "name": "EUS Realty",
+            "image": "https://eusrealty.co.in/icon.png",
+            "telephone": "+91 76207 33613",
+            "email": "hello@eusrealty.com",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Office No. 424-427, Vardhamaan Moonstone, Tathawade",
+              "addressLocality": "Pune",
+              "addressRegion": "Maharashtra",
+              "postalCode": "411033",
+              "addressCountry": "IN"
+            },
+            "url": "https://eusrealty.co.in/contact",
+            "priceRange": "$$$",
+            "openingHoursSpecification": {
+              "@type": "OpeningHoursSpecification",
+              "dayOfWeek": [
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+                "Sunday"
+              ],
+              "opens": "09:00",
+              "closes": "20:00"
+            }
+          })
+        }}
+      />
       <AnimatePresence>
         {showCelebration && (
           <CelebrationPopup name={submittedName} onClose={closeCelebration} />

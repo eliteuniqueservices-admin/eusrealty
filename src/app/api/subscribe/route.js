@@ -73,8 +73,11 @@ export async function POST(req) {
   }
 }
 
-export async function GET(req) {
+export const GET = auth(async function GET(req) {
   try {
+    if (!req.auth || req.auth.user?.role !== 'admin') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     await dbConnect();
     const subscribers = await Subscriber.find({}).sort({ createdAt: -1 });
     return NextResponse.json(subscribers, { status: 200 });
@@ -82,4 +85,4 @@ export async function GET(req) {
     console.error('Subscribers GET error:', error);
     return NextResponse.json({ error: 'Failed to fetch subscribers' }, { status: 500 });
   }
-}
+});

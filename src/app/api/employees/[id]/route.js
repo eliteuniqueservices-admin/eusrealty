@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
+import { logAdminAction } from '@/lib/audit';
 import dbConnect from '@/lib/mongodb';
 import Employee from '@/models/Employee';
 
@@ -16,6 +17,7 @@ export const PUT = auth(async function PUT(req, { params }) {
     if (!employee) {
       return NextResponse.json({ error: 'Employee not found' }, { status: 404 });
     }
+    await logAdminAction(req, 'Employee Updated', `Employee "${employee.name}" (${employee.email}) updated.`);
     return NextResponse.json(employee);
   } catch (error) {
     console.error('Employee update error:', error);
@@ -35,6 +37,7 @@ export const DELETE = auth(async function DELETE(req, { params }) {
     if (!employee) {
       return NextResponse.json({ error: 'Employee not found' }, { status: 404 });
     }
+    await logAdminAction(req, 'Employee Deleted', `Employee "${employee.name}" (${employee.email}) removed.`);
     return NextResponse.json({ message: 'Employee deleted successfully' });
   } catch (error) {
     console.error('Employee delete error:', error);

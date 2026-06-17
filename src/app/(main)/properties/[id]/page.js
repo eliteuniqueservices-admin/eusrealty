@@ -26,10 +26,21 @@ export async function generateMetadata({ params }) {
   return {
     title: `${property.name} - Luxury Property in ${property.location} | EUS Realty`,
     description: property.description || `Explore ${property.name} in ${property.location}. Find premium 0% brokerage properties in Pune.`,
+    alternates: {
+      canonical: `https://eusrealty.co.in/properties/${resolvedParams.id}`,
+    },
     openGraph: {
-      title: `${property.name} - Luxury Property in ${property.location}`,
+      title: `${property.name} - Luxury Property in ${property.location} | EUS Realty`,
       description: property.description || `Explore premium properties in Pune with EUS Realty.`,
       images: property.images && property.images.length > 0 ? [{ url: property.images[0] }] : [],
+      url: `https://eusrealty.co.in/properties/${resolvedParams.id}`,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${property.name} - Luxury Property in ${property.location} | EUS Realty`,
+      description: property.description || `Explore premium properties in Pune with EUS Realty.`,
+      images: property.images && property.images.length > 0 ? [property.images[0]] : [],
     }
   };
 }
@@ -65,23 +76,73 @@ export default async function PropertyDetailPage({ params }) {
   // Simulated live viewers for Social Proof
   const liveViewers = (resolvedParams.id.charCodeAt(resolvedParams.id.length - 1) % 5) + 2; 
 
+  // Parse BHK config for search engine semantic parsing
+  const bhkMatch = config.type ? config.type.match(/\d+/) : null;
+  const numberOfRooms = bhkMatch ? parseInt(bhkMatch[0]) : 3;
+
+  // Parse floor size
+  const areaMatch = config.carpet ? config.carpet.replace(/[^\d]/g, "") : "1500";
+  const floorSizeVal = parseInt(areaMatch) || 1500;
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "RealEstateListing",
-    "name": property.name,
-    "description": property.description || `Premium property in ${property.location}`,
+    "name": `${property.name} in ${property.location}`,
+    "description": property.description || `Discover ${property.name} in ${property.location}, Pune. Premium luxury development with direct builder pricing and 0% brokerage fees.`,
     "image": image,
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": property.location,
-      "addressRegion": "Maharashtra",
-      "addressCountry": "IN"
-    },
+    "url": `https://eusrealty.co.in/properties/${resolvedParams.id}`,
+    "datePosted": property.createdAt || new Date().toISOString(),
     "offers": {
       "@type": "Offer",
       "priceCurrency": "INR",
       "price": config.price,
-      "availability": "https://schema.org/InStock"
+      "priceSpecification": {
+        "@type": "PriceSpecification",
+        "price": config.price,
+        "priceCurrency": "INR",
+        "valueAddedTaxIncluded": true
+      },
+      "availability": "https://schema.org/InStock",
+      "url": `https://eusrealty.co.in/properties/${resolvedParams.id}`
+    },
+    "itemOffered": {
+      "@type": "Apartment",
+      "name": property.name,
+      "numberOfRooms": numberOfRooms,
+      "numberOfBedrooms": numberOfRooms,
+      "numberOfBathroomsTotal": numberOfRooms,
+      "floorSize": {
+        "@type": "QuantitativeValue",
+        "value": floorSizeVal,
+        "unitCode": "FTK"
+      },
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": property.location,
+        "addressRegion": "Maharashtra",
+        "addressCountry": "IN"
+      },
+      "brand": {
+        "@type": "Brand",
+        "name": property.developer || "Premium Pune Builder"
+      },
+      "additionalProperty": [
+        {
+          "@type": "PropertyValue",
+          "name": "MahaRERA Number",
+          "value": property.rera || "Verified"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Possession Date",
+          "value": property.possession || "Ready to Move"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Brokerage",
+          "value": "0% Zero Brokerage"
+        }
+      ]
     }
   };
 

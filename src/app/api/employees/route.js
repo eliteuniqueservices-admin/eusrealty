@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
+import { logAdminAction } from '@/lib/audit';
 import dbConnect from '@/lib/mongodb';
 import Employee from '@/models/Employee';
 
@@ -32,6 +33,7 @@ export const POST = auth(async function POST(req) {
     }
 
     const employee = await Employee.create(data);
+    await logAdminAction(req, 'Employee Registered', `Employee "${employee.name}" (${employee.email}) registered.`);
     return NextResponse.json(employee, { status: 201 });
   } catch (error) {
     console.error('Employee create error:', error);

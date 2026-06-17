@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   User, Lock, Bell, Globe, Shield, 
   Save, Camera, CheckCircle2, AlertCircle, 
@@ -21,14 +21,16 @@ export default function SettingsPage() {
   const [activeSection, setActiveSection] = useState('profile');
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("Changes Saved");
+  const [errorAlert, setErrorAlert] = useState("");
 
   // --- STATES ---
   const [profileData, setProfileData] = useState({
-    name: 'Admin User',
-    email: 'admin@eusrealty.com',
-    phone: '+91 98765 43210',
-    role: 'Super Admin',
-    office: 'Wakad Branch, Pune'
+    name: '',
+    email: '',
+    phone: '',
+    role: '',
+    office: ''
   });
 
   const [securityData, setSecurityData] = useState({
@@ -50,19 +52,141 @@ export default function SettingsPage() {
     twoFactorAuth: true
   });
 
-  // --- HANDLERS ---
-  const handleSave = () => {
-    setIsSaving(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsSaving(false);
-      setShowSuccess(true);
-      // Clear security fields after save
-      if(activeSection === 'security') {
-        setSecurityData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  // --- AUDIT TRAIL LOGS ---
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [logsPage, setLogsPage] = useState(1);
+  const [logsTotalPages, setLogsTotalPages] = useState(1);
+
+  const fetchProfile = async () => {
+    try {
+      const res = await fetch('/api/admin/profile');
+      if (res.ok) {
+        const data = await res.json();
+        setProfileData({
+          name: data.name || '',
+          email: data.email || '',
+          phone: data.phone || '',
+          role: data.role || 'Admin',
+          office: data.office || 'Wakad Branch, Pune'
+        });
       }
-      setTimeout(() => setShowSuccess(false), 3000);
-    }, 1200);
+    } catch (err) {
+      console.error('Failed to load profile details:', err);
+    }
+  };
+
+  const fetchAuditLogs = async (page = 1) => {
+    setLogsLoading(true);
+    setErrorAlert("");
+    try {
+      const res = await fetch(`/api/admin/audit-logs?page=${page}&limit=10`);
+      if (res.ok) {
+        const data = await res.json();
+        setAuditLogs(data.logs || []);
+        setLogsPage(data.page || 1);
+        setLogsTotalPages(data.totalPages || 1);
+      } else {
+        const data = await res.json();
+        setErrorAlert(data.error || "Failed to load audit logs.");
+      }
+    } catch (err) {
+      console.error('Failed to load audit logs:', err);
+      setErrorAlert("Connection error. Failed to retrieve audit trail.");
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  useEffect(() => {
+    if (activeSection === 'audit') {
+      fetchAuditLogs(1);
+    }
+  }, [activeSection]);
+
+  // --- HANDLERS ---
+  const handleSave = async () => {
+    setIsSaving(true);
+    setErrorAlert("");
+    setShowSuccess(false);
+
+    if (activeSection === 'profile') {
+      try {
+        const res = await fetch('/api/admin/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: profileData.name,
+            phone: profileData.phone,
+            office: profileData.office
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setErrorAlert(data.error || "Failed to save profile changes.");
+        } else {
+          setSuccessMessage("Profile updated successfully!");
+          setShowSuccess(true);
+          setTimeout(() => setShowSuccess(false), 3000);
+        }
+      } catch (err) {
+        setErrorAlert("Network error. Failed to save profile changes.");
+      } finally {
+        setIsSaving(false);
+      }
+    } else if (activeSection === 'security') {
+      if (!securityData.currentPassword || !securityData.newPassword || !securityData.confirmPassword) {
+        setErrorAlert("All password fields are required.");
+        setIsSaving(false);
+        return;
+      }
+      if (securityData.newPassword !== securityData.confirmPassword) {
+        setErrorAlert("New passwords do not match.");
+        setIsSaving(false);
+        return;
+      }
+      if (securityData.newPassword.length < 8) {
+        setErrorAlert("New password must be at least 8 characters long.");
+        setIsSaving(false);
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/admin/change-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            currentPassword: securityData.currentPassword,
+            newPassword: securityData.newPassword
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setErrorAlert(data.error || "Failed to change password.");
+        } else {
+          setSuccessMessage("Password changed successfully!");
+          setShowSuccess(true);
+          setSecurityData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+          setTimeout(() => setShowSuccess(false), 3000);
+        }
+      } catch (err) {
+        setErrorAlert("Network error. Failed to change password.");
+      } finally {
+        setIsSaving(false);
+      }
+    } else {
+      // Simulate save for notification and system config
+      setTimeout(() => {
+        setIsSaving(false);
+        setSuccessMessage("Settings saved successfully!");
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+      }, 1000);
+    }
   };
 
   const navItems = [
@@ -70,6 +194,7 @@ export default function SettingsPage() {
     { id: 'security', label: 'Security & Password', icon: <Lock size={18} /> },
     { id: 'notifications', label: 'Notification Prefs', icon: <Bell size={18} /> },
     { id: 'system', label: 'System Configuration', icon: <Shield size={18} /> },
+    { id: 'audit', label: 'Audit Trail Logs', icon: <Activity size={18} /> },
   ];
 
   return (
@@ -85,11 +210,17 @@ export default function SettingsPage() {
             </p>
           </div>
           
-          <div className="h-10 flex items-center">
+          <div className="h-10 flex items-center gap-3">
+            {errorAlert && (
+              <div className="flex items-center gap-2 bg-rose-50 text-rose-700 px-5 py-2.5 rounded-xl border border-rose-200 animate-in slide-in-from-top-4 fade-in duration-300 shadow-sm">
+                <AlertCircle size={18} className="text-rose-600" />
+                <span className="text-xs font-black uppercase tracking-wider">{errorAlert}</span>
+              </div>
+            )}
             {showSuccess && (
               <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-5 py-2.5 rounded-xl border border-emerald-200 animate-in slide-in-from-top-4 fade-in duration-300 shadow-sm">
                 <CheckCircle2 size={18} className="text-emerald-600" />
-                <span className="text-xs font-black uppercase tracking-wider">Changes Saved</span>
+                <span className="text-xs font-black uppercase tracking-wider">{successMessage}</span>
               </div>
             )}
           </div>
@@ -322,23 +453,123 @@ export default function SettingsPage() {
                   </div>
                 </section>
               )}
+
+              {/* AUDIT LOGS SECTION */}
+              {activeSection === 'audit' && (
+                <section className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900 mb-1">Administrative Audit Trail</h3>
+                    <p className="text-sm font-medium text-slate-500">Security history log of all operations performed inside the EUS Realty workspace.</p>
+                  </div>
+
+                  {logsLoading ? (
+                    <div className="flex flex-col items-center justify-center py-12 gap-3">
+                      <RefreshCcw className="animate-spin text-blue-600" size={32} />
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest animate-pulse">Loading history log...</p>
+                    </div>
+                  ) : auditLogs.length === 0 ? (
+                    <div className="text-center py-12 text-slate-400 font-bold uppercase tracking-widest text-xs border border-dashed border-slate-200 rounded-2xl">
+                      No security logs found.
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="overflow-x-auto rounded-2xl border border-slate-200">
+                        <table className="w-full text-left border-collapse bg-white">
+                          <thead>
+                            <tr className="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-wider border-b border-slate-200">
+                              <th className="px-6 py-4">Timestamp</th>
+                              <th className="px-6 py-4">Action</th>
+                              <th className="px-6 py-4">Performed By</th>
+                              <th className="px-6 py-4">IP Address</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 text-sm font-bold text-slate-700">
+                            {auditLogs.map((log) => {
+                              const actionColor = log.action.includes('Created') 
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
+                                : log.action.includes('Deleted') 
+                                ? 'bg-rose-50 text-rose-700 border-rose-100' 
+                                : log.action.includes('Updated') || log.action.includes('Rotated')
+                                ? 'bg-sky-50 text-sky-700 border-sky-100' 
+                                : 'bg-slate-50 text-slate-700 border-slate-100';
+
+                              return (
+                                <tr key={log._id} className="hover:bg-slate-50/50">
+                                  <td className="px-6 py-4 text-xs font-semibold text-slate-500">
+                                    {new Date(log.timestamp).toLocaleString('en-IN')}
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <div className="flex flex-col gap-1">
+                                      <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold border ${actionColor} self-start`}>
+                                        {log.action}
+                                      </span>
+                                      <span className="text-xs text-slate-500 font-medium leading-relaxed max-w-md">
+                                        {log.details}
+                                      </span>
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <div className="flex flex-col">
+                                      <span>{log.performedBy?.name}</span>
+                                      <span className="text-xs text-slate-400 font-medium font-mono">{log.performedBy?.email}</span>
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4 text-xs font-semibold font-mono text-slate-500">
+                                    {log.ipAddress}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Pagination Controls */}
+                      {logsTotalPages > 1 && (
+                        <div className="flex items-center justify-between pt-4">
+                          <button
+                            type="button"
+                            disabled={logsPage <= 1}
+                            onClick={() => fetchAuditLogs(logsPage - 1)}
+                            className="px-4 py-2 border border-slate-200 rounded-xl font-bold text-xs text-slate-600 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                          >
+                            ← Previous
+                          </button>
+                          <span className="text-xs font-black uppercase tracking-wider text-slate-400">
+                            Page {logsPage} of {logsTotalPages}
+                          </span>
+                          <button
+                            type="button"
+                            disabled={logsPage >= logsTotalPages}
+                            onClick={() => fetchAuditLogs(logsPage + 1)}
+                            className="px-4 py-2 border border-slate-200 rounded-xl font-bold text-xs text-slate-600 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                          >
+                            Next →
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </section>
+              )}
             </div>
 
             {/* FIXED FOOTER BUTTONS */}
-            <div className="p-6 md:px-10 border-t border-slate-100 bg-slate-50/80 flex justify-end gap-4 shrink-0 mt-auto">
-              <button className="px-6 py-3 rounded-xl font-bold text-sm text-slate-500 hover:text-slate-800 hover:bg-slate-200/50 transition-all">
-                Cancel
-              </button>
-              <button 
-                onClick={handleSave}
-                disabled={isSaving}
-                className="flex items-center gap-2 px-8 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all disabled:opacity-70 disabled:cursor-not-allowed active:scale-95"
-              >
-                {isSaving ? <RefreshCcw className="animate-spin" size={16} /> : <Save size={16} />}
-                {isSaving ? 'Processing...' : 'Save Changes'}
-              </button>
-            </div>
-
+            {activeSection !== 'audit' && (
+              <div className="p-6 md:px-10 border-t border-slate-100 bg-slate-50/80 flex justify-end gap-4 shrink-0 mt-auto">
+                <button className="px-6 py-3 rounded-xl font-bold text-sm text-slate-500 hover:text-slate-800 hover:bg-slate-200/50 transition-all">
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="flex items-center gap-2 px-8 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all disabled:opacity-70 disabled:cursor-not-allowed active:scale-95"
+                >
+                  {isSaving ? <RefreshCcw className="animate-spin" size={16} /> : <Save size={16} />}
+                  {isSaving ? 'Processing...' : 'Save Changes'}
+                </button>
+              </div>
+            )}
           </main>
         </div>
       </div>

@@ -24,9 +24,16 @@ const PropertySchema = new mongoose.Schema({
   usp: { type: String },
   launchYear: { type: String },
   images: [{ type: String }], // Optional for future image uploads
+  propertyType: { type: String, default: 'Apartments' },
   isFeatured: { type: Boolean, default: false },
   isSignature: { type: Boolean, default: false },
   isMandate: { type: Boolean, default: false }
 }, { timestamps: true });
+
+PropertySchema.index({ location: 1 });
+PropertySchema.index({ status: 1 });
+PropertySchema.index({ propertyType: 1 });
+PropertySchema.index({ isFeatured: 1, isSignature: 1, isMandate: 1 });
+PropertySchema.index({ createdAt: -1 });
 
 export default mongoose.models.Property || mongoose.model('Property', PropertySchema);

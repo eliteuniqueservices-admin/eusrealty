@@ -8,6 +8,7 @@ export const ROLES = {
 export const PERMISSIONS = {
   admin: {
     properties: ['create', 'read', 'update', 'delete'],
+    blogs: ['create', 'read', 'update', 'delete'],
     settings: ['read', 'update'],
     jobPosts: ['create', 'read', 'update', 'delete'],
   },
@@ -17,6 +18,7 @@ export const PERMISSIONS = {
 export const ROUTE_PERMISSIONS = {
   '/admin/dashboard': ['admin'],
   '/admin/dashboard/properties': ['admin'],
+  '/admin/dashboard/manage-blogs': ['admin'],
   '/admin/dashboard/settings': ['admin'],
   '/admin/dashboard/manage-job-posts': ['admin'],
   '/admin/dashboard/chat-leads': ['admin'],
@@ -36,6 +38,7 @@ export function getNavItems(role) {
   return [
     { name: 'Overview', href: '/admin/dashboard', icon: 'LayoutDashboard', roles: ['admin'] },
     { name: 'Properties', href: '/admin/dashboard/properties', icon: 'Building2', roles: ['admin'] },
+    { name: 'Blog Posts', href: '/admin/dashboard/manage-blogs', icon: 'FileText', roles: ['admin'] },
     { name: 'Job Posts', href: '/admin/dashboard/manage-job-posts', icon: 'Briefcase', roles: ['admin'] },
     { name: 'Applications', href: '/admin/dashboard/job-applications', icon: 'Users', roles: ['admin'] },
     { name: 'Loan Applied', href: '/admin/dashboard/loan-applications', icon: 'Banknote', roles: ['admin'] },

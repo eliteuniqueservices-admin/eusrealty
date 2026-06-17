@@ -13,6 +13,7 @@ const NAV_LINKS = [
   { name: "Projects",      href: "/properties",  emoji: "🏙️" },
   { name: "Home Loans",    href: "/home-loans",  emoji: "🏠" },
   { name: "ROI Calc",      href: "/calculator",  emoji: "📈" },
+  { name: "Blog",          href: "/blog",        emoji: "✍️" },
   { name: "Careers",       href: "/careers",     emoji: "💼" },
   { name: "About",         href: "/about",       emoji: "⭐" },
   { name: "Contact",       href: "/contact",     emoji: "📞" },

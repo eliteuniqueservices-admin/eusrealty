@@ -15,7 +15,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
@@ -24,7 +24,7 @@ import { getNavItems } from '@/lib/permissions';
 import {
   LayoutDashboard, Building2, Settings, LogOut, Bell,
   ChevronDown, Menu, X, User, Users, Key, ChevronRight, Briefcase,
-  MessageSquare, Banknote, Mail,
+  MessageSquare, Banknote, Mail, FileText,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -39,6 +39,7 @@ const ICON_MAP = {
   Users,
   Banknote,
   Mail,
+  FileText,
 };
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -182,6 +183,36 @@ export default function AdminShell({ children }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+
+  const timeoutRef = useRef(null);
+
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+
+    const resetTimer = () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => {
+        signOut({ callbackUrl: '/admin/login' });
+      }, 10 * 60 * 1000); // 10 minutes idle timeout
+    };
+
+    // Initialize timer
+    resetTimer();
+
+    // Event listeners to track activity
+    const activityEvents = ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart', 'click'];
+    
+    activityEvents.forEach((event) => {
+      window.addEventListener(event, resetTimer);
+    });
+
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      activityEvents.forEach((event) => {
+        window.removeEventListener(event, resetTimer);
+      });
+    };
+  }, [status]);
 
   // Client-side session protection (Defense in depth)
   if (status === 'loading') {

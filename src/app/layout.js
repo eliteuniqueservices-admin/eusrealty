@@ -1,5 +1,6 @@
 import "./globals.css";
 import { Inter, Outfit } from "next/font/google";
+import Script from "next/script";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -16,15 +17,49 @@ const outfit = Outfit({
 });
 
 export const metadata = {
-  title: "EusRealty | Pune's Premier Luxury Real Estate",
-  description: "Discover Pune's most exclusive residences. Zero brokerage, direct-builder pricing, RERA verified projects. Get priority access to pre-launch inventory from Pune's top developers.",
-  keywords: "Pune real estate, luxury apartments Pune, pre-launch properties, RERA verified, zero brokerage",
+  metadataBase: new URL("https://eusrealty.co.in"),
+  title: "EusRealty | Premium Luxury Properties in Pune | 0% Brokerage",
+  description: "Discover Pune's exclusive luxury residences with zero brokerage, direct-builder pricing, and 100% RERA-verified projects. Get priority pre-launch access.",
+  keywords: "Pune real estate, luxury apartments Pune, pre-launch properties, RERA verified, zero brokerage, Baner luxury homes, Wakad penthouses, Koregaon Park villas",
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   openGraph: {
-    title: "EusRealty | Pune's Premier Luxury Real Estate",
-    description: "Zero brokerage. Direct-builder pricing. RERA verified. Discover Pune's finest properties.",
+    title: "EusRealty | Premium Luxury Properties in Pune | 0% Brokerage",
+    description: "Discover Pune's most exclusive residences. Zero brokerage, direct-builder pricing, RERA verified projects.",
+    url: "https://eusrealty.co.in",
+    siteName: "EusRealty",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "EusRealty | Premium Luxury Properties in Pune",
+      },
+    ],
+    locale: "en_IN",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "EusRealty | Premium Luxury Properties in Pune | 0% Brokerage",
+    description: "Get priority access to pre-launch luxury deals from Pune's top builders with zero brokerage and direct builder pricing.",
+    images: ["/og-image.jpg"],
+  },
 };
+
+const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 
 export default function RootLayout({ children }) {
   const jsonLd = {
@@ -35,9 +70,34 @@ export default function RootLayout({ children }) {
     "@id": "https://eusrealty.co.in/#realestateagent",
     "url": "https://eusrealty.co.in",
     "telephone": "+917620733613",
-    "priceRange": "$$$",
+    "priceRange": "$$$$",
     "customIdentifier": "MahaRERA Agent Number: A041262501741",
     "description": "EusRealty is a MahaRERA registered real estate channel partner (Registration No. A041262501741) advising on luxury properties and pre-launch deals in Pune with zero brokerage fee.",
+    "founder": [
+      {
+        "@type": "Person",
+        "name": "Amarpal Singh"
+      },
+      {
+        "@type": "Person",
+        "name": "Kunal Verma"
+      }
+    ],
+    "foundingDate": "2021",
+    "knowsAbout": [
+      "Pune Real Estate",
+      "MahaRERA Compliance",
+      "Real Estate Investment ROI",
+      "Home Loan Advisory",
+      "Luxury Penthouses & Villas"
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+917620733613",
+      "contactType": "Sales Advisory Desk",
+      "areaServed": "Pune",
+      "availableLanguage": ["English", "Hindi", "Marathi"]
+    },
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "Baner Road, near Balewadi High Street",
@@ -91,7 +151,48 @@ export default function RootLayout({ children }) {
         "@type": "AdministrativeArea",
         "name": "Koregaon Park, Pune"
       }
-    ]
+    ],
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.9",
+      "bestRating": "5",
+      "worstRating": "1",
+      "ratingCount": "1056"
+    },
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "EusRealty Real Estate Services",
+      "itemListElement": [
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Zero Brokerage Luxury Property Buying Consultation"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Pre-Launch Direct Builder Pricing & Desk Access"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "Comparative Property Analytics Reports"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "MahaRERA & Legal Document Verification Service"
+          }
+        }
+      ]
+    }
   };
 
   return (
@@ -103,8 +204,35 @@ export default function RootLayout({ children }) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        {/* Google Tag Manager - Head */}
+        {GTM_ID && (
+          <Script
+            id="gtm-head"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `
+                (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+                new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+                j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+                'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+                })(window,document,'script','dataLayer','${GTM_ID}');
+              `,
+            }}
+          />
+        )}
       </head>
       <body className="font-sans antialiased relative">
+        {/* Google Tag Manager - Body noscript fallback */}
+        {GTM_ID && (
+          <noscript>
+            <iframe
+              src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+              height="0"
+              width="0"
+              style={{ display: 'none', visibility: 'hidden' }}
+            />
+          </noscript>
+        )}
         {children}
       </body>
     </html>

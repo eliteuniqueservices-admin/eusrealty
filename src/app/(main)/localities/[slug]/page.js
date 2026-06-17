@@ -5,6 +5,8 @@ import Reveal from "@/components/Reveal";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+
+export const revalidate = 86400; // Cache guides for 24 hours
 import {
   MapPin, Building2, TrendingUp, Train, GraduationCap,
   Briefcase, Star, ArrowRight, ShieldCheck, Heart
@@ -177,6 +179,16 @@ export async function generateMetadata({ params }) {
       canonical: `https://eusrealty.co.in/localities/${slug.toLowerCase()}`,
     }
   };
+}
+
+export async function generateStaticParams() {
+  return [
+    { slug: 'baner' },
+    { slug: 'wakad' },
+    { slug: 'hinjawadi' },
+    { slug: 'tathawade' },
+    { slug: 'aundh' }
+  ];
 }
 
 export default async function LocalityPage({ params }) {

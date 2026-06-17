@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { v2 as cloudinary } from 'cloudinary';
+import { auth } from '@/auth';
 
 // Configure Cloudinary if keys are present
 const hasCloudinary = process.env.CLOUDINARY_CLOUD_NAME && 
@@ -16,12 +17,28 @@ if (hasCloudinary) {
   });
 }
 
-export async function POST(req) {
+export const POST = auth(async function POST(req) {
   try {
+    if (!req.auth) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const formData = await req.formData();
     const file = formData.get('file');
     if (!file) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
+    }
+
+    // 1. Validate File Size (Max 5MB)
+    const MAX_SIZE = 5 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      return NextResponse.json({ error: 'File size exceeds the 5MB limit.' }, { status: 400 });
+    }
+
+    // 2. Validate MIME Type
+    const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/avif'];
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      return NextResponse.json({ error: 'Invalid file type. Only PNG, JPEG, JPG, WEBP, and AVIF images are allowed.' }, { status: 400 });
     }
 
     const bytes = await file.arrayBuffer();
@@ -56,4 +73,4 @@ export async function POST(req) {
     console.error('File upload error:', error);
     return NextResponse.json({ error: error.message || 'File upload failed' }, { status: 500 });
   }
-}
+});

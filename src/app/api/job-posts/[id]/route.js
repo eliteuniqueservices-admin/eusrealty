@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
+import { logAdminAction } from '@/lib/audit';
 import dbConnect from '@/lib/mongodb';
 import JobPost from '@/models/JobPost';
+import { revalidatePath } from 'next/cache';
 
 const MOCK_JOBS = [
   {
@@ -89,6 +91,13 @@ export const PUT = auth(async function PUT(req, { params }) {
     if (!job) {
       return NextResponse.json({ error: 'Job posting not found' }, { status: 404 });
     }
+    
+    // Trigger Next.js static cache revalidation
+    revalidatePath('/careers');
+    revalidatePath(`/careers/${id}`);
+    revalidatePath('/careers/[id]');
+    
+    await logAdminAction(req, 'Job Post Updated', `Job post "${job.title}" (ID: ${id}) updated.`);
     return NextResponse.json(job);
   } catch (error) {
     console.error('Job post PUT error:', error);
@@ -109,6 +118,13 @@ export const DELETE = auth(async function DELETE(req, { params }) {
     if (!job) {
       return NextResponse.json({ error: 'Job posting not found' }, { status: 404 });
     }
+    
+    // Trigger Next.js static cache revalidation
+    revalidatePath('/careers');
+    revalidatePath(`/careers/${id}`);
+    revalidatePath('/careers/[id]');
+    
+    await logAdminAction(req, 'Job Post Deleted', `Job post "${job.title}" (ID: ${id}) deleted.`);
     return NextResponse.json({ message: 'Job posting deleted' });
   } catch (error) {
     console.error('Job post DELETE error:', error);

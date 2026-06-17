@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm } from 'react-hook-form';
-import { 
-  Building2, Briefcase, CreditCard, Home, ShieldCheck, 
+import {
+  Building2, Briefcase, CreditCard, Home, ShieldCheck,
   ChevronRight, ChevronLeft, CheckCircle, Calculator, Info
 } from 'lucide-react';
 
@@ -78,7 +78,7 @@ export default function HomeLoanCalculator() {
   const onSubmit = async (data) => {
     try {
       setIsSubmitting(true);
-      
+
       const payload = {
         personalDetails: {
           fullName: data.fullName, mobile: data.mobile, email: data.email,
@@ -133,7 +133,7 @@ export default function HomeLoanCalculator() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-300 font-sans selection:bg-amber-500/30 pt-24 pb-20">
-      
+
       {/* Hero */}
       <div className="max-w-7xl mx-auto px-6 mb-16 text-center relative z-10">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
@@ -151,13 +151,13 @@ export default function HomeLoanCalculator() {
 
       {/* Main Container */}
       <div className="max-w-4xl mx-auto px-4 relative z-10">
-        
+
         {/* Progress Tracker */}
         {!results && (
           <div className="flex justify-between items-center mb-8 relative">
             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.5 bg-slate-800 -z-10" />
-            <motion.div 
-              className="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-amber-500 -z-10" 
+            <motion.div
+              className="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-amber-500 -z-10"
               initial={{ width: '0%' }}
               animate={{ width: `${(currentStep / (STEPS.length - 1)) * 100}%` }}
               transition={{ duration: 0.4 }}
@@ -180,7 +180,7 @@ export default function HomeLoanCalculator() {
 
         <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 p-6 md:p-10 rounded-3xl shadow-2xl">
           <AnimatePresence mode="wait">
-            
+
             {/* CALCULATOR FORM */}
             {!results ? (
               <motion.div key="form" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
@@ -188,7 +188,7 @@ export default function HomeLoanCalculator() {
                   alert('Please fill all required fields correctly. Check Credit Score (300-900) or missing inputs.');
                   console.error(errors);
                 })} className="space-y-8">
-                  
+
                   {/* STEP 1: Personal */}
                   {currentStep === 0 && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
@@ -240,7 +240,7 @@ export default function HomeLoanCalculator() {
                           <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Company / Business Name</label>
                           <input {...register('companyOrBusiness', { required: true })} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 transition-colors" placeholder="TCS / Your Business Name" />
                         </div>
-                        
+
                         {empType === 'Salaried' ? (
                           <>
                             <div>
@@ -338,7 +338,7 @@ export default function HomeLoanCalculator() {
                           <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Current Credit Score (CIBIL)</label>
                           <input type="number" {...register('creditScore', { required: true, min: 300, max: 900 })} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 transition-colors" placeholder="750" />
                         </div>
-                        
+
                         <div>
                           <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Any Existing Home Loan?</label>
                           <div className="flex gap-4 mt-2">
@@ -368,24 +368,24 @@ export default function HomeLoanCalculator() {
 
                   {/* Navigation Buttons */}
                   <div className="flex justify-between items-center pt-8 border-t border-white/10">
-                    <button 
-                      type="button" 
-                      onClick={prevStep} 
+                    <button
+                      type="button"
+                      onClick={prevStep}
                       disabled={currentStep === 0}
                       className="px-6 py-3 rounded-xl font-bold text-slate-400 hover:text-white transition-colors disabled:opacity-0"
                     >
                       Back
                     </button>
                     {currentStep < STEPS.length - 1 ? (
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={nextStep}
                         className="px-8 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black transition-colors shadow-[0_0_20px_rgba(245,158,11,0.3)] flex items-center gap-2"
                       >
                         Next <ChevronRight size={18} />
                       </button>
                     ) : (
-                      <button 
+                      <button
                         type="submit"
                         disabled={isSubmitting}
                         className="px-8 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black transition-colors shadow-[0_0_20px_rgba(245,158,11,0.3)] flex items-center gap-2 disabled:opacity-50"
@@ -399,19 +399,18 @@ export default function HomeLoanCalculator() {
             ) : (
               /* RESULTS DASHBOARD */
               <motion.div key="results" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-                
+
                 <div className="text-center mb-10">
-                  <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${
-                    results.eligibilityStatus === 'Eligible' ? 'bg-emerald-500/20 text-emerald-400' :
+                  <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${results.eligibilityStatus === 'Eligible' ? 'bg-emerald-500/20 text-emerald-400' :
                     results.eligibilityStatus === 'Conditionally Eligible' ? 'bg-amber-500/20 text-amber-400' :
-                    'bg-red-500/20 text-red-400'
-                  }`}>
+                      'bg-red-500/20 text-red-400'
+                    }`}>
                     <ShieldCheck size={32} />
                   </div>
                   <h2 className="text-3xl font-black text-white mb-2">
-                    {results.eligibilityStatus === 'Eligible' ? 'Congratulations! You are Eligible.' : 
-                     results.eligibilityStatus === 'Conditionally Eligible' ? 'You are Conditionally Eligible.' : 
-                     'Currently Not Eligible'}
+                    {results.eligibilityStatus === 'Eligible' ? 'Congratulations! You are Eligible.' :
+                      results.eligibilityStatus === 'Conditionally Eligible' ? 'You are Conditionally Eligible.' :
+                        'Currently Not Eligible'}
                   </h2>
                   <p className="text-slate-400">Application No: <strong className="text-white font-mono">{results.applicationNumber}</strong></p>
                 </div>
@@ -427,11 +426,10 @@ export default function HomeLoanCalculator() {
                   </div>
                   <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 text-center">
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Credit Risk Level</p>
-                    <p className={`text-2xl md:text-3xl font-black ${
-                      results.calculatedMetrics.riskLevel === 'Excellent' ? 'text-emerald-400' :
+                    <p className={`text-2xl md:text-3xl font-black ${results.calculatedMetrics.riskLevel === 'Excellent' ? 'text-emerald-400' :
                       results.calculatedMetrics.riskLevel === 'Good' ? 'text-blue-400' :
-                      results.calculatedMetrics.riskLevel === 'Average' ? 'text-amber-400' : 'text-red-400'
-                    }`}>{results.calculatedMetrics.riskLevel}</p>
+                        results.calculatedMetrics.riskLevel === 'Average' ? 'text-amber-400' : 'text-red-400'
+                      }`}>{results.calculatedMetrics.riskLevel}</p>
                   </div>
                 </div>
 
@@ -472,7 +470,7 @@ export default function HomeLoanCalculator() {
           </AnimatePresence>
         </div>
       </div>
-      
+
       {/* Decorative gradient blur */}
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-amber-500/5 rounded-full blur-[120px] pointer-events-none -z-10" />
     </div>

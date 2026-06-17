@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
+import { logAdminAction } from '@/lib/audit';
 import dbConnect from '@/lib/mongodb';
 import JobPost from '@/models/JobPost';
+import { revalidatePath } from 'next/cache';
 
 const MOCK_JOBS = [
   {
@@ -85,6 +87,12 @@ export const POST = auth(async function POST(req) {
     await dbConnect();
     const data = await req.json();
     const job = await JobPost.create(data);
+    
+    // Trigger Next.js static cache revalidation
+    revalidatePath('/careers');
+    revalidatePath('/careers/[id]');
+    
+    await logAdminAction(req, 'Job Post Created', `Job post "${job.title}" created.`);
     return NextResponse.json(job, { status: 201 });
   } catch (error) {
     console.error('Job post POST error:', error);

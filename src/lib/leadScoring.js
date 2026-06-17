@@ -92,7 +92,7 @@ export function detectEscalation(message = '') {
     'site visit', 'want to buy', 'ready to buy', 'book now',
     'finalise', 'finalize', 'confirm booking', 'speak to agent',
     'speak to someone', 'human', 'call me now', 'urgent', 'asap',
-    'visit site', 'book flat', 'book apartment'
-  ];
+    'visit site', 'book flat', 'book apartment','book','speak','site','visit','buy'
+,  ];
   return triggers.some(t => lower.includes(t));
 }
