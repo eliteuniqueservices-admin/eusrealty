@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { Phone, ShieldCheck, Instagram, Linkedin, Facebook, Youtube, X, ArrowUpRight, Building2, Sparkles, PhoneCall } from 'lucide-react';
+import { Phone, ShieldCheck, Instagram, Linkedin, Facebook, Youtube, X, ArrowUpRight, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // ─── Nav links config ──────────────────────────────────────────
@@ -46,12 +46,16 @@ function MobileMenu({ open, onClose, activeLink }) {
   };
 
   const stagger = {
-    visible: { transition: { staggerChildren: 0.06, delayChildren: 0.25 } },
+    visible: { transition: { staggerChildren: 0.045, delayChildren: 0.2 } },
     hidden: {},
   };
   const item = {
-    hidden:  { opacity: 0, y: 28, filter: "blur(8px)" },
-    visible: { opacity: 1, y: 0,  filter: "blur(0px)", transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
+    hidden:  { opacity: 0, x: -20, filter: "blur(6px)" },
+    visible: { opacity: 1, x: 0,   filter: "blur(0px)", transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } },
+  };
+  const bottomItem = {
+    hidden:  { opacity: 0, y: 16 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4, delay: 0.55, ease: [0.22, 1, 0.36, 1] } },
   };
 
   return (
@@ -62,118 +66,141 @@ function MobileMenu({ open, onClose, activeLink }) {
           initial="hidden"
           animate="visible"
           exit="exit"
-          className="fixed inset-0 z-[200] lg:hidden overflow-hidden"
+          className="fixed inset-0 z-[200] lg:hidden"
           style={{
-            background: "linear-gradient(135deg, #0a0a1a 0%, #0f172a 40%, #1a0f05 100%)",
+            background: "linear-gradient(160deg, #020617 0%, #0f172a 50%, #1c1007 100%)",
           }}
         >
-          {/* Ambient orbs inside menu */}
-          <div className="absolute top-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full opacity-20 pointer-events-none"
+          {/* ── Ambient glow orbs ── */}
+          <div className="absolute top-[-8%] right-[-8%] w-[50vw] h-[50vw] rounded-full opacity-[0.15] pointer-events-none"
+            style={{ background: "radial-gradient(circle, rgba(245,158,11,0.5) 0%, transparent 70%)" }} />
+          <div className="absolute bottom-[15%] left-[-12%] w-[40vw] h-[40vw] rounded-full opacity-[0.08] pointer-events-none"
             style={{ background: "radial-gradient(circle, rgba(251,191,36,0.4) 0%, transparent 70%)" }} />
-          <div className="absolute bottom-[10%] left-[-15%] w-[50vw] h-[50vw] rounded-full opacity-15 pointer-events-none"
-            style={{ background: "radial-gradient(circle, rgba(245,158,11,0.3) 0%, transparent 70%)" }} />
 
-          {/* Grid overlay */}
-          <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
-            style={{ backgroundImage: "linear-gradient(rgba(255,255,255,1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,1) 1px,transparent 1px)", backgroundSize: "40px 40px" }} />
+          {/* ── Subtle grid texture ── */}
+          <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+            style={{ backgroundImage: "linear-gradient(rgba(255,255,255,1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,1) 1px,transparent 1px)", backgroundSize: "48px 48px" }} />
 
-          {/* Close button */}
-          <motion.button
-            onClick={onClose}
-            whileHover={{ scale: 1.1, rotate: 90 }}
-            whileTap={{ scale: 0.9 }}
-            transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            className="absolute top-5 right-5 z-10 w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white backdrop-blur-md"
-            aria-label="Close menu"
-          >
-            <X size={20} />
-          </motion.button>
+          {/* ── Flex container: fills entire viewport ── */}
+          <div className="flex flex-col h-full" style={{ paddingTop: "env(safe-area-inset-top, 0px)", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
 
-          {/* Logo inside menu */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="absolute top-5 left-5"
-          >
-            <Link href="/" onClick={onClose} className="flex items-center gap-3">
-              <div className="relative w-9 h-9">
-                <Image src="/logo.svg" alt="EusRealty" fill className="object-contain" />
-              </div>
-              <div className="leading-none">
-                <span className="text-white font-black text-base tracking-tight">EUS<span className="text-amber-400">REALTY</span></span>
-                <p className="text-[8px] text-amber-400/60 font-bold tracking-[0.18em] uppercase mt-0.5">Pune&apos;s Finest</p>
-              </div>
-            </Link>
-          </motion.div>
+            {/* ── Top bar: logo + close ── */}
+            <div className="flex items-center justify-between px-5 sm:px-8 pt-4 pb-2 shrink-0">
+              <Link href="/" onClick={onClose} className="flex items-center gap-2.5">
+                <div className="relative w-9 h-9">
+                  <Image src="/logo.svg" alt="EusRealty" fill className="object-contain" />
+                </div>
+                <div className="leading-none">
+                  <span className="text-white font-black text-[15px] tracking-tight">EUS<span className="text-amber-400">REALTY</span></span>
+                  <p className="text-[7.5px] text-amber-400/50 font-bold tracking-[0.2em] uppercase mt-0.5">Pune&apos;s Finest</p>
+                </div>
+              </Link>
 
-          {/* Nav links — large display */}
-          <div className="absolute inset-0 flex flex-col justify-center px-8 pt-20 pb-40">
-            <motion.nav variants={stagger} initial="hidden" animate="visible">
-              {NAV_LINKS.map((link, i) => {
-                const isActive = activeLink === link.href;
-                return (
-                  <motion.div key={link.name} variants={item}>
-                    <Link
-                      href={link.href}
-                      onClick={onClose}
-                      className="group flex items-center justify-between py-4 border-b border-white/8 last:border-0"
-                    >
-                      <div className="flex items-center gap-4">
-                        <span className="text-2xl">{link.emoji}</span>
-                        <span className={`text-[2.2rem] xs:text-[2.6rem] font-black tracking-tight leading-none transition-colors duration-300 ${
-                          isActive ? "text-amber-400" : "text-white/80 group-hover:text-white"
+              <motion.button
+                onClick={onClose}
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.92 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                className="w-11 h-11 rounded-full bg-white/[0.07] border border-white/[0.12] flex items-center justify-center text-white/70 backdrop-blur-md hover:bg-white/[0.12] hover:text-white transition-colors duration-200"
+                aria-label="Close menu"
+              >
+                <X size={18} strokeWidth={2.5} />
+              </motion.button>
+            </div>
+
+            {/* ── Divider ── */}
+            <div className="mx-5 sm:mx-8 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent shrink-0" />
+
+            {/* ── Nav links — scrollable center section ── */}
+            <div className="flex-1 overflow-y-auto px-5 sm:px-8 py-4 min-h-0">
+              <motion.nav variants={stagger} initial="hidden" animate="visible" className="space-y-0.5">
+                {NAV_LINKS.map((link, i) => {
+                  const isActive = activeLink === link.href;
+                  return (
+                    <motion.div key={link.name} variants={item}>
+                      <Link
+                        href={link.href}
+                        onClick={onClose}
+                        className={`group flex items-center gap-4 py-[13px] sm:py-[15px] px-3 rounded-2xl transition-all duration-200 ${
+                          isActive
+                            ? "bg-amber-400/[0.08]"
+                            : "hover:bg-white/[0.04]"
+                        }`}
+                      >
+                        {/* Numbered index indicator */}
+                        <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-bold shrink-0 transition-colors duration-200 ${
+                          isActive
+                            ? "bg-amber-400/20 text-amber-400 border border-amber-400/30"
+                            : "bg-white/[0.06] text-white/30 border border-white/[0.08] group-hover:text-white/50 group-hover:border-white/[0.15]"
+                        }`}>
+                          {String(i + 1).padStart(2, '0')}
+                        </span>
+
+                        {/* Link name */}
+                        <span className={`text-[1.35rem] sm:text-[1.6rem] font-bold tracking-tight leading-none transition-colors duration-200 ${
+                          isActive ? "text-amber-400" : "text-white/75 group-hover:text-white"
                         }`}>
                           {link.name}
                         </span>
-                      </div>
-                      <motion.div
-                        initial={{ opacity: 0, x: -8 }}
-                        whileHover={{ opacity: 1, x: 0 }}
-                        className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all duration-300 ${
-                          isActive
-                            ? "border-amber-400/40 bg-amber-400/10 text-amber-400"
-                            : "border-white/10 bg-white/5 text-white/40 group-hover:border-white/30 group-hover:text-white"
-                        }`}
-                      >
-                        <ArrowUpRight size={16} />
-                      </motion.div>
-                    </Link>
-                  </motion.div>
-                );
-              })}
-            </motion.nav>
-          </div>
 
-          {/* Bottom strip */}
-          <div className="absolute bottom-0 left-0 right-0 px-8 pb-10 pt-6 border-t border-white/10 bg-black/20 backdrop-blur-sm">
-            <div className="flex items-center justify-between">
-              <a href={`tel:${PHONE}`} className="flex items-center gap-3 group">
-                <div className="w-10 h-10 rounded-full bg-amber-400/10 border border-amber-400/30 flex items-center justify-center">
-                  <Phone size={14} className="text-amber-400" />
-                </div>
-                <div className="leading-none">
-                  <p className="text-[9px] text-amber-400/60 font-bold uppercase tracking-wider">Free Consultation</p>
-                  <p className="text-sm font-bold text-white mt-0.5">{PHONE_DISP}</p>
-                </div>
-              </a>
+                        {/* Arrow indicator (pushed to far right) */}
+                        <div className="ml-auto shrink-0">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
+                            isActive
+                              ? "bg-amber-400/15 text-amber-400 border border-amber-400/25"
+                              : "bg-transparent text-white/15 border border-transparent group-hover:bg-white/[0.06] group-hover:text-white/40 group-hover:border-white/[0.1]"
+                          }`}>
+                            <ArrowUpRight size={14} />
+                          </div>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  );
+                })}
+              </motion.nav>
+            </div>
 
-              <div className="flex items-center gap-2.5">
-                {SOCIALS.map(({ icon: Icon, href, label, color }) => (
-                  <a key={label} href={href} target="_blank" rel="noopener noreferrer"
-                    className="w-9 h-9 rounded-full border border-white/15 bg-white/5 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/15 hover:border-white/30 transition-all duration-300"
-                    aria-label={label}
-                  >
-                    <Icon size={14} />
+            {/* ── Bottom strip — always pinned to bottom ── */}
+            <motion.div
+              variants={bottomItem}
+              initial="hidden"
+              animate="visible"
+              className="shrink-0 border-t border-white/[0.07] bg-black/30 backdrop-blur-sm"
+            >
+              {/* CTA + Socials row */}
+              <div className="px-5 sm:px-8 pt-4 pb-2">
+                <div className="flex items-center justify-between gap-3">
+                  <a href={`tel:${PHONE}`} className="flex items-center gap-3 group min-w-0">
+                    <div className="w-10 h-10 rounded-full bg-amber-400/10 border border-amber-400/25 flex items-center justify-center shrink-0">
+                      <Phone size={14} className="text-amber-400" />
+                    </div>
+                    <div className="leading-none min-w-0">
+                      <p className="text-[8px] text-amber-400/50 font-bold uppercase tracking-[0.15em]">Free Consultation</p>
+                      <p className="text-[13px] font-bold text-white mt-0.5 truncate">{PHONE_DISP}</p>
+                    </div>
                   </a>
-                ))}
-              </div>
-            </div>
 
-            <div className="mt-4 flex items-center gap-2">
-              <ShieldCheck size={11} className="text-emerald-400 shrink-0" />
-              <span className="text-[9px] text-white/30 font-medium uppercase tracking-widest">MahaRERA: A041262501741 · © 2026 EusRealty</span>
-            </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {SOCIALS.map(({ icon: Icon, href, label }) => (
+                      <a key={label} href={href} target="_blank" rel="noopener noreferrer"
+                        className="w-8 h-8 rounded-full border border-white/[0.1] bg-white/[0.04] flex items-center justify-center text-white/40 hover:text-white hover:bg-white/[0.1] hover:border-white/[0.2] transition-all duration-200"
+                        aria-label={label}
+                      >
+                        <Icon size={13} />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* RERA badge */}
+              <div className="px-5 sm:px-8 pb-4 pt-1">
+                <div className="flex items-center gap-1.5">
+                  <ShieldCheck size={10} className="text-emerald-400/70 shrink-0" />
+                  <span className="text-[8px] text-white/25 font-medium uppercase tracking-[0.15em]">MahaRERA: A041262501741 · © 2026 EusRealty</span>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </motion.div>
       )}
@@ -386,22 +413,22 @@ export default function Navbar() {
             ? "bg-white border-b border-slate-200/80"
             : "bg-white/85 backdrop-blur-md border-b border-slate-100/40"
         }`}>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 h-[60px] sm:h-16 flex items-center justify-between gap-4">
 
             {/* ── Logo ── */}
-            <Link href="/" className="flex items-center gap-2.5 group shrink-0">
+            <Link href="/" className="flex items-center gap-2 sm:gap-2.5 group shrink-0">
               <motion.div
-                className="relative w-9 h-9 sm:w-10 sm:h-10"
+                className="relative w-8 h-8 sm:w-10 sm:h-10"
                 whileHover={{ scale: 1.06, rotate: -3 }}
                 transition={{ type: "spring", stiffness: 500, damping: 20 }}
               >
                 <Image src="/logo.svg" alt="EusRealty Logo" fill className="object-contain" priority />
               </motion.div>
               <div className="leading-none">
-                <span className="text-base sm:text-lg font-black tracking-tighter text-slate-950">
+                <span className="text-[15px] sm:text-lg font-black tracking-tighter text-slate-950">
                   EUS<span className="text-amber-500">REALTY</span>
                 </span>
-                <p className="text-[8px] sm:text-[9px] text-slate-400 font-bold tracking-[0.2em] uppercase mt-0.5 hidden sm:block">
+                <p className="text-[7.5px] sm:text-[9px] text-slate-400 font-bold tracking-[0.2em] uppercase mt-0.5 hidden sm:block">
                   Pune&apos;s Finest
                 </p>
               </div>
@@ -426,8 +453,6 @@ export default function Navbar() {
 
             {/* ── Desktop CTAs ── */}
             <div className="hidden lg:flex items-center gap-3 shrink-0">
-              {/* RERA trust pill removed for cleaner alignment */}
-
               {/* Phone quick-dial */}
               <a href={`tel:${PHONE}`}
                 className="flex items-center gap-2 px-3.5 py-2 rounded-full border border-slate-200 bg-white hover:bg-amber-50 hover:border-amber-200 text-slate-700 hover:text-amber-700 transition-all duration-300 text-[12px] font-bold"
@@ -444,7 +469,7 @@ export default function Navbar() {
             <motion.button
               onClick={() => setMenuOpen(!menuOpen)}
               whileTap={{ scale: 0.88 }}
-              className="lg:hidden relative w-11 h-11 rounded-xl border border-slate-200 bg-white flex flex-col items-center justify-center gap-[5px] shadow-sm z-[210]"
+              className="lg:hidden relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl border border-slate-200 bg-white flex flex-col items-center justify-center gap-[5px] shadow-sm z-[210]"
               aria-label="Toggle navigation"
             >
               {/* Three bars morphing into X on open */}
@@ -455,11 +480,11 @@ export default function Navbar() {
                   animate={
                     menuOpen
                       ? i === 0
-                        ? { width: "18px", rotate: 45, y: 7 }
+                        ? { width: "16px", rotate: 45, y: 7 }
                         : i === 1
                         ? { opacity: 0, scaleX: 0 }
-                        : { width: "18px", rotate: -45, y: -7 }
-                      : { width: i === 1 ? "12px" : "18px", rotate: 0, y: 0, opacity: 1, scaleX: 1 }
+                        : { width: "16px", rotate: -45, y: -7 }
+                      : { width: i === 1 ? "12px" : "16px", rotate: 0, y: 0, opacity: 1, scaleX: 1 }
                   }
                   transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                 />

@@ -144,12 +144,7 @@ export default async function BlogPostDetailPage({ params }) {
     await dbConnect();
     const blogData = await BlogPost.findOne({ slug, status: "Published" }).lean();
     if (blogData) {
-      post = {
-        ...blogData,
-        _id: blogData._id.toString(),
-        createdAt: blogData.createdAt ? blogData.createdAt.toISOString() : null,
-        updatedAt: blogData.updatedAt ? blogData.updatedAt.toISOString() : null,
-      };
+      post = JSON.parse(JSON.stringify(blogData));
 
       // Query related posts in the same category
       const relatedData = await BlogPost.find({
@@ -158,12 +153,7 @@ export default async function BlogPostDetailPage({ params }) {
         category: post.category
       }).limit(3).lean();
 
-      related = relatedData.map(p => ({
-        ...p,
-        _id: p._id.toString(),
-        createdAt: p.createdAt ? p.createdAt.toISOString() : null,
-        updatedAt: p.updatedAt ? p.updatedAt.toISOString() : null,
-      }));
+      related = JSON.parse(JSON.stringify(relatedData));
 
       // If category matches are insufficient, backfill with general published blogs
       if (related.length < 3) {
@@ -175,12 +165,7 @@ export default async function BlogPostDetailPage({ params }) {
 
         related = [
           ...related,
-          ...extraData.map(p => ({
-            ...p,
-            _id: p._id.toString(),
-            createdAt: p.createdAt ? p.createdAt.toISOString() : null,
-            updatedAt: p.updatedAt ? p.updatedAt.toISOString() : null,
-          }))
+          ...JSON.parse(JSON.stringify(extraData))
         ];
       }
     }

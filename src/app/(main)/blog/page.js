@@ -98,12 +98,7 @@ export default async function BlogPage() {
     await dbConnect();
     const blogData = await BlogPost.find({ status: "Published" }).sort({ createdAt: -1 }).lean();
     
-    blogs = blogData.map(post => ({
-      ...post,
-      _id: post._id.toString(),
-      createdAt: post.createdAt ? post.createdAt.toISOString() : null,
-      updatedAt: post.updatedAt ? post.updatedAt.toISOString() : null,
-    }));
+    blogs = JSON.parse(JSON.stringify(blogData));
   } catch (error) {
     console.warn("Blog posts database query failed. Falling back to MOCK_BLOGS.", error.message);
   }

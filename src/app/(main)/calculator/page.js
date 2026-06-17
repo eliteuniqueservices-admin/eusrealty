@@ -645,12 +645,12 @@ export default function ROICalculator() {
     // Column config — all numeric columns are right-aligned
     const cols = [
       { label: "Yr",             x: margin,        w: 8  },
-      { label: "Property Value", x: margin + 10,   w: 33 },
-      { label: "Debt Balance",   x: margin + 45,   w: 28 },
-      { label: "Rental Income",  x: margin + 75,   w: 28 },
-      { label: "Oper. Cost",     x: margin + 105,  w: 27 },
-      { label: "Total EMI",      x: margin + 134,  w: 27 },
-      { label: "Net Cash Flow",  x: margin + 163,  w: 33 },
+      { label: "Property Value", x: margin + 10,   w: 31 },
+      { label: "Debt Balance",   x: margin + 43,   w: 26 },
+      { label: "Rental Income",  x: margin + 71,   w: 26 },
+      { label: "Oper. Cost",     x: margin + 99,   w: 24 },
+      { label: "Total EMI",      x: margin + 125,  w: 24 },
+      { label: "Net Cash Flow",  x: margin + 151,  w: 31 },
     ];
 
     const drawHeader = (headerY) => {
