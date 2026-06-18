@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,7 +16,7 @@ import {
 } from 'lucide-react';
 import ExportModal from '@/components/admin/ExportModal';
 
-export default function ChatLeadsPage() {
+function ChatLeadsPageContent() {
   const [sessions, setSessions] = useState([]);
   const [totalSessions, setTotalSessions] = useState(0);
   const [leads, setLeads] = useState([]);
@@ -48,6 +49,8 @@ export default function ChatLeadsPage() {
     possession: '',
     leadQuality: 'Cold',
     status: 'New',
+    objective: '',
+    position: '',
   });
 
   // Load stats
@@ -114,6 +117,26 @@ export default function ChatLeadsPage() {
     loadSessionsAndLeads();
   }, [page, search, quality, status]);
 
+  const searchParams = useSearchParams();
+  const leadIdParam = searchParams?.get('leadId');
+
+  useEffect(() => {
+    if (leadIdParam) {
+      const fetchAndSelectLead = async () => {
+        try {
+          const res = await fetch(`/api/leads/${leadIdParam}`);
+          if (res.ok) {
+            const lead = await res.json();
+            selectLead(lead);
+          }
+        } catch (err) {
+          console.error('Failed to auto-select lead:', err);
+        }
+      };
+      fetchAndSelectLead();
+    }
+  }, [leadIdParam]);
+
   const selectLead = async (lead) => {
     setSelectedSession(lead);
     setNoteText('');
@@ -127,6 +150,8 @@ export default function ChatLeadsPage() {
       possession: lead.possession || '',
       leadQuality: lead.leadQuality || 'Cold',
       status: lead.status || 'New',
+      objective: lead.objective || '',
+      position: lead.position || '',
     });
 
     if (lead.sessionId) {
@@ -389,6 +414,7 @@ export default function ChatLeadsPage() {
                           </TableCell>
                           <TableCell className="py-4">
                             <div className="text-xs font-semibold text-slate-700">
+                              {lead.objective ? <span className="block text-slate-900 font-bold mb-0.5">🎯 {lead.objective}</span> : null}
                               {lead.preferredLocation ? <span>📍 {lead.preferredLocation} </span> : null}
                               {lead.budget ? <span>💵 {lead.budget}</span> : null}
                             </div>
@@ -576,6 +602,27 @@ export default function ChatLeadsPage() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
+                        <Label htmlFor="objective" className="text-xs font-bold text-slate-600">Objective</Label>
+                        <Input 
+                          id="objective"
+                          value={editForm.objective}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, objective: e.target.value }))}
+                          className="h-10 rounded-lg border-slate-200"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="position" className="text-xs font-bold text-slate-600">Position</Label>
+                        <Input 
+                          id="position"
+                          value={editForm.position}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, position: e.target.value }))}
+                          className="h-10 rounded-lg border-slate-200"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
                         <Label className="text-xs font-bold text-slate-600">Lead Quality</Label>
                         <Select 
                           value={editForm.leadQuality} 
@@ -740,9 +787,24 @@ export default function ChatLeadsPage() {
           { key: 'budget', label: 'Budget' },
           { key: 'preferredLocation', label: 'Location' },
           { key: 'propertyType', label: 'Property Type' },
+          { key: 'objective', label: 'Objective' },
+          { key: 'position', label: 'Position' },
           { key: 'updatedAt', label: 'Last Active' }
         ]}
       />
     </div>
+  );
+}
+
+export default function ChatLeadsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[400px] flex flex-col items-center justify-center gap-3 text-slate-500">
+        <div className="w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-xs font-bold tracking-widest uppercase text-slate-400">Loading Leads Manager...</p>
+      </div>
+    }>
+      <ChatLeadsPageContent />
+    </Suspense>
   );
 }

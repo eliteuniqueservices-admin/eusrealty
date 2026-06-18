@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import dbConnect from '@/lib/mongodb';
 import JobApplication from '@/models/JobApplication';
+import Notification from '@/models/Notification';
 import nodemailer from 'nodemailer';
 
 // helper to format HTML emails
@@ -83,6 +84,21 @@ export async function POST(request) {
       resumeUrl,
       status: 'New'
     });
+
+    // Create database notification for bell icon
+    try {
+      await Notification.create({
+        title: `💼 New Job Application: ${name}`,
+        message: `Position: ${position} | Exp: ${experience}`,
+        type: 'job_application',
+        isRead: false,
+        relatedId: application._id.toString(),
+        relatedModel: 'JobApplication',
+        icon: '💼'
+      });
+    } catch (dbNotifErr) {
+      console.error('Failed to create job application notification:', dbNotifErr);
+    }
 
     // Send email notification
     try {

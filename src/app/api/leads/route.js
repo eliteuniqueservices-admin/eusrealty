@@ -68,6 +68,8 @@ export const POST = auth(async function POST(req) {
       leadQuality,
       status,
       source,
+      objective,
+      position,
       notes,
     } = body;
 
@@ -88,6 +90,8 @@ export const POST = auth(async function POST(req) {
       leadQuality: leadQuality || 'Cold',
       status: status || 'New',
       source: source || 'manual',
+      objective: objective || '',
+      position: position || '',
       notes: notes ? (Array.isArray(notes) ? notes : [{ text: notes }]) : [],
     };
 

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { 
     Search, FileText, Calendar, DollarSign, Activity, 
     CheckCircle, XCircle, Clock, Eye, AlertTriangle, Download, Trash2
@@ -8,7 +9,7 @@ import {
 import { format } from 'date-fns';
 import ExportModal from '@/components/admin/ExportModal';
 
-export default function LoanApplications() {
+function LoanApplicationsContent() {
     const [applications, setApplications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterStatus, setFilterStatus] = useState('All');
@@ -16,9 +17,21 @@ export default function LoanApplications() {
     const [selectedApp, setSelectedApp] = useState(null);
     const [exportOpen, setExportOpen] = useState(false);
 
+    const searchParams = useSearchParams();
+    const appIdParam = searchParams.get('appId');
+
     useEffect(() => {
         fetchApplications();
     }, [filterStatus, searchTerm]);
+
+    useEffect(() => {
+        if (appIdParam && applications.length > 0) {
+            const match = applications.find(app => app._id === appIdParam || app.id === appIdParam);
+            if (match) {
+                setSelectedApp(match);
+            }
+        }
+    }, [appIdParam, applications]);
 
     const fetchApplications = async () => {
         try {
@@ -388,5 +401,18 @@ export default function LoanApplications() {
                 ]}
             />
         </div>
+    );
+}
+
+export default function LoanApplications() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-[400px] flex flex-col items-center justify-center gap-3 text-slate-500">
+                <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-xs font-bold tracking-widest uppercase text-slate-400">Loading Loan Desk...</p>
+            </div>
+        }>
+            <LoanApplicationsContent />
+        </Suspense>
     );
 }

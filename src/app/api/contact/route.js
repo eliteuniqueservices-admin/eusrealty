@@ -66,6 +66,7 @@ export async function POST(request) {
     // Save Lead to MongoDB
     // -------------------------------------------------------
     let dbLead = null;
+    let dbErrorMsg = null;
     try {
       await dbConnect();
       
@@ -95,7 +96,12 @@ export async function POST(request) {
         leadScore: score,
         leadQuality: quality,
         status: 'New',
-        source: body.source === 'Chatbot Widget' ? 'chatbot' : 'contact_form',
+        source: body.source === 'Chatbot Widget' ? 'chatbot' 
+          : body.source === 'Homepage Hero Form' ? 'homepage'
+          : body.source === 'Exit Popup' ? 'exit_popup'
+          : 'contact_form',
+        objective: cleanObjective || '',
+        position: cleanPosition || '',
         sessionId: cleanSessionId || '',
         siteVisitRequested: cleanObjective === 'Free Site Visit',
         callbackRequested: true,
@@ -114,164 +120,180 @@ export async function POST(request) {
       });
     } catch (dbErr) {
       console.error('Failed to save lead in database:', dbErr.message);
+      dbErrorMsg = dbErr.message;
     }
 
     // -------------------------------------------------------
     // 1. SEND EMAILS via Gmail SMTP (Nodemailer)
     // -------------------------------------------------------
+    let transporter;
     try {
-      const transporter = nodemailer.createTransport({
+      transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
           user: process.env.GMAIL_USER,
           pass: process.env.GMAIL_APP_PASSWORD,
         },
       });
+    } catch (err) {
+      console.error('Nodemailer init failed:', err);
+    }
 
-      const emailHtml = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="utf-8" />
-            <style>
-              body { font-family: 'Segoe UI', Arial, sans-serif; background: #f8f9fa; margin: 0; padding: 0; }
-              .wrapper { max-width: 600px; margin: 32px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.07); }
-              .header { background: #0f172a; padding: 32px 40px; }
-              .header h1 { color: #f59e0b; margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
-              .header p { color: #94a3b8; margin: 4px 0 0; font-size: 13px; }
-              .body { padding: 36px 40px; }
-              .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 4px; }
-              .value { font-size: 16px; font-weight: 600; color: #0f172a; margin-bottom: 20px; }
-              .badge { display: inline-block; background: #fef3c7; color: #92400e; border-radius: 999px; padding: 4px 14px; font-size: 13px; font-weight: 700; }
-              .message-box { background: #f8f9fa; border-left: 3px solid #f59e0b; border-radius: 8px; padding: 16px 20px; font-size: 15px; color: #334155; line-height: 1.6; }
-              .footer { padding: 20px 40px; background: #f8f9fa; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8; text-align: center; }
-            </style>
-          </head>
-          <body>
-            <div class="wrapper">
-              <div class="header">
-                <h1>🏠 New Lead — EUS Realty</h1>
-                <p>A client just submitted a contact/lead form</p>
-              </div>
-              <div class="body">
-                <div class="label">Full Name</div>
-                <div class="value">${cleanName}</div>
+    if (transporter) {
+      // Admin Notification Email
+      try {
+        const adminEmails = [process.env.NOTIFY_EMAIL_1, process.env.NOTIFY_EMAIL_2].filter(Boolean).join(', ');
+        if (adminEmails) {
+          const emailHtml = `
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <meta charset="utf-8" />
+                <style>
+                  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f8f9fa; margin: 0; padding: 0; }
+                  .wrapper { max-width: 600px; margin: 32px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.07); }
+                  .header { background: #0f172a; padding: 32px 40px; }
+                  .header h1 { color: #f59e0b; margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+                  .header p { color: #94a3b8; margin: 4px 0 0; font-size: 13px; }
+                  .body { padding: 36px 40px; }
+                  .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 4px; }
+                  .value { font-size: 16px; font-weight: 600; color: #0f172a; margin-bottom: 20px; }
+                  .badge { display: inline-block; background: #fef3c7; color: #92400e; border-radius: 999px; padding: 4px 14px; font-size: 13px; font-weight: 700; }
+                  .message-box { background: #f8f9fa; border-left: 3px solid #f59e0b; border-radius: 8px; padding: 16px 20px; font-size: 15px; color: #334155; line-height: 1.6; }
+                  .footer { padding: 20px 40px; background: #f8f9fa; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8; text-align: center; }
+                </style>
+              </head>
+              <body>
+                <div class="wrapper">
+                  <div class="header">
+                    <h1>🏠 New Lead — EUS Realty</h1>
+                    <p>A client just submitted a contact/lead form</p>
+                  </div>
+                  <div class="body">
+                    <div class="label">Full Name</div>
+                    <div class="value">${cleanName}</div>
 
-                <div class="label">Phone</div>
-                <div class="value"><a href="tel:${cleanPhone}" style="color:#f59e0b;">${cleanPhone}</a></div>
+                    <div class="label">Phone</div>
+                    <div class="value"><a href="tel:${cleanPhone}" style="color:#f59e0b;">${cleanPhone}</a></div>
 
-                ${cleanEmail ? `
-                <div class="label">Email</div>
-                <div class="value"><a href="mailto:${cleanEmail}" style="color:#f59e0b;">${cleanEmail}</a></div>
-                ` : ''}
+                    ${cleanEmail ? `
+                    <div class="label">Email</div>
+                    <div class="value"><a href="mailto:${cleanEmail}" style="color:#f59e0b;">${cleanEmail}</a></div>
+                    ` : ''}
 
-                <div class="label">Objective / Interest</div>
-                <div class="value"><span class="badge">${cleanObjective}</span></div>
+                    <div class="label">Objective / Interest</div>
+                    <div class="value"><span class="badge">${cleanObjective}</span></div>
 
-                ${cleanBudget ? `
-                <div class="label">Budget</div>
-                <div class="value">${cleanBudget}</div>
-                ` : ''}
+                    ${cleanBudget ? `
+                    <div class="label">Budget</div>
+                    <div class="value">${cleanBudget}</div>
+                    ` : ''}
 
-                ${cleanPreferredLocation ? `
-                <div class="label">Preferred Location</div>
-                <div class="value">${cleanPreferredLocation}</div>
-                ` : ''}
+                    ${cleanPreferredLocation ? `
+                    <div class="label">Preferred Location</div>
+                    <div class="value">${cleanPreferredLocation}</div>
+                    ` : ''}
 
-                ${cleanPropertyType ? `
-                <div class="label">Property Type</div>
-                <div class="value">${cleanPropertyType}</div>
-                ` : ''}
+                    ${cleanPropertyType ? `
+                    <div class="label">Property Type</div>
+                    <div class="value">${cleanPropertyType}</div>
+                    ` : ''}
 
-                ${cleanPossession ? `
-                <div class="label">Possession Requirement</div>
-                <div class="value">${cleanPossession}</div>
-                ` : ''}
+                    ${cleanPossession ? `
+                    <div class="label">Possession Requirement</div>
+                    <div class="value">${cleanPossession}</div>
+                    ` : ''}
 
-                ${cleanPosition ? `
-                <div class="label">Applying for Position</div>
-                <div class="value">${cleanPosition}</div>
-                ` : ''}
+                    ${cleanPosition ? `
+                    <div class="label">Applying for Position</div>
+                    <div class="value">${cleanPosition}</div>
+                    ` : ''}
 
-                ${cleanMessage ? `
-                <div class="label">Message / Notes</div>
-                <div class="message-box">${cleanMessage}</div>
-                ` : ''}
+                    ${cleanMessage ? `
+                    <div class="label">Message / Notes</div>
+                    <div class="message-box">${cleanMessage}</div>
+                    ` : ''}
 
-                <div class="label">Lead Source</div>
-                <div class="value" style="font-size:13px;color:#64748b;">${body.source || 'Contact Page'}</div>
-              </div>
-              <div class="footer">
-                Received from eusrealty.co.in · ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST
-              </div>
-            </div>
-          </body>
-        </html>
-      `;
+                    <div class="label">Lead Source</div>
+                    <div class="value" style="font-size:13px;color:#64748b;">${body.source || 'Contact Page'}</div>
+                  </div>
+                  <div class="footer">
+                    Received from eusrealty.co.in · ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST
+                  </div>
+                </div>
+              </body>
+            </html>
+          `;
 
-      const mailOptions = {
-        from: `"EUS Realty Leads" <${process.env.GMAIL_USER}>`,
-        to: [process.env.NOTIFY_EMAIL_1, process.env.NOTIFY_EMAIL_2].filter(Boolean).join(', '),
-        subject: `🏠 New Lead: ${cleanName} — ${cleanObjective}`,
-        html: emailHtml,
-        replyTo: cleanEmail || undefined,
-      };
+          const mailOptions = {
+            from: `"EUS Realty Leads" <${process.env.GMAIL_USER}>`,
+            to: adminEmails,
+            subject: `🏠 New Lead: ${cleanName} — ${cleanObjective}`,
+            html: emailHtml,
+            replyTo: cleanEmail || undefined,
+          };
 
-      await transporter.sendMail(mailOptions);
+          await transporter.sendMail(mailOptions);
+        }
+      } catch (adminMailErr) {
+        console.error('Admin Email notification failed:', adminMailErr);
+      }
 
       // Send Professional Auto-Reply to the Customer
       if (cleanEmail) {
-        const autoReplyHtml = `
-          <!DOCTYPE html>
-          <html>
-            <head>
-              <meta charset="utf-8" />
-              <style>
-                body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #f8f9fa; margin: 0; padding: 0; }
-                .wrapper { max-width: 600px; margin: 32px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; }
-                .header { background: #0f172a; padding: 40px; text-align: center; }
-                .header h1 { color: #f59e0b; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
-                .body { padding: 40px; color: #334155; font-size: 16px; line-height: 1.6; }
-                .body p { margin: 0 0 20px 0; }
-                .highlight { color: #0f172a; font-weight: 700; }
-                .btn { display: inline-block; background: #f59e0b; color: #0f172a; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 700; font-size: 15px; margin-top: 10px; }
-                .footer { padding: 30px 40px; background: #f8f9fa; border-top: 1px solid #e2e8f0; font-size: 13px; color: #64748b; text-align: center; }
-              </style>
-            </head>
-            <body>
-              <div class="wrapper">
-                <div class="header">
-                  <h1>EUS Realty</h1>
-                </div>
-                <div class="body">
-                  <p>Hi <span class="highlight">${cleanName}</span>,</p>
-                  <p>Thank you for reaching out to EUS Realty! We have received your request for <strong>${cleanObjective}</strong>.</p>
-                  <p>Our premium real estate advisors are currently reviewing your details. <strong>We will connect with you within the next 30 minutes</strong> to discuss how we can best assist you.</p>
-                  <p>In the meantime, feel free to explore our exclusive collection of luxury properties in Pune.</p>
-                  <div style="text-align: center; margin-top: 30px;">
-                    <a href="https://eusrealty.co.in/properties" class="btn">Explore Properties</a>
+        try {
+          const autoReplyHtml = `
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <meta charset="utf-8" />
+                <style>
+                  body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #f8f9fa; margin: 0; padding: 0; }
+                  .wrapper { max-width: 600px; margin: 32px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; }
+                  .header { background: #0f172a; padding: 40px; text-align: center; }
+                  .header h1 { color: #f59e0b; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+                  .body { padding: 40px; color: #334155; font-size: 16px; line-height: 1.6; }
+                  .body p { margin: 0 0 20px 0; }
+                  .highlight { color: #0f172a; font-weight: 700; }
+                  .btn { display: inline-block; background: #f59e0b; color: #0f172a; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 700; font-size: 15px; margin-top: 10px; }
+                  .footer { padding: 30px 40px; background: #f8f9fa; border-top: 1px solid #e2e8f0; font-size: 13px; color: #64748b; text-align: center; }
+                </style>
+              </head>
+              <body>
+                <div class="wrapper">
+                  <div class="header">
+                    <h1>EUS Realty</h1>
+                  </div>
+                  <div class="body">
+                    <p>Hi <span class="highlight">${cleanName}</span>,</p>
+                    <p>Thank you for reaching out to EUS Realty! We have received your request for <strong>${cleanObjective}</strong>.</p>
+                    <p>Our premium real estate advisors are currently reviewing your details. <strong>We will connect with you within the next 30 minutes</strong> to discuss how we can best assist you.</p>
+                    <p>In the meantime, feel free to explore our exclusive collection of luxury properties in Pune.</p>
+                    <div style="text-align: center; margin-top: 30px;">
+                      <a href="https://eusrealty.co.in/properties" class="btn">Explore Properties</a>
+                    </div>
+                  </div>
+                  <div class="footer">
+                    <p>© ${new Date().getFullYear()} EUS Realty. All rights reserved.</p>
+                    <p>Pune's Premier Luxury Real Estate Advisory</p>
                   </div>
                 </div>
-                <div class="footer">
-                  <p>© ${new Date().getFullYear()} EUS Realty. All rights reserved.</p>
-                  <p>Pune's Premier Luxury Real Estate Advisory</p>
-                </div>
-              </div>
-            </body>
-          </html>
-        `;
+              </body>
+            </html>
+          `;
 
-        const autoReplyOptions = {
-          from: `"EUS Realty" <${process.env.GMAIL_USER}>`,
-          to: cleanEmail,
-          subject: "We've received your request! | EUS Realty",
-          html: autoReplyHtml,
-        };
+          const autoReplyOptions = {
+            from: `"EUS Realty" <${process.env.GMAIL_USER}>`,
+            to: cleanEmail,
+            subject: "We've received your request! | EUS Realty",
+            html: autoReplyHtml,
+          };
 
-        await transporter.sendMail(autoReplyOptions);
+          await transporter.sendMail(autoReplyOptions);
+        } catch (customerMailErr) {
+          console.error('Customer Auto-Reply failed:', customerMailErr);
+        }
       }
-    } catch (mailErr) {
-      console.error('Email notification failed:', mailErr);
     }
 
     // -------------------------------------------------------
@@ -287,44 +309,57 @@ export async function POST(request) {
 
         if (chatIds.length > 0) {
           const telegramUrl = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
+          
+          // Use HTML instead of Markdown to avoid unescaped character issues
           const telegramMessage = 
-            `🏠 *New EUS Realty Lead*\n\n` +
-            `👤 *Name:* ${cleanName}\n` +
-            `📞 *Phone:* ${cleanPhone}\n` +
-            `📧 *Email:* ${cleanEmail || 'N/A'}\n` +
-            `🎯 *Objective:* ${cleanObjective}\n` +
-            (cleanBudget ? `💰 *Budget:* ${cleanBudget}\n` : '') +
-            (cleanPreferredLocation ? `📍 *Location:* ${cleanPreferredLocation}\n` : '') +
-            (cleanPropertyType ? `🏢 *Prop Type:* ${cleanPropertyType}\n` : '') +
-            (cleanPossession ? `🔑 *Possession:* ${cleanPossession}\n` : '') +
-            (cleanPosition ? `💼 *Position:* ${cleanPosition}\n` : '') +
-            (cleanMessage ? `💬 *Message:* ${cleanMessage}` : '');
+            `🏠 <b>New EUS Realty Lead</b>\n\n` +
+            `👤 <b>Name:</b> ${cleanName}\n` +
+            `📞 <b>Phone:</b> ${cleanPhone}\n` +
+            `📧 <b>Email:</b> ${cleanEmail || 'N/A'}\n` +
+            `🎯 <b>Objective:</b> ${cleanObjective}\n` +
+            (cleanBudget ? `💰 <b>Budget:</b> ${cleanBudget}\n` : '') +
+            (cleanPreferredLocation ? `📍 <b>Location:</b> ${cleanPreferredLocation}\n` : '') +
+            (cleanPropertyType ? `🏢 <b>Prop Type:</b> ${cleanPropertyType}\n` : '') +
+            (cleanPossession ? `🔑 <b>Possession:</b> ${cleanPossession}\n` : '') +
+            (cleanPosition ? `💼 <b>Position:</b> ${cleanPosition}\n` : '') +
+            (cleanMessage ? `💬 <b>Message:</b> ${cleanMessage}` : '') +
+            `\n\n📊 <b>Source:</b> ${body.source || 'Contact Form'}`;
 
-          for (const chatId of chatIds) {
+          const tgPromises = chatIds.map(chatId => 
             fetch(telegramUrl, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 chat_id: chatId,
                 text: telegramMessage,
-                parse_mode: 'Markdown'
+                parse_mode: 'HTML'
               })
+            }).then(async (res) => {
+              if (!res.ok) {
+                const text = await res.text();
+                console.error(`Telegram API error for chat ${chatId}:`, text);
+              }
             }).catch((err) => {
-              console.error(`Telegram notification failed for chat ID ${chatId}:`, err);
-            });
-          }
+              console.error(`Telegram fetch failed for chat ID ${chatId}:`, err);
+            })
+          );
+          
+          // Wait for all Telegram requests to complete
+          await Promise.all(tgPromises);
         }
       }
     } catch (tgErr) {
       console.error('Telegram integration error:', tgErr);
     }
+    if (dbErrorMsg) {
+      return Response.json({ error: 'Lead data could not be saved to DB: ' + dbErrorMsg }, { status: 500 });
+    }
 
     return Response.json({ success: true, leadId: dbLead?._id }, { status: 200 });
-
   } catch (error) {
     console.error('Contact API error:', error);
     return Response.json(
-      { error: 'Failed to send message. Please try again or call us directly.' },
+      { error: 'Failed to send message. Please try again or call us directly.', actualError: error.message, stack: error.stack },
       { status: 500 }
     );
   }

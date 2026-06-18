@@ -16,6 +16,8 @@ import HeroSuccessStories from '@/components/HeroSuccessStories';
 import HeroSearchBar from '@/components/HeroSearchBar';
 import SuccessStoriesSection from '@/components/SuccessStoriesSection';
 import HomeFaq from '@/components/HomeFaq';
+import HeroContactForm from '@/components/HeroContactForm';
+import HoverStatCard from '@/components/HoverStatCard';
 
 export const revalidate = 3600; // Cache homepage for 1 hour
 
@@ -210,21 +212,7 @@ export default async function Home() {
                 { value: 98, suffix: "%", label: "RERA Verified", icon: <ShieldCheck size={20} /> },
                 { value: 0, suffix: "₹", label: "Brokerage Fee", icon: <TrendingUp size={20} />, prefix: true },
               ].map((stat, i) => (
-                <div
-                  key={i}
-                  className="group relative bg-white rounded-2xl md:rounded-3xl border border-slate-100 p-5 md:p-6 text-center hover:-translate-y-1 hover:shadow-card transition-all duration-300 overflow-hidden"
-                >
-                  {/* Hover glow */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-amber-50/0 to-amber-50/0 group-hover:from-amber-50/80 group-hover:to-transparent transition-all duration-300 rounded-2xl" />
-
-                  <div className="relative z-10">
-                    <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-3 group-hover:bg-slate-950 group-hover:text-amber-400 transition-colors duration-300">
-                      {stat.icon}
-                    </div>
-                    <StatsCounter value={stat.value} suffix={stat.suffix} prefix={stat.prefix} />
-                    <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">{stat.label}</p>
-                  </div>
-                </div>
+                <HoverStatCard key={i} stat={stat} />
               ))}
             </div>
           </Reveal>
@@ -394,39 +382,42 @@ export default async function Home() {
       ═══════════════════════════════════════════════════════════ */}
       <section className="py-12 md:py-20 relative">
         <div className="max-w-[95%] xl:max-w-7xl mx-auto">
-          <div className="bg-slate-950 py-20 md:py-32 rounded-[2.5rem] md:rounded-[4rem] relative overflow-hidden border border-slate-800 shadow-dark-card">
+          <div className="bg-gradient-to-br from-[#0a0a0f] to-[#030305] py-20 md:py-32 rounded-[2.5rem] md:rounded-[4rem] relative overflow-hidden border border-white/[0.05] shadow-[0_0_80px_rgba(0,0,0,0.8)]">
 
-            {/* Animated grid overlay */}
-            <div className="absolute inset-0 animated-grid opacity-100" />
+            {/* Ultra-premium dark grid */}
+            <div className="absolute inset-0 opacity-[0.02]" style={{
+              backgroundImage: 'linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)',
+              backgroundSize: '60px 60px',
+            }} />
 
-            {/* Ambient orbs */}
-            <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[120px] -translate-x-1/3 -translate-y-1/3" />
-            <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-slate-700/30 rounded-full blur-[100px] translate-x-1/3 translate-y-1/3" />
+            {/* Cinematic auroras & lighting */}
+            <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-amber-500/10 rounded-full blur-[140px] -translate-y-1/2 mix-blend-screen pointer-events-none" />
+            <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-orange-600/10 rounded-full blur-[120px] translate-x-1/3 translate-y-1/3 mix-blend-screen pointer-events-none" />
 
             <div className="relative z-10 w-full px-6 sm:px-10">
               <Reveal>
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 md:mb-16 border-b border-white/10 pb-10">
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 md:mb-16 border-b border-white/[0.08] pb-10">
                   <div>
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="h-[3px] w-8 bg-amber-500 rounded-full" />
-                      <span className="text-amber-500 font-bold uppercase tracking-widest text-xs">High ROI</span>
+                      <div className="h-[2px] w-10 bg-gradient-to-r from-amber-500 to-transparent rounded-full" />
+                      <span className="text-amber-500 font-bold uppercase tracking-[0.2em] text-xs">High Yield Assets</span>
                     </div>
-                    <h2 className="text-[clamp(1.8rem,4vw,3.2rem)] font-black text-white mb-3 tracking-tight">
+                    <h2 className="text-[clamp(2rem,4.5vw,3.5rem)] font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 mb-3 tracking-tight">
                       Investment Opportunities
                     </h2>
-                    <p className="text-slate-400 font-light text-base md:text-lg max-w-xl">
-                      Explore high-ROI upcoming and ready-to-move projects handpicked by our analysts.
+                    <p className="text-slate-400 font-light text-base md:text-lg max-w-xl leading-relaxed">
+                      Explore high-ROI upcoming and ready-to-move projects handpicked by our quantitative analysts.
                     </p>
                   </div>
 
                   <Link
                     href="/properties"
-                    className="relative overflow-hidden mt-6 lg:mt-0 flex items-center gap-2 text-white border border-white/20 px-6 py-3 rounded-full font-semibold transition-all group tracking-wide cursor-pointer hover:border-amber-500/50"
+                    className="relative overflow-hidden mt-8 lg:mt-0 flex items-center gap-2 text-white border border-white/10 bg-white/5 backdrop-blur-md px-7 py-3.5 rounded-full font-semibold transition-all group tracking-wide cursor-pointer hover:border-amber-500/50 hover:shadow-[0_0_30px_rgba(245,158,11,0.2)]"
                   >
-                    <span className="absolute inset-0 w-full h-full bg-amber-500 origin-left transform scale-x-0 transition-transform duration-300 ease-out group-hover:scale-x-100" />
-                    <span className="relative z-10 flex items-center gap-2 group-hover:text-slate-950 transition-colors duration-300">
+                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-amber-600 to-amber-400 origin-left transform scale-x-0 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-x-100" />
+                    <span className="relative z-10 flex items-center gap-2 group-hover:text-slate-950 transition-colors duration-500">
                       View Full Inventory
-                      <ArrowRight size={18} className="text-amber-400 group-hover:text-slate-950 group-hover:translate-x-1 transition-all" />
+                      <ArrowRight size={18} className="text-amber-400 group-hover:text-slate-950 group-hover:translate-x-1 transition-all duration-300" />
                     </span>
                   </Link>
                 </div>
@@ -465,31 +456,38 @@ export default async function Home() {
           </Reveal>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 relative">
-            {/* Connector line (desktop only) */}
-            <div className="hidden lg:block absolute top-10 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
-
             {[
-              { step: "01", icon: <Search size={24} />, title: "Browse & Discover", desc: "Explore our curated portfolio of RERA-verified premium properties across Pune." },
-              { step: "02", icon: <Phone size={24} />, title: "Book Consultation", desc: "Schedule a free 45-minute session with our real estate analysts. No obligation." },
-              { step: "03", icon: <HomeIcon size={24} />, title: "Site Visits", desc: "We arrange exclusive site visits with builder representatives for shortlisted projects." },
-              { step: "04", icon: <CheckCircle2 size={24} />, title: "Close the Deal", desc: "Our legal team handles documentation, registration, and handover — end to end." },
+              { href: "/properties", step: "01", icon: <Search size={28} />, title: "Browse & Discover", desc: "Explore our curated portfolio of RERA-verified premium properties across Pune." },
+              { href: "/contact", step: "02", icon: <Phone size={28} />, title: "Book Consultation", desc: "Schedule a free 45-minute session with our real estate analysts. No obligation." },
+              { href: "/contact", step: "03", icon: <HomeIcon size={28} />, title: "Site Visits", desc: "We arrange exclusive site visits with builder representatives for shortlisted projects." },
+              { href: "/contact", step: "04", icon: <CheckCircle2 size={28} />, title: "Close the Deal", desc: "Our legal team handles documentation, registration, and handover — end to end." },
             ].map((step, i) => (
               <Reveal key={i} delay={i * 0.12}>
-                <div className="group relative flex flex-col items-center text-center p-6 md:p-8">
-                  {/* Step number bubble */}
-                  <div className="relative mb-5">
-                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-white border-2 border-slate-100 shadow-card text-slate-900 flex items-center justify-center group-hover:border-amber-300 group-hover:bg-amber-50 transition-all duration-500">
-                      <div className="text-amber-500 group-hover:scale-110 transition-transform duration-300">
-                        {step.icon}
-                      </div>
-                    </div>
-                    <div className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-slate-950 border-2 border-white flex items-center justify-center text-white text-[10px] font-black">
+                <Link href={step.href} className="block h-full">
+                  <div className="group relative flex flex-col items-center text-center p-8 md:p-10 bg-white/60 backdrop-blur-2xl border border-slate-200/80 rounded-[2.5rem] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_50px_rgba(245,158,11,0.15)] hover:border-amber-400/50 hover:-translate-y-2 transition-all duration-500 overflow-hidden cursor-pointer h-full">
+                    
+                    {/* Animated background gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-amber-50/0 to-transparent group-hover:from-amber-100/40 transition-colors duration-500 z-0" />
+                    
+                    {/* Number Watermark */}
+                    <div className="absolute -top-4 -right-4 text-[7rem] md:text-[8rem] font-black text-slate-100/60 group-hover:text-amber-100/60 transition-colors duration-500 pointer-events-none select-none z-0 tracking-tighter">
                       {step.step}
                     </div>
+
+                    <div className="relative z-10 flex flex-col items-center flex-1">
+                      {/* Icon container */}
+                      <div className="w-20 h-20 md:w-24 md:h-24 rounded-[1.75rem] bg-slate-950 flex items-center justify-center text-amber-500 shadow-xl shadow-slate-900/20 group-hover:bg-amber-500 group-hover:text-slate-950 group-hover:shadow-amber-500/40 transition-all duration-500 mb-6 group-hover:scale-110">
+                        {step.icon}
+                      </div>
+
+                      <h3 className="text-xl md:text-2xl font-black text-slate-900 mb-3 tracking-tight group-hover:text-amber-600 transition-colors duration-300">{step.title}</h3>
+                      <p className="text-slate-500 leading-relaxed font-medium text-sm md:text-[15px]">{step.desc}</p>
+                    </div>
+
+                    {/* Bottom active indicator */}
+                    <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r from-transparent via-slate-200 to-transparent group-hover:via-amber-500 transition-colors duration-500" />
                   </div>
-                  <h3 className="text-lg font-black text-slate-900 mb-2">{step.title}</h3>
-                  <p className="text-sm text-slate-500 leading-relaxed font-light">{step.desc}</p>
-                </div>
+                </Link>
               </Reveal>
             ))}
           </div>
@@ -573,61 +571,7 @@ export default async function Home() {
 
               {/* Right: Form Card */}
               <Reveal delay={0.25}>
-                <div className="bg-white p-7 sm:p-10 rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-slate-100">
-                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 mb-1.5 text-center tracking-tight">
-                    Book a Strategy Session
-                  </h3>
-                  <p className="text-sm text-center text-slate-500 mb-8 font-light">
-                    100% Free Advisory. No obligations. Response in 2 hours.
-                  </p>
-
-                  <form className="space-y-4">
-                    {[
-                      { label: "Full Name", type: "text", placeholder: "Rahul Upadhyay" },
-                      { label: "Phone Number", type: "tel", placeholder: "+91 98765 43210" },
-                      { label: "Email Address", type: "email", placeholder: "rahulUpadhyay@example.com" },
-                    ].map((field) => (
-                      <div key={field.label} className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-                          {field.label}
-                        </label>
-                        <input
-                          type={field.type}
-                          placeholder={field.placeholder}
-                          className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-amber-500/40 focus:bg-white focus:border-amber-300 transition-all font-medium text-sm placeholder:text-slate-400"
-                        />
-                      </div>
-                    ))}
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-                        Budget Range
-                      </label>
-                      <select className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-amber-500/40 focus:bg-white focus:border-amber-300 transition-all font-medium text-sm text-slate-700">
-                        <option>Under ₹1 Cr</option>
-                        <option>₹1 Cr – ₹3 Cr</option>
-                        <option>₹3 Cr – ₹5 Cr</option>
-                        <option>₹5 Cr – ₹10 Cr</option>
-                        <option>Above ₹10 Cr</option>
-                      </select>
-                    </div>
-
-                    <button
-                      type="submit"
-                      className="relative overflow-hidden w-full bg-slate-950 text-white font-bold py-4 rounded-2xl group shadow-xl tracking-wide mt-2"
-                    >
-                      <span className="absolute inset-0 bg-gradient-to-r from-amber-500 to-amber-400 origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-300 ease-out" />
-                      <span className="relative z-10 flex items-center justify-center gap-3 group-hover:text-slate-950 transition-colors duration-300">
-                        Claim Free Consultation
-                        <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                      </span>
-                    </button>
-
-                    <p className="text-center text-xs text-slate-400 mt-3">
-                      🔒 Your details are 100% secure. We never share your information.
-                    </p>
-                  </form>
-                </div>
+                <HeroContactForm />
               </Reveal>
             </div>
           </div>

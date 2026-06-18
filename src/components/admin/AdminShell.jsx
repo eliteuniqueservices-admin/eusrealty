@@ -183,34 +183,185 @@ export default function AdminShell({ children }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const timeoutRef = useRef(null);
+  const lastSeenNotifIdRef = useRef(null);
+
+  // Polling for admin notifications
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+
+    const fetchNotifications = async () => {
+      try {
+        const res = await fetch('/api/notifications?limit=15');
+        if (res.ok) {
+          const data = await res.json();
+          const newNotifs = data.notifications || [];
+          setNotifications(newNotifs);
+          
+          const newUnreadCount = data.unreadCount || 0;
+          setUnreadCount(newUnreadCount);
+
+          if (newNotifs.length > 0) {
+            const latestNotif = newNotifs[0];
+            // Only play chime sound if it's unread AND different from the last one we saw
+            if (!latestNotif.isRead) {
+              if (lastSeenNotifIdRef.current && lastSeenNotifIdRef.current !== latestNotif._id) {
+                playNotificationSound();
+              }
+              lastSeenNotifIdRef.current = latestNotif._id;
+            } else {
+              lastSeenNotifIdRef.current = latestNotif._id;
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch notifications:', err);
+      }
+    };
+
+    // Initial fetch
+    fetchNotifications();
+
+    // Poll every 10 seconds
+    const interval = setInterval(fetchNotifications, 10000);
+
+    return () => clearInterval(interval);
+  }, [status]);
+
+  const handleNotificationClick = async (notif) => {
+    // 1. Mark as read in DB if it isn't already
+    if (!notif.isRead) {
+      try {
+        const res = await fetch('/api/notifications', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: notif._id }),
+        });
+        if (res.ok) {
+          // Update local state
+          setNotifications(prev => 
+            prev.map(n => n._id === notif._id ? { ...n, isRead: true } : n)
+          );
+          setUnreadCount(prev => Math.max(0, prev - 1));
+        }
+      } catch (err) {
+        console.error('Failed to mark notification as read:', err);
+      }
+    }
+    
+    // 2. Close dropdown
+    setNotificationsOpen(false);
+    
+    // 3. Redirect depending on the related model
+    if (notif.relatedId) {
+      if (notif.relatedModel === 'Lead' || notif.relatedModel === 'ChatSession') {
+        router.push(`/admin/dashboard/chat-leads?leadId=${notif.relatedId}`);
+      } else if (notif.relatedModel === 'LoanApplication') {
+        router.push(`/admin/dashboard/loan-applications?appId=${notif.relatedId}`);
+      } else if (notif.relatedModel === 'JobApplication') {
+        router.push(`/admin/dashboard/job-applications?appId=${notif.relatedId}`);
+      } else {
+        router.push('/admin/dashboard');
+      }
+    } else {
+      router.push('/admin/dashboard');
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      const res = await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ all: true }),
+      });
+      if (res.ok) {
+        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+        setUnreadCount(0);
+      }
+    } catch (err) {
+      console.error('Failed to mark all notifications as read:', err);
+    }
+  };
 
   useEffect(() => {
     if (status !== 'authenticated') return;
 
-    const resetTimer = () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => {
+    const TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
+
+    const checkSessionIdle = () => {
+      if (typeof window === 'undefined') return;
+      const lastActivity = Number(localStorage.getItem('eus_admin_last_activity') || 0);
+      if (lastActivity && Date.now() - lastActivity >= TIMEOUT_MS) {
         signOut({ callbackUrl: '/admin/login' });
-      }, 10 * 60 * 1000); // 10 minutes idle timeout
+      }
     };
 
-    // Initialize timer
-    resetTimer();
+    const resetTimer = () => {
+      if (typeof window === 'undefined') return;
+      localStorage.setItem('eus_admin_last_activity', Date.now().toString());
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(checkSessionIdle, TIMEOUT_MS);
+    };
 
-    // Event listeners to track activity
+    // Initialize/sync on mount
+    if (typeof window !== 'undefined') {
+      const lastActivity = localStorage.getItem('eus_admin_last_activity');
+      if (!lastActivity) {
+        localStorage.setItem('eus_admin_last_activity', Date.now().toString());
+      } else {
+        checkSessionIdle();
+      }
+    }
+
+    // Standard activity events
     const activityEvents = ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart', 'click'];
     
     activityEvents.forEach((event) => {
       window.addEventListener(event, resetTimer);
     });
 
+    // Handle tab visibility change (e.g., tab returning from background)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkSessionIdle();
+        resetTimer();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Sync across multiple admin tabs
+    const handleStorageChange = (e) => {
+      if (e.key === 'eus_admin_last_activity') {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        const newLastActivity = Number(e.newValue || 0);
+        const timeRemaining = TIMEOUT_MS - (Date.now() - newLastActivity);
+        if (timeRemaining <= 0) {
+          checkSessionIdle();
+        } else {
+          timeoutRef.current = setTimeout(checkSessionIdle, timeRemaining);
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    // Periodic check interval (ensures session checks even if tab is throttled in the background)
+    const backupInterval = setInterval(checkSessionIdle, 10000);
+
+    // Initial kickoff
+    resetTimer();
+
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      clearInterval(backupInterval);
       activityEvents.forEach((event) => {
         window.removeEventListener(event, resetTimer);
       });
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, [status]);
 
@@ -339,34 +490,72 @@ export default function AdminShell({ children }) {
                   setNotificationsOpen(!notificationsOpen);
                   setProfileOpen(false);
                 }}
-                className="relative p-2.5 rounded-xl hover:bg-slate-100 text-slate-600 transition-colors"
+                className="relative p-2.5 rounded-xl hover:bg-slate-100 text-slate-600 transition-colors animate-none"
                 aria-label="Notifications"
               >
-                <Bell size={20} />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+                <Bell size={20} className={cn(unreadCount > 0 && "animate-[bell-swing_1.5s_ease-in-out_infinite]")} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[10px] font-black text-white ring-2 ring-white">
+                    {unreadCount}
+                  </span>
+                )}
               </button>
 
               {notificationsOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl p-4 z-50">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-bold text-slate-900">Notifications</h4>
-                    <Badge variant="info">1 New</Badge>
+                <div className="absolute right-0 mt-2.5 w-80 bg-white border border-slate-200 rounded-2xl shadow-2xl p-4 z-50 animate-in fade-in slide-in-from-top-3 duration-200">
+                  <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-100">
+                    <h4 className="font-bold text-slate-900 text-sm">Notifications</h4>
+                    <div className="flex items-center gap-2">
+                      {unreadCount > 0 && (
+                        <button
+                          onClick={handleMarkAllAsRead}
+                          className="text-[11px] font-bold text-cyan-600 hover:text-cyan-700 transition-colors"
+                        >
+                          Mark all read
+                        </button>
+                      )}
+                      <Badge variant="info" className="px-1.5 py-0.5 text-[9px] font-bold bg-cyan-50 text-cyan-700 border border-cyan-100">
+                        {unreadCount} New
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    {[
-                      { title: 'New Job Inquiry Received', time: '2h ago', color: 'bg-blue-500' },
-                    ].map((n, i) => (
-                      <div
-                        key={i}
-                        className="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer"
-                      >
-                        <div className={cn('w-2 h-2 rounded-full mt-1.5 flex-shrink-0', n.color)} />
-                        <div>
-                          <p className="text-sm font-semibold text-slate-900">{n.title}</p>
-                          <p className="text-xs text-slate-400">{n.time}</p>
-                        </div>
+                  <div className="space-y-1.5 max-h-[300px] overflow-y-auto pr-1">
+                    {notifications.length === 0 ? (
+                      <div className="text-center py-10 text-slate-400 font-bold text-xs">
+                        No notifications yet.
                       </div>
-                    ))}
+                    ) : (
+                      notifications.map((n) => (
+                        <div
+                          key={n._id}
+                          onClick={() => handleNotificationClick(n)}
+                          className={cn(
+                            "flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors relative border border-transparent",
+                            !n.isRead ? "bg-cyan-50/15 border-cyan-500/10" : ""
+                          )}
+                        >
+                          <div className="text-lg flex-shrink-0 mt-0.5">
+                            {n.icon || '🔔'}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex justify-between items-start gap-1">
+                              <p className={cn("text-xs text-slate-900 truncate", !n.isRead ? "font-bold" : "font-semibold")}>
+                                {n.title}
+                              </p>
+                              {!n.isRead && (
+                                <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full mt-1.5 flex-shrink-0" />
+                              )}
+                            </div>
+                            <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5 font-medium leading-normal">
+                              {n.message}
+                            </p>
+                            <p className="text-[9px] text-slate-400 mt-1 font-semibold">
+                              {formatTimeAgo(n.createdAt)}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               )}
@@ -432,4 +621,65 @@ export default function AdminShell({ children }) {
       </div>
     </div>
   );
+}
+
+/**
+ * Plays a premium double-chime notification sound using the Web Audio API.
+ * Uses pure oscillators to generate sound dynamically, avoiding the need for external asset loading.
+ */
+function playNotificationSound() {
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    
+    const audioCtx = new AudioContextClass();
+    
+    const playTone = (frequency, startTime, duration) => {
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(frequency, startTime);
+      
+      // Smooth fade-in and exponential fade-out for a bell-like quality
+      gainNode.gain.setValueAtTime(0.0001, startTime);
+      gainNode.gain.linearRampToValueAtTime(0.12, startTime + 0.02);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration);
+    };
+    
+    const now = audioCtx.currentTime;
+    // Elegant dual-tone chime: High pitch followed by slightly higher harmonic
+    playTone(587.33, now, 0.25);      // D5
+    playTone(880.00, now + 0.12, 0.35); // A5
+  } catch (err) {
+    console.warn('Audio play request blocked or failed:', err);
+  }
+}
+
+/**
+ * Formats a timestamp into a human-readable "time ago" string.
+ */
+function formatTimeAgo(dateString) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now - date;
+  
+  if (diffMs < 0) return 'Just now';
+  
+  const diffMins = Math.floor(diffMs / 60000);
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}d ago`;
 }

@@ -5,12 +5,12 @@ const NotificationSchema = new mongoose.Schema({
   message: { type: String, required: true },
   type: {
     type: String,
-    enum: ['lead', 'escalation', 'hot_lead', 'system'],
+    enum: ['lead', 'escalation', 'hot_lead', 'system', 'loan_application', 'job_application'],
     default: 'lead',
   },
   isRead: { type: Boolean, default: false },
-  relatedId: { type: String, default: '' }, // sessionId or leadId
-  relatedModel: { type: String, enum: ['ChatSession', 'Lead', ''], default: '' },
+  relatedId: { type: String, default: '' }, // sessionId or leadId or applicationId
+  relatedModel: { type: String, enum: ['ChatSession', 'Lead', 'LoanApplication', 'JobApplication', ''], default: '' },
   icon: { type: String, default: '🏠' },
 }, { timestamps: true });
 

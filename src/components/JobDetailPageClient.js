@@ -244,7 +244,7 @@ export default function JobDetailPageClient({ job }) {
 
             {/* Department */}
             <div className="flex items-center mb-8 mt-2">
-              <span className="text-[10px] font-black tracking-widest uppercase text-amber-500 bg-amber-500/5 border border-amber-500/15 px-4.5 py-1.5 rounded-lg">
+              <span className="text-[10px] font-black tracking-widest uppercase text-amber-500 bg-amber-500/5 border border-amber-500/15 px-5 py-1.5 rounded-lg">
                 {job.department || job.dept} Department
               </span>
             </div>
@@ -384,7 +384,7 @@ export default function JobDetailPageClient({ job }) {
                     "Opportunity to lead large regional sales divisions",
                     "Continuous flow of pre-qualified inbound CRM leads"
                   ].map((item, index) => (
-                    <div key={index} className="flex gap-3 text-slate-300 font-light text-base sm:text-lg items-center bg-white/5 p-4.5 rounded-2xl border border-white/5">
+                    <div key={index} className="flex gap-3 text-slate-300 font-light text-base sm:text-lg items-center bg-white/5 p-5 rounded-2xl border border-white/5">
                       <Star
                         size={18}
                         className="text-amber-500 shrink-0 fill-amber-500"

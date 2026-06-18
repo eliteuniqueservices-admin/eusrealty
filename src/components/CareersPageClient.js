@@ -530,7 +530,7 @@ export default function CareersPageClient({ initialJobPosts }) {
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="inline-flex items-center gap-2.5 px-4.5 py-2.5 bg-white/5 backdrop-blur-xl rounded-full text-xs md:text-sm font-bold border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.3)] mb-4"
+                className="inline-flex items-center gap-2.5 px-5 py-2.5 bg-white/5 backdrop-blur-xl rounded-full text-xs md:text-sm font-bold border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.3)] mb-4"
               >
                 <Star size={14} className="fill-amber-400 text-amber-400 animate-pulse" />
                 <span className="tracking-widest uppercase text-amber-500 font-extrabold">Join Pune&apos;s Elite Real Estate Force</span>
@@ -564,19 +564,19 @@ export default function CareersPageClient({ initialJobPosts }) {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1, delay: 0.8 }}
-                className="flex flex-col sm:flex-row items-center justify-center gap-4.5 pt-6 w-full sm:w-auto"
+                className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6 w-full sm:w-auto"
               >
                 <a 
                   href="#roles" 
-                  className="relative overflow-hidden inline-flex items-center justify-center bg-white text-slate-950 px-8 sm:px-11 py-4 sm:py-4.5 rounded-2xl md:rounded-full font-bold group shadow-2xl tracking-wide w-full sm:w-auto text-sm sm:text-base transition-transform duration-300 hover:scale-102"
+                  className="relative overflow-hidden inline-flex items-center justify-center bg-white text-slate-950 px-10 py-4 rounded-2xl md:rounded-full font-bold group shadow-2xl tracking-wide w-full sm:w-auto text-sm sm:text-base transition-transform duration-300 hover:scale-102"
                 >
                   <span className="absolute inset-0 w-full h-full bg-amber-500 origin-bottom transform scale-y-0 transition-transform duration-300 ease-out group-hover:scale-y-100" />
                   <span className="relative z-10 flex items-center gap-2 group-hover:text-slate-950 transition-colors duration-300">
-                    Explore Inventory <ArrowRight size={18} className="text-slate-400 group-hover:text-slate-950 transition-colors" />
+                    View Open Roles <ArrowRight size={18} className="text-slate-400 group-hover:text-slate-950 transition-colors" />
                   </span>
                 </a>
                 
-                <div className="w-full sm:w-auto flex items-center justify-center gap-3 text-white font-bold px-8 py-4 sm:py-4.5 bg-white/5 backdrop-blur-md rounded-2xl md:rounded-full border border-white/10 shadow-sm">
+                <div className="w-full sm:w-auto flex items-center justify-center gap-3 text-white font-bold px-8 py-4 bg-white/5 backdrop-blur-md rounded-2xl md:rounded-full border border-white/10 shadow-sm">
                   <Trophy className="text-amber-500" size={20} />
                   <span>₹100Cr+ Sales Closed</span>
                 </div>
@@ -822,7 +822,7 @@ export default function CareersPageClient({ initialJobPosts }) {
                   <Reveal key={job._id || job.id} delay={index * 0.05}>
                     <div className="group bg-[#07070d] border border-white/5 p-8 md:p-10 rounded-[2.5rem] flex flex-col md:flex-row md:items-center justify-between hover:border-amber-500/30 hover:shadow-[0_25px_50px_rgba(0,0,0,0.6)] transition-all duration-500">
                       <div className="space-y-4">
-                        <span className="inline-block text-[10px] font-black uppercase tracking-widest text-amber-500 bg-amber-500/5 border border-amber-500/15 px-4.5 py-1.5 rounded-lg">
+                        <span className="inline-block text-[10px] font-black uppercase tracking-widest text-amber-500 bg-amber-500/5 border border-amber-500/15 px-5 py-1.5 rounded-lg">
                           {job.department || job.dept}
                         </span>
                         <h3 className="text-2xl md:text-3xl font-black text-white group-hover:text-amber-500 transition-colors tracking-tight">{job.title}</h3>

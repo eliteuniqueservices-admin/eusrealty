@@ -877,32 +877,87 @@ export default function AboutClient() {
         {/* ══════════════════════════════════════
             1. CINEMATIC HERO SECTION
         ══════════════════════════════════════ */}
-        <section className="relative h-screen flex flex-col items-center justify-center overflow-hidden bg-[#040407] rounded-b-[2.5rem] md:rounded-b-[4rem] mx-2 md:mx-4 mt-2 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] border-b border-white/5">
-          {/* Parallax Background */}
-          <motion.div
-            style={{ y: yBackground }}
-            className="absolute inset-0 w-full h-[130%] -top-[15%] opacity-50 select-none pointer-events-none"
-          >
-            <Image
-              src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1920&q=80"
-              alt="Premium Skyline"
-              fill
-              sizes="100vw"
-              className="object-cover grayscale"
-              priority
-            />
-            {/* Cinematic Gradient Overlays */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#030305] via-[#030305]/75 to-transparent" />
-            <div className="absolute inset-0 bg-radial-gradient from-transparent via-[#030305]/40 to-[#030305]/90" />
-          </motion.div>
+        <div className="relative mx-2 md:mx-4 mt-2">
+          <section className="relative h-screen flex flex-col items-center justify-center overflow-hidden bg-[#040407] rounded-b-[2.5rem] md:rounded-b-[4rem] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] border-b border-white/5">
+            {/* Parallax Background */}
+            <motion.div
+              style={{ y: yBackground }}
+              className="absolute inset-0 w-full h-[130%] -top-[15%] opacity-50 select-none pointer-events-none"
+            >
+              <Image
+                src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1920&q=80"
+                alt="Premium Skyline"
+                fill
+                sizes="100vw"
+                className="object-cover grayscale"
+                priority
+              />
+              {/* Cinematic Gradient Overlays */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#030305] via-[#030305]/75 to-transparent" />
+              <div className="absolute inset-0 bg-radial-gradient from-transparent via-[#030305]/40 to-[#030305]/90" />
+            </motion.div>
 
-          {/* Animated Gold Focus Light */}
-          <div className="absolute top-[25%] left-[50%] -translate-x-1/2 w-[600px] h-[300px] bg-amber-500/10 rounded-full blur-[140px] pointer-events-none mix-blend-screen" />
+            {/* Animated Gold Focus Light */}
+            <div className="absolute top-[25%] left-[50%] -translate-x-1/2 w-[600px] h-[300px] bg-amber-500/10 rounded-full blur-[140px] pointer-events-none mix-blend-screen" />
 
-          {/* Floating Luxury Badges (Parallax Scrolling) */}
+            {/* Hero Content */}
+            <motion.div
+              style={{ y: heroScroll, opacity: opacityHeroText, scale: scaleHeroText }}
+              className="relative z-10 max-w-5xl px-4 sm:px-6 text-center mt-12"
+            >
+              <div className="space-y-6">
+                {/* Top Badge */}
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                  className="inline-flex items-center gap-2.5 px-5 py-2.5 bg-white/5 backdrop-blur-xl rounded-full text-xs md:text-sm font-bold border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.3)] mb-4"
+                >
+                  <Star size={14} className="fill-amber-400 text-amber-400" />
+                  <span className="tracking-widest uppercase text-amber-500">Pune&apos;s Premier Real Estate Legacy</span>
+                </motion.div>
+
+                {/* Title */}
+                <motion.h1
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1, delay: 0.4 }}
+                  className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-white leading-[1.05] tracking-tight"
+                >
+                  A Legacy of <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600">
+                    Absolute Trust.
+                  </span>
+                </motion.h1>
+
+                {/* Summary Paragraph */}
+                <motion.p
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1, delay: 0.6 }}
+                  className="text-base sm:text-lg md:text-xl text-slate-300 font-light max-w-2xl mx-auto leading-relaxed mt-6"
+                >
+                  For decades, the highest-value real estate transactions in West Pune were finalized on a simple
+                  handshake. Today, we bring that legacy to the digital forefront.
+                </motion.p>
+              </div>
+            </motion.div>
+
+            {/* Indicator Chevron */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.5, duration: 1 }}
+              className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce text-slate-400 z-10 pointer-events-none"
+            >
+              <ChevronDown size={28} />
+            </motion.div>
+          </section>
+
+          {/* Floating Luxury Badges — outside overflow-hidden so they're never clipped */}
           <motion.div
             style={{ y: yWidgetLeft }}
-            className="absolute left-[8%] top-[55%] hidden xl:flex items-center gap-3.5 px-5 py-4 bg-slate-950/80 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] max-w-xs transition-colors hover:border-amber-500/30"
+            className="absolute left-[2%] top-[55%] hidden xl:flex items-center gap-3.5 px-5 py-4 bg-slate-950/80 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] max-w-xs transition-colors hover:border-amber-500/30 z-20"
           >
             <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-500 border border-amber-500/30 flex-shrink-0">
               <Award size={20} className="animate-pulse" />
@@ -915,7 +970,7 @@ export default function AboutClient() {
 
           <motion.div
             style={{ y: yWidgetRight }}
-            className="absolute right-[8%] top-[60%] hidden xl:flex items-center gap-3.5 px-5 py-4 bg-slate-950/80 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] max-w-xs transition-colors hover:border-amber-500/30"
+            className="absolute right-[2%] top-[60%] hidden xl:flex items-center gap-3.5 px-5 py-4 bg-slate-950/80 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] max-w-xs transition-colors hover:border-amber-500/30 z-20"
           >
             <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-500 border border-amber-500/30 flex-shrink-0">
               <ShieldCheck size={20} />
@@ -926,59 +981,7 @@ export default function AboutClient() {
             </div>
           </motion.div>
 
-          {/* Hero Content */}
-          <motion.div
-            style={{ y: heroScroll, opacity: opacityHeroText, scale: scaleHeroText }}
-            className="relative z-10 max-w-5xl px-4 sm:px-6 text-center mt-12"
-          >
-            <div className="space-y-6">
-              {/* Top Badge */}
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-                className="inline-flex items-center gap-2.5 px-4.5 py-2.5 bg-white/5 backdrop-blur-xl rounded-full text-xs md:text-sm font-bold border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.3)] mb-4"
-              >
-                <Star size={14} className="fill-amber-400 text-amber-400" />
-                <span className="tracking-widest uppercase text-amber-500">Pune&apos;s Premier Real Estate Legacy</span>
-              </motion.div>
-
-              {/* Title */}
-              <motion.h1
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1, delay: 0.4 }}
-                className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-white leading-[1.05] tracking-tight"
-              >
-                A Legacy of <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600">
-                  Absolute Trust.
-                </span>
-              </motion.h1>
-
-              {/* Summary Paragraph */}
-              <motion.p
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1, delay: 0.6 }}
-                className="text-base sm:text-lg md:text-xl text-slate-300 font-light max-w-2xl mx-auto leading-relaxed mt-6"
-              >
-                For decades, the highest-value real estate transactions in West Pune were finalized on a simple
-                handshake. Today, we bring that legacy to the digital forefront.
-              </motion.p>
-            </div>
-          </motion.div>
-
-          {/* Indicator Chevron */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.5, duration: 1 }}
-            className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce text-slate-400 z-10 pointer-events-none"
-          >
-            <ChevronDown size={28} />
-          </motion.div>
-        </section>
+        </div>{/* end hero wrapper */}
 
         {/* ══════════════════════════════════════
             2. PREMIUM VIDEO SHOWCASE (autoplay)
@@ -1394,11 +1397,11 @@ export default function AboutClient() {
                 {/* Interaction CTA buttons */}
                 <motion.div
                   variants={fadeUp}
-                  className="flex flex-col sm:flex-row gap-4.5 justify-center items-center"
+                  className="flex flex-col sm:flex-row gap-4 justify-center items-center"
                 >
                   <Link
                     href="/properties"
-                    className="relative overflow-hidden inline-flex items-center justify-center bg-white text-slate-950 px-8 sm:px-11 py-4 sm:py-4.5 rounded-2xl md:rounded-full font-bold group shadow-2xl tracking-wide w-full sm:w-auto text-sm sm:text-base transition-transform duration-300 hover:scale-102"
+                    className="relative overflow-hidden inline-flex items-center justify-center bg-white text-slate-950 px-10 py-4 rounded-2xl md:rounded-full font-bold group shadow-2xl tracking-wide w-full sm:w-auto text-sm sm:text-base transition-transform duration-300 hover:scale-102"
                   >
                     <span className="absolute inset-0 w-full h-full bg-amber-500 origin-bottom transform scale-y-0 transition-transform duration-300 ease-out group-hover:scale-y-100" />
                     <span className="relative z-10 flex items-center gap-2.5 group-hover:text-slate-950 transition-colors duration-300">
@@ -1410,7 +1413,7 @@ export default function AboutClient() {
                     href="https://wa.me/917620733613"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="relative overflow-hidden inline-flex items-center justify-center bg-white/5 backdrop-blur-md text-white border border-white/20 px-8 sm:px-11 py-4 sm:py-4.5 rounded-2xl md:rounded-full font-bold group tracking-wide w-full sm:w-auto text-sm sm:text-base transition-all duration-300 hover:scale-102"
+                    className="relative overflow-hidden inline-flex items-center justify-center bg-white/5 backdrop-blur-md text-white border border-white/20 px-10 py-4 rounded-2xl md:rounded-full font-bold group tracking-wide w-full sm:w-auto text-sm sm:text-base transition-all duration-300 hover:scale-102"
                   >
                     <span className="absolute inset-0 w-full h-full bg-white origin-left transform scale-x-0 transition-transform duration-300 ease-out group-hover:scale-x-100" />
                     <span className="relative z-10 flex items-center gap-3 group-hover:text-slate-950 transition-colors duration-300">

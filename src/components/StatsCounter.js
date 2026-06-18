@@ -7,7 +7,7 @@ function easeOutCubic(t) {
   return 1 - Math.pow(1 - t, 3);
 }
 
-export default function StatsCounter({ value, suffix = "", prefix = false, duration = 2 }) {
+export default function StatsCounter({ value, suffix = "", prefix = false, duration = 2, playTrigger = 0 }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "0px 0px -50px 0px" });
   const [display, setDisplay] = useState(0);
@@ -27,11 +27,13 @@ export default function StatsCounter({ value, suffix = "", prefix = false, durat
       }
     };
 
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(animate);
+
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [isInView, value, duration]);
+  }, [isInView, value, duration, playTrigger]);
 
   const formattedValue = display >= 1000
     ? (display / 1000).toFixed(display % 1000 === 0 ? 0 : 1) + "k"

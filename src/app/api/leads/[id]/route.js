@@ -45,6 +45,8 @@ export const PATCH = auth(async function PATCH(req, { params }) {
       leadQuality,
       status,
       assignedTo,
+      objective,
+      position,
       noteText, // optional single note to append
     } = body;
 
@@ -61,6 +63,8 @@ export const PATCH = auth(async function PATCH(req, { params }) {
     if (leadQuality !== undefined) updateFields.leadQuality = leadQuality;
     if (status !== undefined) updateFields.status = status;
     if (assignedTo !== undefined) updateFields.assignedTo = assignedTo;
+    if (objective !== undefined) updateFields.objective = objective;
+    if (position !== undefined) updateFields.position = position;
 
     const updateQuery = { $set: updateFields };
 

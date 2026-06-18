@@ -1,5 +1,6 @@
 'use client';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { 
   Search, Plus, Mail, Phone, Trash2, X, ChevronRight, 
   GraduationCap, CalendarDays, FileText, CheckCircle2, 
@@ -10,7 +11,7 @@ import ExportModal from '@/components/admin/ExportModal';
 const ROLES = ['Relationship Manager', 'Sourcing Manager', 'Digital Marketing Executive', 'Customer Success Associate', 'Software Engineer', 'Sales Executive', 'Team Leader'];
 const STATUSES = ['New', 'Shortlisted', 'Interview', 'Offered', 'Hired', 'Rejected'];
 
-export default function ManageApps() {
+function ManageAppsContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterRole, setFilterRole] = useState('All');
   const [selectedApp, setSelectedApp] = useState(null);
@@ -45,9 +46,21 @@ export default function ManageApps() {
     }
   };
 
+  const searchParams = useSearchParams();
+  const appIdParam = searchParams.get('appId');
+
   useEffect(() => {
     fetchApps();
   }, []);
+
+  useEffect(() => {
+    if (appIdParam && apps.length > 0) {
+      const match = apps.find(app => app._id === appIdParam || app.id === appIdParam);
+      if (match) {
+        setSelectedApp(match);
+      }
+    }
+  }, [appIdParam, apps]);
 
   // Derived State / Metrics
   const filteredApps = useMemo(() => {
@@ -453,5 +466,18 @@ export default function ManageApps() {
 
       </div>
     </div>
+  );
+}
+
+export default function ManageApps() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[400px] flex flex-col items-center justify-center gap-3 text-slate-500">
+        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-xs font-bold tracking-widest uppercase text-slate-400">Loading Candidate Desk...</p>
+      </div>
+    }>
+      <ManageAppsContent />
+    </Suspense>
   );
 }

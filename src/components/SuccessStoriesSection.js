@@ -190,7 +190,7 @@ export default function SuccessStoriesSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 relative z-10">
         <Reveal>
           <div className="text-center">
-            <div className="inline-flex items-center gap-2.5 px-4.5 py-1.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100/80 rounded-full text-amber-800 text-[11px] font-extrabold uppercase tracking-widest mb-6">
+            <div className="inline-flex items-center gap-2.5 px-5 py-1.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100/80 rounded-full text-amber-800 text-[11px] font-extrabold uppercase tracking-widest mb-6">
               <Star size={11} className="fill-amber-500 text-amber-500" />
               <span>Real Customer Success</span>
             </div>

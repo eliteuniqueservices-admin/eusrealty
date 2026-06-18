@@ -19,12 +19,20 @@ export const authConfig = {
       return session;
     },
     authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn = !!auth;
+      const isAdmin = auth?.user?.role === "admin";
+
       if (nextUrl.pathname === '/login') {
         return Response.redirect(new URL('/admin/login', nextUrl));
       }
 
-      const isLoggedIn = !!auth;
-      const isAdmin = auth?.user?.role === "admin";
+      if (nextUrl.pathname === '/admin' || nextUrl.pathname === '/admin/') {
+        if (isLoggedIn && isAdmin) {
+          return Response.redirect(new URL('/admin/dashboard', nextUrl));
+        }
+        return Response.redirect(new URL('/admin/login', nextUrl));
+      }
+
       const isAuthPage = nextUrl.pathname.startsWith('/admin/login');
       const isAdminRoute = nextUrl.pathname.startsWith('/admin') && !isAuthPage;
 

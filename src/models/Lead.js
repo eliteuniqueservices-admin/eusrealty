@@ -17,6 +17,8 @@ const LeadSchema = new mongoose.Schema({
   preferredLocation: { type: String, default: '' },
   propertyType: { type: String, default: '' },
   possession: { type: String, default: '' },
+  objective: { type: String, default: '' },
+  position: { type: String, default: '' },
 
   // Lead intelligence
   leadScore: { type: Number, default: 0, min: 0, max: 100 },
@@ -34,7 +36,7 @@ const LeadSchema = new mongoose.Schema({
   // Source tracking
   source: { 
     type: String, 
-    enum: ['chatbot', 'contact_form', 'careers_page', 'manual', 'whatsapp'],
+    enum: ['chatbot', 'contact_form', 'careers_page', 'manual', 'whatsapp', 'homepage', 'exit_popup'],
     default: 'chatbot',
   },
   sessionId: { type: String, default: '' },

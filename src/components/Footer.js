@@ -350,7 +350,7 @@ export default function Footer() {
             </div>
 
             <div className="flex flex-col gap-3">
-              <div className="inline-flex items-center justify-center sm:justify-start gap-2 bg-slate-900 border border-white/5 px-4.5 py-1.5 rounded-full w-fit mx-auto sm:mx-0">
+              <div className="inline-flex items-center justify-center sm:justify-start gap-2 bg-slate-900 border border-white/5 px-5 py-1.5 rounded-full w-fit mx-auto sm:mx-0">
                 <ShieldCheck className="text-amber-500 animate-pulse" size={15} />
                 <span className="text-[11px] font-black tracking-widest text-amber-500 uppercase">
                   MahaRERA: A041262501741

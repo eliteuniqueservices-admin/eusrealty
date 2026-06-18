@@ -866,7 +866,7 @@ export default function ROICalculator() {
         {/* ─── Header Section ─── */}
         <Reveal>
           <div className="text-center mb-12 md:mb-16">
-            <div className="inline-flex items-center gap-2 px-4.5 py-1.5 bg-amber-50 border border-amber-200 rounded-full text-xs font-bold shadow-sm mb-6">
+            <div className="inline-flex items-center gap-2 px-5 py-1.5 bg-amber-50 border border-amber-200 rounded-full text-xs font-bold shadow-sm mb-6">
               <Star size={13} className="fill-amber-500 text-amber-500" />
               <span className="tracking-wide text-amber-800 uppercase">Institutional Grade Advisory Desk</span>
             </div>
@@ -880,13 +880,13 @@ export default function ROICalculator() {
             <div className="flex flex-wrap justify-center gap-4">
               <button 
                 onClick={applyPreset1} 
-                className="px-5.5 py-3 rounded-full bg-slate-900 text-white font-bold text-xs uppercase tracking-wider hover:bg-slate-800 transition-colors border border-slate-700 flex items-center gap-2 shadow-sm"
+                className="px-6 py-3 rounded-full bg-slate-900 text-white font-bold text-xs uppercase tracking-wider hover:bg-slate-800 transition-colors border border-slate-700 flex items-center gap-2 shadow-sm"
               >
                 <Activity size={13} className="text-amber-400" /> Scenario 1: Premium 2BHK (₹1.5 Cr)
               </button>
               <button 
                 onClick={applyPreset2} 
-                className="px-5.5 py-3 rounded-full bg-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/20 flex items-center gap-2"
+                className="px-6 py-3 rounded-full bg-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/20 flex items-center gap-2"
               >
                 <Star size={13} className="fill-slate-950 text-slate-950" /> Scenario 2: Luxury Villa (₹4.5 Cr)
               </button>
@@ -1373,7 +1373,7 @@ export default function ROICalculator() {
                 {/* PDF generation button */}
                 <button
                   onClick={downloadPDF}
-                  className="relative overflow-hidden w-full bg-white text-slate-950 font-bold py-4.5 rounded-2xl mt-8 shadow-xl text-xs uppercase tracking-widest group transition-all"
+                  className="relative overflow-hidden w-full bg-white text-slate-950 font-bold py-4 rounded-2xl mt-8 shadow-xl text-xs uppercase tracking-widest group transition-all"
                 >
                   <span className="absolute inset-0 w-full h-full bg-amber-500 origin-bottom transform scale-y-0 transition-transform duration-300 ease-out group-hover:scale-y-100" />
                   <span className="relative z-10 flex items-center justify-center gap-2 group-hover:text-slate-950 transition-colors">

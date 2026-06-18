@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import LoanApplication from '@/models/LoanApplication';
+import Notification from '@/models/Notification';
 import { auth } from '@/auth'; // Adjust based on your auth setup, we'll try to protect GET
 import { isRateLimited } from '@/lib/rateLimit';
 
@@ -172,6 +173,65 @@ export async function POST(req) {
 
     // Save
     const application = await LoanApplication.create(cleanData);
+
+    // CREATE DB NOTIFICATION FOR ADMIN BELL
+    try {
+      await Notification.create({
+        title: `🏦 New Loan Application: ${cleanData.personalDetails.fullName}`,
+        message: `App ID: ${cleanData.applicationNumber} | Req: ₹${cleanData.property.loanRequirement.toLocaleString('en-IN')} | ${cleanData.eligibilityStatus}`,
+        type: 'loan_application',
+        isRead: false,
+        relatedId: application._id.toString(),
+        relatedModel: 'LoanApplication',
+        icon: '🏦'
+      });
+    } catch (dbNotifErr) {
+      console.error('Failed to create loan application notification:', dbNotifErr);
+    }
+
+    // SEND TELEGRAM ALERT
+    try {
+      const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
+      const telegramChatId = process.env.TELEGRAM_CHAT_ID;
+      const telegramSalesChatId = process.env.TELEGRAM_SALES_CHAT_ID;
+
+      if (telegramBotToken) {
+        const chatIds = [telegramChatId, telegramSalesChatId].filter(Boolean);
+
+        if (chatIds.length > 0) {
+          const telegramUrl = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
+          const telegramMessage = 
+            `🏦 *New Home Loan Application*\n\n` +
+            `🆔 *App Number:* \`${cleanData.applicationNumber}\`\n` +
+            `👤 *Name:* ${cleanData.personalDetails.fullName}\n` +
+            `📞 *Phone:* ${cleanData.personalDetails.mobile}\n` +
+            `📧 *Email:* ${cleanData.personalDetails.email || 'N/A'}\n` +
+            `💰 *Loan Requirement:* ₹${cleanData.property.loanRequirement.toLocaleString('en-IN')}\n` +
+            `🏢 *Property Value:* ₹${cleanData.property.propertyValue.toLocaleString('en-IN')}\n` +
+            `📍 *Location:* ${cleanData.property.location || 'N/A'}\n` +
+            `💼 *Income:* ₹${Math.round(monthlyIncome).toLocaleString('en-IN')}/mo\n` +
+            `📝 *Status:* *${eligibilityStatus}*\n` +
+            `🛡️ *Risk Level:* ${riskLevel}\n` +
+            `💵 *Max Eligible Loan:* ₹${Math.round(eligibleLoanAmount).toLocaleString('en-IN')}`;
+
+          for (const chatId of chatIds) {
+            fetch(telegramUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                chat_id: chatId,
+                text: telegramMessage,
+                parse_mode: 'Markdown'
+              })
+            }).catch((err) => {
+              console.error(`Telegram notification failed for chat ID ${chatId}:`, err);
+            });
+          }
+        }
+      }
+    } catch (tgErr) {
+      console.error('Telegram integration error for loan application:', tgErr);
+    }
 
     // SEND EMAIL NOTIFICATION
     try {
