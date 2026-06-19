@@ -74,7 +74,7 @@ const localityData = {
       },
       {
         q: "Does EUS Realty charge brokerage for property purchases in Wakad?",
-        a: "No, EUS Realty is an official channel partner with Pune's top builders and charges zero brokerage fee to buyers."
+        a: "No, EUS Realty is an official strategic partner with Pune's top builders and charges zero brokerage fee to buyers."
       }
     ]
   },
@@ -400,7 +400,7 @@ export default async function LocalityPage({ params }) {
               <div className="space-y-1">
                 <h4 className="text-lg font-black text-white">MahaRERA Registered Advisor Partner</h4>
                 <p className="text-slate-400 text-xs sm:text-sm font-light">
-                  EUS Realty is an official RERA-authorized channel partner in Pune. Agent Registration Number: <strong className="text-amber-400 font-bold">A041262501741</strong>. We guarantee verified project information and direct builder-side pre-launch inventory pricing with zero brokerage.
+                  EUS Realty is an official RERA-authorized strategic partner in Pune. Agent Registration Number: <strong className="text-amber-400 font-bold">A041262501741</strong>. We guarantee verified project information and direct builder-side pre-launch inventory pricing with zero brokerage.
                 </p>
               </div>
             </div>

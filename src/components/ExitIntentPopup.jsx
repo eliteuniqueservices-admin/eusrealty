@@ -6,35 +6,38 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function ExitIntentPopup() {
   const [isOpen, setIsOpen] = useState(false);
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Only show once per session or device
-    if (localStorage.getItem('eusrealty_exit_intent_shown')) {
-      return;
-    }
+    let lastActivity = Date.now();
 
-    const handleMouseLeave = (e) => {
-      // Trigger if cursor leaves the top edge of the window (intent to close/change tab)
-      if (e.clientY < 50) {
-        setIsOpen(true);
-        localStorage.setItem('eusrealty_exit_intent_shown', 'true');
-        document.removeEventListener('mouseleave', handleMouseLeave);
-      }
+    const updateActivity = () => {
+      lastActivity = Date.now();
     };
 
-    // Delay attaching the listener so it doesn't trigger immediately on load
-    const timer = setTimeout(() => {
-      document.addEventListener('mouseleave', handleMouseLeave);
-    }, 5000);
+    const events = ['mousemove', 'keydown', 'scroll', 'click', 'touchstart'];
+    
+    events.forEach(event => {
+      document.addEventListener(event, updateActivity, { passive: true });
+    });
+
+    const checkInactivity = setInterval(() => {
+      // Only check if popup is not already open
+      if (!isOpen && Date.now() - lastActivity >= 15000) { // 15 seconds
+        setIsOpen(true);
+      }
+    }, 1000);
 
     return () => {
-      clearTimeout(timer);
-      document.removeEventListener('mouseleave', handleMouseLeave);
+      clearInterval(checkInactivity);
+      events.forEach(event => {
+        document.removeEventListener(event, updateActivity);
+      });
     };
-  }, []);
+  }, [isOpen]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,22 +45,40 @@ export default function ExitIntentPopup() {
       setError("Please enter a valid 10-digit number.");
       return;
     }
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
     setError('');
     setLoading(true);
 
     try {
-      await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: "Exit Intent Lead",
-          phone: `+91 ${phone}`,
-          email: "",
-          message: "Lead captured via Exit-Intent Popup.",
-          source: "Exit Popup",
-          objective: "Get Exclusive Deals"
+      const requests = [
+        fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: "Exit Intent Lead",
+            phone: `+91 ${phone}`,
+            email: email,
+            message: "Lead captured via Exit-Intent Popup.",
+            source: "Exit Popup",
+            objective: "Get Exclusive Deals"
+          })
         })
-      });
+      ];
+
+      if (email) {
+        requests.push(
+          fetch('/api/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+          })
+        );
+      }
+
+      await Promise.all(requests);
       setSubmitted(true);
     } catch (err) {
       console.error(err);
@@ -147,6 +168,20 @@ export default function ExitIntentPopup() {
                           className="w-full pl-9 pr-4 py-3 bg-white border border-slate-200 rounded-r-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 font-medium transition-all text-sm text-slate-900"
                         />
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Email ID</label>
+                    <div className="relative">
+                      <input 
+                        type="email" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 font-medium transition-all text-sm text-slate-900"
+                        required
+                      />
                     </div>
                     {error && <p className="text-xs text-red-500 font-bold mt-1">{error}</p>}
                   </div>

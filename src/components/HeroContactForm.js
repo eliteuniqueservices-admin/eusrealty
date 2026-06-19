@@ -188,28 +188,36 @@ export default function HeroContactForm() {
             key="success"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col items-center justify-center text-center py-10 gap-4"
+            className="flex flex-col items-center justify-center text-center py-10 gap-5"
           >
             <motion.div
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 200, damping: 15 }}
+              className="relative w-24 h-24 mb-2"
             >
-              <CheckCircle size={32} className="text-emerald-500" />
+              <div className="absolute inset-0 bg-amber-100 rounded-full animate-ping opacity-75" />
+              <div className="relative w-full h-full rounded-full bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center shadow-[0_0_40px_rgba(245,158,11,0.4)]">
+                <CheckCircle size={44} className="text-white drop-shadow-md" />
+              </div>
             </motion.div>
-            <div>
-              <h3 className="text-2xl font-black text-slate-900 mb-2">
-                Request Sent! 🎉
-              </h3>
-              <p className="text-slate-500 text-sm font-light max-w-xs mx-auto">
-                Our senior consultant will connect with you within 30 minutes. Check your email for confirmation.
+            
+            <div className="space-y-3">
+              <h4 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
+                You're on the Priority List!
+              </h4>
+              <p className="text-slate-600 text-base max-w-sm mx-auto leading-relaxed font-medium">
+                Thank you, <span className="text-amber-600 font-bold">{form.name || 'friend'}</span>. We've received your request beautifully. 
+                <br/><br/>
+                One of our elite property strategists will connect with you within <span className="text-slate-900 font-bold">30 minutes</span> to curate your exclusive portfolio.
               </p>
             </div>
+
             <button
               onClick={() => setFormState('idle')}
-              className="mt-4 px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors text-sm"
+              className="mt-6 px-8 py-3 bg-white border border-slate-200 hover:border-amber-300 hover:bg-amber-50 text-slate-700 rounded-xl text-sm font-bold tracking-wide transition-all shadow-sm hover:shadow-md"
             >
-              Submit Another Request
+              Book Another Session
             </button>
           </motion.div>
         )}

@@ -8,7 +8,7 @@ import Reveal from "./Reveal";
 const faqs = [
   {
     q: "Do you charge brokerage for property purchases?",
-    a: "No, EusRealty is an official MahaRERA registered strategic channel partner with Pune's top-tier developers. Our advisory, comparative market analysis, project reports, site visits, and legal transaction support are 100% free of charge to buyers. We receive marketing fee payouts directly from builders, ensuring you save lakhs in intermediate broker commissions."
+    a: "No, EusRealty is an official MahaRERA registered strategic strategic partner with Pune's top-tier developers. Our advisory, comparative market analysis, project reports, site visits, and legal transaction support are 100% free of charge to buyers. We receive marketing fee payouts directly from builders, ensuring you save lakhs in intermediate broker commissions."
   },
   {
     q: "What is 'Direct-Builder Pricing' and how does it benefit me?",

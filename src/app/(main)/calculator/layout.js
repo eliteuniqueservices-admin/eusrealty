@@ -23,7 +23,7 @@ const CALCULATOR_FAQS = [
   },
   {
     q: "What is a good ROI for property investment in Pune?",
-    a: "A good ROI for Pune real estate typically ranges between 10-15% annualized returns when combining rental income and capital appreciation. Premium locations like Baner, Wakad, Hinjawadi, and Balewadi have historically delivered 12-18% annualized returns for direct-builder purchases with zero brokerage through authorized channel partners like EUS Realty."
+    a: "A good ROI for Pune real estate typically ranges between 10-15% annualized returns when combining rental income and capital appreciation. Premium locations like Baner, Wakad, Hinjawadi, and Balewadi have historically delivered 12-18% annualized returns for direct-builder purchases with zero brokerage through authorized strategic partners like EUS Realty."
   },
   {
     q: "How much stamp duty do I pay on property in Maharashtra?",
@@ -146,57 +146,57 @@ export default function CalculatorLayout({ children }) {
           </div>
 
           {/* Cross-Link CTAs */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Link
               href="/home-loans"
-              className="group bg-slate-950 text-white p-6 rounded-2xl border border-slate-800 hover:border-amber-500/30 transition-all duration-300 hover:shadow-xl flex flex-col h-full"
+              className="group bg-slate-950 text-white p-6 rounded-2xl border border-slate-800 hover:border-amber-500/30 transition-all duration-300 hover:shadow-xl"
             >
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
                   <Home size={18} className="text-amber-400" />
                 </div>
                 <h3 className="font-black text-lg tracking-tight">Loan Eligibility</h3>
               </div>
-              <p className="text-slate-400 text-sm font-light mb-4 leading-relaxed flex-1">
+              <p className="text-slate-400 text-sm font-light mb-4 leading-relaxed">
                 Check your home loan eligibility instantly with our banking-grade engine. Get pre-approved in minutes.
               </p>
-              <span className="text-amber-400 text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
+              <span className="text-amber-400 text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all">
                 Check Eligibility <ArrowRight size={14} />
               </span>
             </Link>
 
             <Link
               href="/properties"
-              className="group bg-white text-slate-900 p-6 rounded-2xl border border-slate-200 hover:border-amber-500/30 transition-all duration-300 hover:shadow-xl flex flex-col h-full"
+              className="group bg-white text-slate-900 p-6 rounded-2xl border border-slate-200 hover:border-amber-500/30 transition-all duration-300 hover:shadow-xl"
             >
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center">
                   <TrendingUp size={18} className="text-slate-600" />
                 </div>
                 <h3 className="font-black text-lg tracking-tight">Browse Properties</h3>
               </div>
-              <p className="text-slate-500 text-sm font-light mb-4 leading-relaxed flex-1">
+              <p className="text-slate-500 text-sm font-light mb-4 leading-relaxed">
                 Explore verified builder-direct properties across Baner, Wakad, Balewadi, and all of West Pune.
               </p>
-              <span className="text-amber-600 text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
+              <span className="text-amber-600 text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all">
                 View Properties <ArrowRight size={14} />
               </span>
             </Link>
 
             <Link
               href="/blog"
-              className="group bg-white text-slate-900 p-6 rounded-2xl border border-slate-200 hover:border-amber-500/30 transition-all duration-300 hover:shadow-xl flex flex-col h-full"
+              className="group bg-white text-slate-900 p-6 rounded-2xl border border-slate-200 hover:border-amber-500/30 transition-all duration-300 hover:shadow-xl"
             >
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center">
                   <BookOpen size={18} className="text-slate-600" />
                 </div>
                 <h3 className="font-black text-lg tracking-tight">Investment Insights</h3>
               </div>
-              <p className="text-slate-500 text-sm font-light mb-4 leading-relaxed flex-1">
+              <p className="text-slate-500 text-sm font-light mb-4 leading-relaxed">
                 Read expert analysis on Pune market trends, locality comparisons, and buying strategies.
               </p>
-              <span className="text-amber-600 text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all mt-auto">
+              <span className="text-amber-600 text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all">
                 Read Articles <ArrowRight size={14} />
               </span>
             </Link>

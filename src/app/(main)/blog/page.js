@@ -36,7 +36,7 @@ const BLOG_FAQS = [
   },
   {
     q: "What is zero brokerage in real estate and how does it work?",
-    a: "Zero brokerage means the home buyer pays no commission or fees to the channel partner. In the traditional model, brokers charge 1-2% of property value (₹1-2 Lakhs per Crore). Authorized channel partners like EUS Realty earn their commission directly from the builder — not the buyer — making the purchase cost-neutral while providing professional advisory, site visits, loan assistance, and RERA documentation support."
+    a: "Zero brokerage means the home buyer pays no commission or fees to the strategic partner. In the traditional model, brokers charge 1-2% of property value (₹1-2 Lakhs per Crore). Authorized strategic partners like EUS Realty earn their commission directly from the builder — not the buyer — making the purchase cost-neutral while providing professional advisory, site visits, loan assistance, and RERA documentation support."
   },
   {
     q: "How do I verify if a property is RERA registered in Maharashtra?",
@@ -74,7 +74,7 @@ const MOCK_BLOGS = [
     title: "First-Time Home Buyer Guide: Saving Lakhs with Zero Brokerage",
     slug: "first-time-home-buyer-guide",
     summary: "Learn the secrets of purchasing property in Pune direct from the developer and avoiding costly broker fee marks-ups.",
-    content: "<p>Purchasing your first home is a landmark event. However, intermediate fees can add up. By utilizing direct builder channel partners...</p>",
+    content: "<p>Purchasing your first home is a landmark event. However, intermediate fees can add up. By utilizing direct builder strategic partners...</p>",
     category: "Buying Guides",
     tags: ["Zero Brokerage", "Home Loan", "First Time Buyer", "Pune Flats"],
     author: {
@@ -98,7 +98,12 @@ export default async function BlogPage() {
     await dbConnect();
     const blogData = await BlogPost.find({ status: "Published" }).sort({ createdAt: -1 }).lean();
     
-    blogs = JSON.parse(JSON.stringify(blogData));
+    blogs = blogData.map(post => ({
+      ...post,
+      _id: post._id.toString(),
+      createdAt: post.createdAt ? post.createdAt.toISOString() : null,
+      updatedAt: post.updatedAt ? post.updatedAt.toISOString() : null,
+    }));
   } catch (error) {
     console.warn("Blog posts database query failed. Falling back to MOCK_BLOGS.", error.message);
   }

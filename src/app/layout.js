@@ -72,7 +72,7 @@ export default function RootLayout({ children }) {
     "telephone": "+917620733613",
     "priceRange": "$$$$",
     "customIdentifier": "MahaRERA Agent Number: A041262501741",
-    "description": "EusRealty is a MahaRERA registered real estate channel partner (Registration No. A041262501741) advising on luxury properties and pre-launch deals in Pune with zero brokerage fee.",
+    "description": "EusRealty is a MahaRERA registered real estate strategic partner (Registration No. A041262501741) advising on luxury properties and pre-launch deals in Pune with zero brokerage fee.",
     "founder": [
       {
         "@type": "Person",
