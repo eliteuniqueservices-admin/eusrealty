@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { Phone, ShieldCheck, Instagram, Linkedin, Facebook, Youtube, X, ArrowUpRight, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import LogoAnimation from './LogoAnimation';
 
 // ─── Nav links config ──────────────────────────────────────────
 const NAV_LINKS = [
@@ -358,10 +359,152 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen]     = useState(false);
   const [scrolled, setScrolled]     = useState(false);
   const [hoveredIdx, setHoveredIdx] = useState(null);
+  const [animationActive, setAnimationActive] = useState(false);
+  const [animationTheme, setAnimationTheme] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const override = params.get('logo-anim');
+      if (override && ['snow', 'rain', 'confetti'].includes(override)) {
+        return override;
+      }
+    }
+
+    const month = new Date().getMonth();
+    // Winter: Nov, Dec, Jan, Feb
+    if ([10, 11, 0, 1].includes(month)) {
+      return 'snow';
+    }
+    // Rainy/Monsoon: Jun, Jul, Aug, Sep
+    else if ([5, 6, 7, 8].includes(month)) {
+      return 'rain';
+    }
+    // Default / Confetti: Mar, Apr, May, Oct
+    else {
+      return 'confetti';
+    }
+  });
+  const [showDemoPanel, setShowDemoPanel] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('demo') === 'true';
+    }
+    return false;
+  });
+  const [weatherText, setWeatherText] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('logo-anim')) {
+        return 'URL override active';
+      }
+    }
+    return 'Detecting...';
+  });
   const lastScrollY   = useRef(0);
   const scrolledRef   = useRef(false);
 
   const pathname = usePathname();
+
+  // Fetch real-time weather on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('logo-anim')) {
+        return;
+      }
+    }
+
+    const fetchWeather = async () => {
+      let lat = 18.5204; // Default to Pune coordinates
+      let lon = 73.8567;
+      let city = 'Pune';
+
+      // Step 1: Geolocate user silently by IP (no popup)
+      try {
+        const ipRes = await fetch('https://ipapi.co/json/');
+        if (ipRes.ok) {
+          const ipData = await ipRes.json();
+          if (ipData.latitude && ipData.longitude) {
+            lat = ipData.latitude;
+            lon = ipData.longitude;
+            city = ipData.city || 'Local';
+          }
+        }
+      } catch (ipErr) {
+        // Silent catch: adblockers commonly block IP APIs. Default to Pune.
+        console.debug('IP Geolocation blocked/failed, defaulting to Pune.', ipErr);
+      }
+
+      // Step 2: Query Open-Meteo for temperature and WMO weather code
+      try {
+        const weatherRes = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`
+        );
+        if (weatherRes.ok) {
+          const weatherData = await weatherRes.json();
+          const current = weatherData.current_weather;
+          if (current) {
+            const temp = current.temperature;
+            const code = current.weathercode;
+            
+            // Map WMO codes
+            const rainCodes = [51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99];
+            const snowCodes = [71, 73, 75, 77, 85, 86];
+
+            if (snowCodes.includes(code) || temp < 6) {
+              setAnimationTheme('snow');
+              setWeatherText(`Snowy (${temp}°C in ${city})`);
+            } else if (rainCodes.includes(code)) {
+              setAnimationTheme('rain');
+              setWeatherText(`Rainy (${temp}°C in ${city})`);
+            } else {
+              setAnimationTheme('confetti');
+              setWeatherText(`Sunny/Clear (${temp}°C in ${city})`);
+            }
+            return; // Successful fetch!
+          }
+        }
+        throw new Error('Weather API returned invalid response');
+      } catch (weatherErr) {
+        console.warn('Weather API failed, using seasonal fallback.', weatherErr);
+        // Fallback to month-based seasonal detection
+        const month = new Date().getMonth();
+        if ([10, 11, 0, 1].includes(month)) {
+          setAnimationTheme('snow');
+          setWeatherText('Winter Fallback');
+        } else if ([5, 6, 7, 8].includes(month)) {
+          setAnimationTheme('rain');
+          setWeatherText('Rainy Fallback');
+        } else {
+          setAnimationTheme('confetti');
+          setWeatherText('Sunny Fallback');
+        }
+      }
+    };
+
+    fetchWeather();
+  }, []);
+
+  const triggerAnimationDirectly = (theme) => {
+    setAnimationTheme(theme);
+    setAnimationActive(false);
+    setTimeout(() => {
+      setAnimationActive(true);
+    }, 50);
+  };
+
+  const handleLogoClick = () => {
+    if (typeof window !== 'undefined') {
+      const played = sessionStorage.getItem('eus_logo_anim_played');
+      if (!played) {
+        sessionStorage.setItem('eus_logo_anim_played', 'true');
+        setAnimationActive(true);
+        console.log(
+          '%c[EusRealty] Logo animation triggered! Theme: ' + animationTheme + ' (Weather: ' + weatherText + ').\nTo replay, run `sessionStorage.clear()` in your console or open a new session/tab.',
+          'color: #f59e0b; font-weight: bold; font-size: 11px;'
+        );
+      }
+    }
+  };
 
   // rAF-gated scroll listener — only re-renders when scrolled state actually flips
   useEffect(() => {
@@ -416,7 +559,7 @@ export default function Navbar() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 h-[60px] sm:h-16 flex items-center justify-between gap-4">
 
             {/* ── Logo ── */}
-            <Link href="/" className="flex items-center gap-2 sm:gap-2.5 group shrink-0">
+            <Link href="/" onClick={handleLogoClick} className="flex items-center gap-2 sm:gap-2.5 group shrink-0">
               <motion.div
                 className="relative w-8 h-8 sm:w-10 sm:h-10"
                 whileHover={{ scale: 1.06, rotate: -3 }}
@@ -503,6 +646,81 @@ export default function Navbar() {
           </div>
         </div>
       </header>
+      {animationActive && (
+        <LogoAnimation
+          theme={animationTheme}
+          onClose={() => setAnimationActive(false)}
+        />
+      )}
+
+      {showDemoPanel && (
+        <div className="fixed bottom-5 right-5 z-[10000] max-w-sm w-72 bg-white/85 backdrop-blur-md border border-slate-200 shadow-2xl rounded-2xl p-4 flex flex-col gap-3 transition-all duration-300">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <span className="text-amber-500 font-black text-[10px] uppercase tracking-wider">EusRealty</span>
+              <span className="text-[8px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Demo Controller</span>
+            </div>
+            <button
+              onClick={() => setShowDemoPanel(false)}
+              className="text-slate-400 hover:text-slate-600 transition-colors p-1"
+              title="Close demo panel"
+            >
+              <X size={14} />
+            </button>
+          </div>
+          
+          <div>
+            <h4 className="text-[12px] font-bold text-slate-800">Animation Style Selector</h4>
+            <p className="text-[9.5px] text-slate-500 leading-tight mt-0.5">
+              Trigger any full-viewport logo click animation style instantly.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-1.5 mt-0.5">
+            <button
+              onClick={() => triggerAnimationDirectly('rain')}
+              className="flex items-center justify-between px-3 py-2 text-[11px] font-bold rounded-xl bg-slate-50 hover:bg-amber-500 hover:text-white border border-slate-200 transition-all text-left group"
+            >
+              <span className="text-slate-700 group-hover:text-white">🌧️ Monsoon Rain</span>
+              <span className="text-[9px] text-slate-400 group-hover:text-amber-100 font-medium text-right">Streak Parallax + Splash Drops</span>
+            </button>
+            <button
+              onClick={() => triggerAnimationDirectly('snow')}
+              className="flex items-center justify-between px-3 py-2 text-[11px] font-bold rounded-xl bg-slate-50 hover:bg-amber-500 hover:text-white border border-slate-200 transition-all text-left group"
+            >
+              <span className="text-slate-700 group-hover:text-white">❄️ Winter Snow</span>
+              <span className="text-[9px] text-slate-400 group-hover:text-amber-100 font-medium text-right">Soft Fluffy Radial Glow</span>
+            </button>
+            <button
+              onClick={() => triggerAnimationDirectly('confetti')}
+              className="flex items-center justify-between px-3 py-2 text-[11px] font-bold rounded-xl bg-slate-50 hover:bg-amber-500 hover:text-white border border-slate-200 transition-all text-left group"
+            >
+              <span className="text-slate-700 group-hover:text-white">🎉 Spring/Summer Confetti</span>
+              <span className="text-[9px] text-slate-400 group-hover:text-amber-100 font-medium text-right">3D Tumbling + Twinkle Sparkle</span>
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-1 border-t border-slate-100 pt-2 mt-1">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    sessionStorage.removeItem('eus_logo_anim_played');
+                    alert('Session limit cleared! You can now test clicking the logo normally.');
+                  }
+                }}
+                className="text-[9px] font-black text-amber-500 hover:text-amber-600 transition-colors uppercase tracking-wider"
+              >
+                Clear Session Limit
+              </button>
+              <span className="text-[8.5px] text-slate-400 italic">Theme: <span className="font-semibold">{animationTheme}</span></span>
+            </div>
+            <div className="text-[8px] text-slate-400 italic text-right mt-0.5">
+              Live Weather: <span className="font-semibold text-slate-500">{weatherText}</span>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
