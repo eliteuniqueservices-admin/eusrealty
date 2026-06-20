@@ -937,10 +937,10 @@ export default function AboutClient() {
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="inline-flex items-center gap-2.5 px-4.5 py-2.5 bg-white/5 backdrop-blur-xl rounded-full text-xs md:text-sm font-bold border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.3)] mb-4"
+                className="inline-flex items-center gap-2.5 px-4.5 py-2.5 bg-white/5 backdrop-blur-xl rounded-full text-xs md:text-sm font-bold border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
               >
-                <Star size={14} className="fill-amber-400 text-amber-400" />
-                <span className="tracking-widest uppercase text-amber-500">Pune&apos;s Premier Real Estate Legacy</span>
+                <Star size={14} className="fill-amber-400 text-amber-400 m-3" />
+                <span className="tracking-widest uppercase text-amber-500 mr-2">Pune&apos;s Premier Real Estate Legacy</span>
               </motion.div>
 
               {/* Title */}
@@ -951,7 +951,7 @@ export default function AboutClient() {
                 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-white leading-[1.05] tracking-tight"
               >
                 A Legacy of <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600 ">
                   Absolute Trust.
                 </span>
               </motion.h1>

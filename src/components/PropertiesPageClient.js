@@ -3,6 +3,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import PropertyCard from '@/components/PropertyCard';
 import Reveal from '@/components/Reveal';
+import CustomDropdown from '@/components/ui/CustomDropdown';
 import {
   Search, SlidersHorizontal, LayoutGrid, List,
   MapPin, Home as HomeIcon, BedDouble, Wallet,
@@ -154,43 +155,33 @@ export default function PropertiesPageClient({ initialProperties, customTitle, c
             <div className="hidden lg:flex flex-wrap items-center gap-4 bg-white/80 backdrop-blur-xl border border-slate-200/80 p-4 rounded-3xl shadow-[0_20px_40px_-15px_rgba(15,23,42,0.05)]">
 
               {/* Filter: Location */}
-              <div className="flex-1 min-w-[200px] relative">
-                <MapPin size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <select
-                  className="w-full pl-12 pr-10 py-4 bg-slate-50 hover:bg-slate-100 border border-transparent hover:border-slate-200 rounded-2xl outline-none appearance-none cursor-pointer font-medium text-slate-700 transition-all focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 tracking-wide"
-                  value={filters.location}
-                  onChange={(e) => updateFilter('location', e.target.value)}
-                >
-                  {locations.map(loc => <option key={loc} value={loc}>{loc === "All" ? "All West Pune Locations" : loc}</option>)}
-                </select>
-                <ChevronDown size={16} className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-              </div>
+              <CustomDropdown
+                value={filters.location}
+                onChange={(val) => updateFilter('location', val)}
+                options={locations}
+                icon={MapPin}
+                className="flex-1 min-w-[200px]"
+                displayValueMap={{ All: "All West Pune Locations" }}
+              />
 
               {/* Filter: Property Type */}
-              <div className="flex-1 min-w-[180px] relative">
-                <HomeIcon size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <select
-                  className="w-full pl-12 pr-10 py-4 bg-slate-50 hover:bg-slate-100 border border-transparent hover:border-slate-200 rounded-2xl outline-none appearance-none cursor-pointer font-medium text-slate-700 transition-all focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 tracking-wide"
-                  value={filters.type}
-                  onChange={(e) => updateFilter('type', e.target.value)}
-                >
-                  {propertyTypes.map(type => <option key={type} value={type}>{type === "All" ? "Property Type" : type}</option>)}
-                </select>
-                <ChevronDown size={16} className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-              </div>
+              <CustomDropdown
+                value={filters.type}
+                onChange={(val) => updateFilter('type', val)}
+                options={propertyTypes}
+                icon={HomeIcon}
+                className="flex-1 min-w-[180px]"
+                displayValueMap={{ All: "Property Type" }}
+              />
 
               {/* Filter: Price Range */}
-              <div className="flex-1 min-w-[180px] relative">
-                <Wallet size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <select
-                  className="w-full pl-12 pr-10 py-4 bg-slate-50 hover:bg-slate-100 border border-transparent hover:border-slate-200 rounded-2xl outline-none appearance-none cursor-pointer font-medium text-slate-700 transition-all focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 tracking-wide"
-                  value={filters.priceRange}
-                  onChange={(e) => updateFilter('priceRange', e.target.value)}
-                >
-                  {priceRanges.map(range => <option key={range.label} value={range.label}>{range.label}</option>)}
-                </select>
-                <ChevronDown size={16} className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-              </div>
+              <CustomDropdown
+                value={filters.priceRange}
+                onChange={(val) => updateFilter('priceRange', val)}
+                options={priceRanges.map(range => range.label)}
+                icon={Wallet}
+                className="flex-1 min-w-[180px]"
+              />
 
               {/* Vertical Divider */}
               <div className="w-[1px] h-10 bg-slate-200 mx-2 hidden xl:block"></div>
@@ -241,7 +232,7 @@ export default function PropertiesPageClient({ initialProperties, customTitle, c
         <div className={`xl:w-64 flex-shrink-0 ${isMobileFilterOpen ? "block" : "hidden xl:block"}`}>
           <div className="bg-white p-6 md:p-8 rounded-[2rem] border border-slate-200/60 shadow-[0_20px_40px_-15px_rgba(15,23,42,0.05)] sticky top-24">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="font-black text-slate-900 text-xl tracking-tight">Status</h3>
+              <h3 className="font-black text-slate-900 text-xl tracking-tight">Filters</h3>
               {(activeFilterCount > 0 || searchQuery !== "") && (
                 <button onClick={clearFilters} className="text-sm font-bold text-slate-500 hover:text-amber-600 transition-colors">
                   Reset All
@@ -249,24 +240,82 @@ export default function PropertiesPageClient({ initialProperties, customTitle, c
               )}
             </div>
 
-            <div className="space-y-3">
-              {statusOptions.filter(s => s !== "All").map((status) => (
-                <label key={status} className="flex items-center gap-3 p-3.5 rounded-xl border border-slate-100 hover:border-amber-200 hover:bg-amber-50/30 cursor-pointer transition-all group">
-                  <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${filters.status === status ? "bg-slate-950 border-slate-950" : "border-slate-300 group-hover:border-amber-400"}`}>
-                    {filters.status === status && <div className="w-2.5 h-2.5 bg-amber-400 rounded-sm" />}
-                  </div>
-                  <input
-                    type="radio"
-                    name="status"
-                    className="hidden"
-                    checked={filters.status === status}
-                    onChange={() => updateFilter('status', filters.status === status ? "All" : status)}
-                  />
-                  <span className={`text-sm tracking-wide ${filters.status === status ? "text-slate-950 font-bold" : "text-slate-600 font-medium"}`}>
-                    {status}
-                  </span>
-                </label>
-              ))}
+            {/* Mobile-only Top Filters (Location, Type, Budget, BHK) in the Sidebar */}
+            <div className="lg:hidden space-y-6 mb-8 pb-8 border-b border-slate-100">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-500 uppercase tracking-wider block">Location</label>
+                <CustomDropdown
+                  value={filters.location}
+                  onChange={(val) => updateFilter('location', val)}
+                  options={locations}
+                  icon={MapPin}
+                  displayValueMap={{ All: "All West Pune Locations" }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-500 uppercase tracking-wider block">Property Type</label>
+                <CustomDropdown
+                  value={filters.type}
+                  onChange={(val) => updateFilter('type', val)}
+                  options={propertyTypes}
+                  icon={HomeIcon}
+                  displayValueMap={{ All: "Property Type" }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-500 uppercase tracking-wider block">Budget</label>
+                <CustomDropdown
+                  value={filters.priceRange}
+                  onChange={(val) => updateFilter('priceRange', val)}
+                  options={priceRanges.map(r => r.label)}
+                  icon={Wallet}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-500 uppercase tracking-wider block">Configuration</label>
+                <div className="flex flex-wrap gap-1.5 bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
+                  {bhkOptions.map(bhk => (
+                    <button
+                      key={bhk}
+                      onClick={() => updateFilter('bhk', bhk)}
+                      className={`flex-1 min-w-[60px] text-center py-2.5 rounded-xl text-xs font-bold transition-all duration-300 ${
+                        filters.bhk === bhk
+                          ? "bg-slate-950 text-amber-400 shadow-md border border-slate-950 tracking-wide"
+                          : "text-slate-500 hover:bg-slate-200/50 hover:text-slate-900 border border-transparent tracking-wide"
+                      }`}
+                    >
+                      {bhk === "All" ? "Any" : `${bhk} BHK`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Status Filter */}
+            <div>
+              <h3 className="font-black text-slate-900 text-lg mb-4 tracking-tight">Status</h3>
+              <div className="space-y-3">
+                {statusOptions.filter(s => s !== "All").map((status) => (
+                  <label key={status} className="flex items-center gap-3 p-3.5 rounded-xl border border-slate-100 hover:border-amber-200 hover:bg-amber-50/30 cursor-pointer transition-all group">
+                    <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${filters.status === status ? "bg-slate-950 border-slate-950" : "border-slate-300 group-hover:border-amber-400"}`}>
+                      {filters.status === status && <div className="w-2.5 h-2.5 bg-amber-400 rounded-sm" />}
+                    </div>
+                    <input
+                      type="radio"
+                      name="status"
+                      className="hidden"
+                      checked={filters.status === status}
+                      onChange={() => updateFilter('status', filters.status === status ? "All" : status)}
+                    />
+                    <span className={`text-sm tracking-wide ${filters.status === status ? "text-slate-950 font-bold" : "text-slate-600 font-medium"}`}>
+                      {status}
+                    </span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             {/* Possession Filter */}

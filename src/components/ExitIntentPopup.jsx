@@ -12,6 +12,11 @@ export default function ExitIntentPopup() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isFilled = localStorage.getItem('eus_exit_popup_filled');
+      if (isFilled === 'true') return;
+    }
+
     let lastActivity = Date.now();
 
     const updateActivity = () => {
@@ -80,6 +85,9 @@ export default function ExitIntentPopup() {
 
       await Promise.all(requests);
       setSubmitted(true);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('eus_exit_popup_filled', 'true');
+      }
     } catch (err) {
       console.error(err);
       setError("Something went wrong. Please try again.");

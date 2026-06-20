@@ -411,6 +411,21 @@ export default function Navbar() {
       if (params.get('logo-anim')) {
         return;
       }
+
+      // Check session cache first
+      try {
+        const cached = sessionStorage.getItem('eus_weather_data');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && parsed.theme && parsed.text) {
+            setAnimationTheme(parsed.theme);
+            setWeatherText(parsed.text);
+            return;
+          }
+        }
+      } catch (cacheErr) {
+        console.debug('Failed to read weather cache from sessionStorage', cacheErr);
+      }
     }
 
     const fetchWeather = async () => {
@@ -450,34 +465,52 @@ export default function Navbar() {
             const rainCodes = [51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99];
             const snowCodes = [71, 73, 75, 77, 85, 86];
 
+            let theme = 'confetti';
+            let text = `Sunny/Clear (${temp}°C in ${city})`;
+
             if (snowCodes.includes(code) || temp < 6) {
-              setAnimationTheme('snow');
-              setWeatherText(`Snowy (${temp}°C in ${city})`);
+              theme = 'snow';
+              text = `Snowy (${temp}°C in ${city})`;
             } else if (rainCodes.includes(code)) {
-              setAnimationTheme('rain');
-              setWeatherText(`Rainy (${temp}°C in ${city})`);
-            } else {
-              setAnimationTheme('confetti');
-              setWeatherText(`Sunny/Clear (${temp}°C in ${city})`);
+              theme = 'rain';
+              text = `Rainy (${temp}°C in ${city})`;
             }
+
+            setAnimationTheme(theme);
+            setWeatherText(text);
+
+            // Cache result in sessionStorage
+            try {
+              sessionStorage.setItem('eus_weather_data', JSON.stringify({ theme, text }));
+            } catch (sErr) {}
             return; // Successful fetch!
           }
         }
         throw new Error('Weather API returned invalid response');
       } catch (weatherErr) {
-        console.warn('Weather API failed, using seasonal fallback.', weatherErr);
+        // Silent fallback: print a clean console message instead of a loud warning with stack trace
+        console.log('Weather API offline/blocked. Using seasonal fallback.');
+        
         // Fallback to month-based seasonal detection
         const month = new Date().getMonth();
+        let theme = 'confetti';
+        let text = 'Sunny Fallback';
+
         if ([10, 11, 0, 1].includes(month)) {
-          setAnimationTheme('snow');
-          setWeatherText('Winter Fallback');
+          theme = 'snow';
+          text = 'Winter Fallback';
         } else if ([5, 6, 7, 8].includes(month)) {
-          setAnimationTheme('rain');
-          setWeatherText('Rainy Fallback');
-        } else {
-          setAnimationTheme('confetti');
-          setWeatherText('Sunny Fallback');
+          theme = 'rain';
+          text = 'Rainy Fallback';
         }
+
+        setAnimationTheme(theme);
+        setWeatherText(text);
+
+        // Cache the fallback so we don't spam requests in this session
+        try {
+          sessionStorage.setItem('eus_weather_data', JSON.stringify({ theme, text }));
+        } catch (sErr) {}
       }
     };
 
