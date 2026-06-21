@@ -1,0 +1,40 @@
+# EUS Realty (`https://eusrealty.co.in`)
+
+EUS Realty is a premium luxury real estate strategic partner and advisory agency based in Pune, Maharashtra, India. It provides verified builder-direct properties with zero brokerage fees.
+
+## Core Value Proposition
+- **0% Commission/Brokerage**: Free advisory, comparison audits, site visits, and legal registration support for property buyers.
+- **Direct-Builder Pricing**: Connects buyers directly to senior sales desks of Tier-1 builders to secure pre-launch inventory, discounts, and flexible payment plans.
+- **100% RERA Verified**: All listed projects undergo comprehensive legal validation and carry verified MahaRERA license numbers. EUS Realty MahaRERA Agent License: A041262501741.
+
+## Major Localities Covered (West Pune Corridor)
+1. **Baner**: Elite lifestyle and retail high-street. Average Price Range: ₹8,500 - ₹12,500/sqft. YoY Growth: +8.4%.
+2. **Wakad**: Rapidly expanding residential hub near Phoenix Mall. Average Price Range: ₹7,000 - ₹9,500/sqft. YoY Growth: +7.9%.
+3. **Hinjewadi**: Pune's main global IT Park corridor. Average Price Range: ₹6,800 - ₹8,800/sqft. YoY Growth: +9.1%.
+4. **Tathawade**: Premium educational center along Expressway. Average Price Range: ₹6,500 - ₹8,500/sqft. YoY Growth: +8.1%.
+5. **Aundh**: Upscale heritage residential neighborhood. Average Price Range: ₹10,500 - ₹14,500/sqft. YoY Growth: +6.8%.
+6. **Balewadi**: Sports enclave and high-street shopping zone. Average Price Range: ₹9,000 - ₹13,000/sqft. YoY Growth: +8.7%.
+7. **Pimpri**: Metro-connected manufacturing and retail zone. Average Price Range: ₹6,000 - ₹8,300/sqft. YoY Growth: +6.9%.
+8. **Chinchwad**: Green, quiet, family-oriented sub-city corridor. Average Price Range: ₹6,200 - ₹8,700/sqft. YoY Growth: +7.2%.
+
+## Interactive Real Estate Research Tools
+- **EMI Loan Calculator**: `/calculator/emi`
+- **Affordability Estimator**: `/calculator/affordability`
+- **Loan Eligibility Checker**: `/calculator/eligibility`
+- **Rent vs Buy Valuation**: `/calculator/rent-value`
+- **Property Valuation Index**: `/calculator/valuation`
+- **Area Unit Converters**: (e.g. `/calculator/square-meter-to-square-feet`, `/calculator/guntha-to-square-feet`, `/calculator/bigha-to-acre`)
+
+## Investment Comparison Hubs
+Users and AI agents can compare macro-corridors side-by-side:
+- **Baner vs Wakad**: `/compare/baner-vs-wakad-property-investment`
+- **Hinjawadi vs Tathawade**: `/compare/hinjawadi-vs-tathawade-property-investment`
+- **Balewadi vs Wakad**: `/compare/balewadi-vs-wakad-property-investment`
+- **Pune Real Estate Hub**: `/pune-real-estate`
+
+## Primary Luxury Projects in Portfolio
+- **Lara Solitaire (Baner)**: Premium 4 BHK configuration, ₹4.2 Cr, carpet 2100 sqft, high-street luxury.
+- **Omega Retreat Phase 2 (Wakad)**: Premium 3 BHK configuration, ₹2.5 Cr, carpet 1450 sqft.
+- **Skyline Villas (Koregaon Park / Balewadi)**: Exclusive 5 BHK configuration, ₹8.9 Cr, carpet 4500 sqft.
+
+For brochures, pricing sheets, or direct builder introductions, submit a request via `/contact` or call/WhatsApp EUS Sales Desk at +91 76207 33613.

@@ -670,6 +670,7 @@ export default function ManageProjects() {
                         <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center gap-6">
                             <div className="w-40 h-28 bg-white border border-slate-200 rounded-xl overflow-hidden flex items-center justify-center relative flex-shrink-0 shadow-inner">
                                 {formData.images?.[0] ? (
+                                    /* eslint-disable-next-line @next/next/no-img-element */
                                     <img src={formData.images[0]} alt="Preview" className="w-full h-full object-cover" />
                                 ) : (
                                     <span className="text-xs text-slate-400 font-medium">No image uploaded</span>
@@ -750,6 +751,7 @@ export default function ManageProjects() {
 
                 {selectedProject.images?.[0] && (
                     <div className="w-full h-64 rounded-2xl overflow-hidden mb-6 bg-slate-100 shadow-sm border border-slate-200">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={selectedProject.images[0]} alt={selectedProject.name} className="w-full h-full object-cover" />
                     </div>
                 )}

@@ -19,14 +19,16 @@ import {
   Eye,
   Heart,
   Shield,
-  Zap,
+  Share2,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
+import { slugify } from "@/lib/propertyUrls";
 
 const MotionLink = motion.create(Link);
 
 /* ─────────────────────────────────────────────────────────────
-   ANIMATED NUMBER COUNTER  (counts up from 0 to value on mount)
+   ANIMATED NUMBER COUNTER (counts up from 0 to value on mount)
 ───────────────────────────────────────────────────────────── */
 function AnimatedCounter({ value, duration = 1.4, suffix = "" }) {
   const [display, setDisplay] = useState(0);
@@ -57,17 +59,6 @@ function AnimatedCounter({ value, duration = 1.4, suffix = "" }) {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────
-   MODULE-LEVEL PARTICLE SEED DATA
-
-   Math.random() is called here — at module evaluation time — not inside
-   any component or hook. This is the only approach that fully satisfies
-   the react-hooks/purity ESLint rule, which forbids impure calls anywhere
-   within a component function body (including useMemo callbacks).
-
-   Values are computed once when the JS bundle is first parsed and are
-   then reused as immutable constants for the lifetime of the session.
-───────────────────────────────────────────────────────────── */
 const PARTICLE_SEEDS = Object.freeze(
   Array.from({ length: 12 }, (_, i) => ({
     id: i,
@@ -79,7 +70,7 @@ const PARTICLE_SEEDS = Object.freeze(
 );
 
 /* ─────────────────────────────────────────────────────────────
-   FLOATING PARTICLES   (gold sparkle dots that drift upward)
+   FLOATING PARTICLES (gold sparkle dots that drift upward)
 ───────────────────────────────────────────────────────────── */
 function Particles({ active }) {
   return (
@@ -128,12 +119,21 @@ export default function PropertyCard({
   id,
   type,
   status,
+  rera,
+  possession,
+  updatedAt,
+  developer,
+  sqFtRate,
 }) {
   const displayBeds = beds || bhk;
   const cardRef = useRef(null);
   const [hovered, setHovered] = useState(false);
   const [liked, setLiked] = useState(false);
   const [particles, setParticles] = useState(false);
+
+  const isMongoId = id && /^[a-f\d]{24}$/i.test(id);
+  const slug = isMongoId ? slugify(`${title} ${location} pune`) : id;
+  const cardLink = `/properties/${slug}`;
 
   /* ── 3-D Magnetic Tilt via Framer Motion Values ── */
   const rawX = useMotionValue(0);
@@ -194,7 +194,7 @@ export default function PropertyCard({
         }}
       />
 
-      {/* ── CARD WRAPPER  (3D tilt host) ── */}
+      {/* ── CARD WRAPPER (3D tilt host) ── */}
       <motion.div
         ref={cardRef}
         style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
@@ -205,7 +205,6 @@ export default function PropertyCard({
         whileHover={{ boxShadow: "0 40px 80px -20px rgba(15,23,42,0.2), 0 0 0 1px rgba(251,191,36,0.2)" }}
         transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
       >
-
         {/* ── SPECULAR SHINE LAYER ── */}
         <motion.div
           style={{
@@ -225,17 +224,22 @@ export default function PropertyCard({
         ════════════════════════════════════════ */}
         <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-slate-100 flex-shrink-0">
           {/* Property image with parallax-zoom */}
-          <motion.img
-            src={
-              image ||
-              "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80"
-            }
-            alt={title}
-            loading="lazy"
+          <motion.div
             animate={hovered ? { scale: 1.1 } : { scale: 1 }}
             transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full h-full object-cover"
-          />
+            className="w-full h-full relative"
+          >
+            <Image
+              src={
+                image ||
+                "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80"
+              }
+              alt={title}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              className="object-cover"
+            />
+          </motion.div>
 
           {/* Gradient overlay */}
           <motion.div
@@ -297,24 +301,36 @@ export default function PropertyCard({
             </motion.div>
           )}
 
-          {/* ── LIKE BUTTON (top-right) ── */}
-          <div className="absolute top-4 right-4 relative">
-            <motion.button
-              whileTap={{ scale: 0.8 }}
-              onClick={handleLike}
-              className="w-9 h-9 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center shadow-lg"
+          {/* ── LIKE & SHARE BUTTONS (top-right) ── */}
+          <div className="absolute top-4 right-4 z-20 flex gap-2">
+            <a 
+              href={`https://wa.me/917620733613?text=${encodeURIComponent(`Hi! I'm interested in: ${title} in ${location}. Please share the floor plan and brochure. Link: https://eusrealty.co.in/properties/${slug || id}`)}`}
+              target="_blank" rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="w-9 h-9 bg-white/20 hover:bg-white/30 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center shadow-lg text-white transition-all animate-pulse"
+              title="Share via WhatsApp"
             >
-              <Heart
-                size={16}
-                className={liked ? "fill-red-500 text-red-500" : "text-white"}
-                style={{ transition: "all 0.3s" }}
-              />
-            </motion.button>
-            {/* Particles burst from like button */}
-            <Particles active={particles} />
+              <Share2 size={14} className="text-white" />
+            </a>
+            
+            <div className="relative">
+              <motion.button
+                whileTap={{ scale: 0.8 }}
+                onClick={handleLike}
+                className="w-9 h-9 bg-white/20 hover:bg-white/30 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center shadow-lg"
+              >
+                <Heart
+                  size={16}
+                  className={liked ? "fill-red-500 text-red-500" : "text-white"}
+                  style={{ transition: "all 0.3s" }}
+                />
+              </motion.button>
+              {/* Particles burst from like button */}
+              <Particles active={particles} />
+            </div>
           </div>
 
-          {/* ── QUICK-STATS STRIP  (slides up on hover) ── */}
+          {/* ── QUICK-STATS STRIP (slides up on hover) ── */}
           <motion.div
             initial={{ y: 80, opacity: 0 }}
             animate={hovered ? { y: 0, opacity: 1 } : { y: 80, opacity: 0 }}
@@ -342,7 +358,6 @@ export default function PropertyCard({
             CONTENT AREA
         ════════════════════════════════════════ */}
         <div className="px-6 sm:px-7 pt-6 pb-7 flex flex-col flex-1 relative">
-
           {/* Subtle inner grid texture */}
           <div
             className="absolute inset-0 opacity-[0.015] pointer-events-none"
@@ -357,14 +372,14 @@ export default function PropertyCard({
           <motion.div
             animate={hovered ? { x: 4 } : { x: 0 }}
             transition={{ duration: 0.3 }}
-            className="flex items-center gap-1.5 text-slate-500 mb-2.5 font-medium"
+            className="flex items-center gap-1.5 text-slate-500 mb-2 font-medium"
           >
             <MapPin size={13} className="text-amber-500 shrink-0" />
             <span className="text-xs tracking-wide truncate">{location}</span>
           </motion.div>
 
           {/* ── TITLE ── */}
-          <h3 className="text-xl font-black text-slate-900 mb-5 leading-tight tracking-tight relative z-10">
+          <h3 className="text-xl font-black text-slate-900 mb-2 leading-tight tracking-tight relative z-10">
             <motion.span
               animate={hovered ? { color: "#d97706" } : { color: "#0f172a" }}
               transition={{ duration: 0.3 }}
@@ -374,26 +389,36 @@ export default function PropertyCard({
             </motion.span>
           </h3>
 
-          {/* ── SPECS GRID (animated counters) ── */}
-          <div className="grid grid-cols-3 gap-2 py-4 border-y border-slate-100 mb-5 relative z-10">
+          {/* Developer & RERA banner */}
+          <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-4 relative z-10">
+            <span className="truncate max-w-[140px] text-slate-700 font-extrabold">{developer || "Premium Builder"}</span>
+            <a
+              href="https://maharerait.mahaonline.gov.in/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-emerald-600 font-black hover:underline hover:text-emerald-700 transition-colors"
+            >
+              {rera ? `RERA: ${rera}` : "RERA Verified"}
+            </a>
+          </div>
+
+          {/* ── SPECS GRID ── */}
+          <div className="grid grid-cols-3 gap-2 py-4 border-y border-slate-100 mb-4 relative z-10">
             {[
               {
                 icon: <BedDouble size={17} />,
                 value: displayBeds,
                 label: "BHK",
-                raw: displayBeds,
               },
               {
                 icon: <Bath size={17} />,
                 value: baths,
                 label: "Bath",
-                raw: baths,
               },
               {
                 icon: <Maximize size={17} />,
                 value: area,
                 label: "sq.ft",
-                raw: area,
               },
             ].map((spec, i) => (
               <motion.div
@@ -420,6 +445,12 @@ export default function PropertyCard({
             ))}
           </div>
 
+          {/* Timeline and Updated date */}
+          <div className="flex justify-between items-center text-[10px] font-semibold text-slate-400 mb-5 relative z-10">
+            <span>Possession: <strong className="text-slate-700 font-black">{possession || "Immediate"}</strong></span>
+            <span>Updated: <strong className="text-slate-700 font-black">{updatedAt || "Jun 20, 2026"}</strong></span>
+          </div>
+
           {/* ── PRICE + CTA ROW ── */}
           <div className="flex items-end justify-between mt-auto relative z-10">
             <div>
@@ -439,11 +470,16 @@ export default function PropertyCard({
                   ₹{price}
                 </motion.span>
               </motion.p>
+              {sqFtRate && sqFtRate !== "On Request" && (
+                <p className="text-[10px] font-bold text-amber-600 mt-1">
+                  {sqFtRate}
+                </p>
+              )}
             </div>
 
             {/* ── MAGNETIC CTA BUTTON ── */}
             <MotionLink
-              href={`/properties/${id}`}
+              href={cardLink}
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.95 }}
               onClick={(e) => e.stopPropagation()}
@@ -471,8 +507,6 @@ export default function PropertyCard({
               </motion.span>
             </MotionLink>
           </div>
-
-          {/* Drawer removed in favor of dedicated property page */}
         </div>
       </motion.div>
     </div>

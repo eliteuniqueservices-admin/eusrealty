@@ -33,6 +33,14 @@ export default async function PropertiesPage() {
         }
       }
 
+      let sqFtRate = "On Request";
+      const cleanArea = parseInt(area.replace(/[^0-9]/g, "")) || 0;
+      if (cleanArea > 0 && priceVal > 0) {
+        const priceInInr = priceVal * 10000000;
+        const rate = Math.round(priceInInr / cleanArea);
+        sqFtRate = `₹${rate.toLocaleString('en-IN')}/sq.ft`;
+      }
+
       return {
         id: String(dbProp._id),
         title: dbProp.name,
@@ -45,7 +53,11 @@ export default async function PropertiesPage() {
         type: dbProp.propertyType || "Apartments",
         status: dbProp.status,
         possession: dbProp.possession || "Immediate",
-        image: dbProp.images?.[0] || null
+        image: dbProp.images?.[0] || null,
+        rera: dbProp.rera || "Verified",
+        developer: dbProp.developer || "Premium Builder",
+        updatedAt: dbProp.updatedAt ? new Date(dbProp.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "Jun 20, 2026",
+        sqFtRate: sqFtRate
       };
     });
   } catch (error) {

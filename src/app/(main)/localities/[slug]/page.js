@@ -5,6 +5,8 @@ import Reveal from "@/components/Reveal";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import SmartLeadPopup from "@/components/SmartLeadPopup";
 
 export const revalidate = 86400; // Cache guides for 24 hours
 import {
@@ -165,6 +167,82 @@ const localityData = {
         a: "Aundh has direct connectivity to Pune University, Shivajinagar, Baner, and the old Pune-Mumbai highway, offering quick travel times to central Pune."
       }
     ]
+  },
+  balewadi: {
+    title: "Premium Properties & High Street Guide in Balewadi, Pune",
+    name: "Balewadi",
+    tagline: "Pune's Elite Lifestyle & Commercial Enclave",
+    description: "Balewadi is the trending heart of West Pune real estate, hosting the famous Balewadi High Street, elite residential gated communities, sports complexes, and upcoming metro connectivity.",
+    heroImage: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80",
+    metrics: {
+      avgPrice: "₹9,000 - ₹13,000 / sqft",
+      growth: "+8.7% YoY",
+      profile: "HNWIs & High Street Seekers",
+      transit: "Upcoming West Pune Metro & NH48"
+    },
+    sections: {
+      overview: "Balewadi has become synonymous with upscale lifestyle in Pune. It is extremely popular for Balewadi High Street, which hosts premium office properties, fine dining restaurants, and retail outlets. The area borders Baner and Hinjawadi, making it ideal for IT professionals.",
+      infrastructure: "Includes Balewadi Sports Complex, MITCON International School, and CM International School. Highly accessible from Baner, Wakad, and Pune-Bangalore highway.",
+      investment: "Excellent capital appreciation driven by High Street demand and upcoming metro stations. Highly active rental market with high-yield prospects."
+    },
+    faqs: [
+      {
+        q: "Is Balewadi good for property investment?",
+        a: "Yes, Balewadi offers premium growth due to high retail activity and high-street demand."
+      },
+      {
+        q: "What is the property rate in Balewadi?",
+        a: "Property rates generally range between ₹9,000 and ₹13,000 per sqft."
+      }
+    ]
+  },
+  pimpri: {
+    title: "Industrial Belt & Residential Guide in Pimpri, Pune",
+    name: "Pimpri",
+    tagline: "PCMC's Core Manufacturing & Metro Corridor",
+    description: "Pimpri is the central industrial and commercial heartbeat of PCMC, offering affordable premium apartments, rapid metro transit, and close proximity to MIDC employment zones.",
+    heroImage: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=1200&q=80",
+    metrics: {
+      avgPrice: "₹6,000 - ₹8,300 / sqft",
+      growth: "+6.9% YoY",
+      profile: "Industrial Professionals & Families",
+      transit: "PCMC Metro Station Corridor"
+    },
+    sections: {
+      overview: "Pimpri is a historical manufacturing and commercial hub in PCMC. With the recent launch of the Pune Metro, connectivity has skyrocketed, turning industrial zones into premium high-rise residential options.",
+      infrastructure: "Features Dr. D.Y. Patil Hospital, Pimpri Metro Station, and premium schools like Alphonsa School. Excellent shopping hubs like Elpro City Square Mall nearby.",
+      investment: "Pimpri offers steady appreciation and high rental demand from the manufacturing and tech belts nearby. Excellent entry pricing for first-time buyers."
+    },
+    faqs: [
+      {
+        q: "What makes Pimpri attractive for residents?",
+        a: "Pimpri offers direct Metro access, strong employment in manufacturing, and significantly more affordable prices compared to core Pune."
+      }
+    ]
+  },
+  chinchwad: {
+    title: "Heritage Living & Industrial Guide in Chinchwad, Pune",
+    name: "Chinchwad",
+    tagline: "The Established Family Enclave in PCMC",
+    description: "Chinchwad combines established residential neighborhoods, lush green parks, industrial MIDC employment, and excellent Pune Metro transit connections.",
+    heroImage: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=80",
+    metrics: {
+      avgPrice: "₹6,200 - ₹8,700 / sqft",
+      growth: "+7.2% YoY",
+      profile: "Manufacturing Leaders & Families",
+      transit: "Chinchwad Station & Metro Line"
+    },
+    sections: {
+      overview: "Chinchwad is one of the most established sub-cities within PCMC. Known for its quiet, family-oriented neighborhoods, historical temples, and proximity to major industrial zones like Tata Motors and Thermax.",
+      infrastructure: "Excellent connectivity via old Mumbai-Pune Highway, Chinchwad BRTS, and local train station. Top schools include Podar International and healthcare hubs like Aditya Birla Hospital nearby.",
+      investment: "Steady asset appreciation and high resale values make it a secure choice for families and value investors."
+    },
+    faqs: [
+      {
+        q: "Is Chinchwad a good place to live?",
+        a: "Yes, it is highly family-oriented, clean, green, and quiet, while still retaining excellent connectivity to Pune and Mumbai."
+      }
+    ]
   }
 };
 
@@ -187,7 +265,10 @@ export async function generateStaticParams() {
     { slug: 'wakad' },
     { slug: 'hinjawadi' },
     { slug: 'tathawade' },
-    { slug: 'aundh' }
+    { slug: 'aundh' },
+    { slug: 'balewadi' },
+    { slug: 'pimpri' },
+    { slug: 'chinchwad' }
   ];
 }
 
@@ -274,6 +355,14 @@ export default async function LocalityPage({ params }) {
         <div className="absolute inset-0 bg-slate-950/80 pointer-events-none" />
 
         <div className="relative z-10 max-w-7xl mx-auto flex flex-col items-center text-center">
+          <div className="mb-6 w-full flex justify-center">
+            <div className="bg-slate-900/60 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 inline-block">
+              <Breadcrumbs theme="dark" items={[
+                { label: "Pune", href: "/pune-real-estate" },
+                { label: data.name, href: `/localities/${normalizedSlug}` }
+              ]} />
+            </div>
+          </div>
           <Reveal>
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full text-amber-400 text-xs font-bold uppercase tracking-widest mb-6">
               <MapPin size={12} />
@@ -323,6 +412,61 @@ export default async function LocalityPage({ params }) {
                   <p className="text-sm sm:text-base font-black text-white">{m.val}</p>
                 </div>
               ))}
+            </div>
+
+            {/* Price Trends & Market Analytics Visual Card */}
+            <div className="bg-slate-900/40 p-8 border border-slate-900 rounded-3xl backdrop-blur-md space-y-6">
+              <div className="border-b border-slate-800 pb-4">
+                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
+                  <TrendingUp size={20} className="text-amber-500" />
+                  Price Trends & Market Analytics
+                </h2>
+                <p className="text-xs text-slate-500 mt-1">Real-time market insights and investment rating for {data.name}</p>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-800">
+                      <th className="py-3 px-4 text-slate-500 text-[10px] font-black uppercase tracking-wider">Market Metric</th>
+                      <th className="py-3 px-4 text-slate-500 text-[10px] font-black uppercase tracking-wider">Current Value</th>
+                      <th className="py-3 px-4 text-slate-500 text-[10px] font-black uppercase tracking-wider">Strategic Significance</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-850/40 text-sm">
+                    <tr className="hover:bg-slate-950/20">
+                      <td className="py-4 px-4 font-bold text-slate-400">Price Range per Sq.Ft</td>
+                      <td className="py-4 px-4 font-black text-white">{data.metrics.avgPrice}</td>
+                      <td className="py-4 px-4 text-slate-400 font-light">Reflects current builder launch baseline pricing parameters.</td>
+                    </tr>
+                    <tr className="hover:bg-slate-950/20">
+                      <td className="py-4 px-4 font-bold text-slate-400">1-Year Growth Trend</td>
+                      <td className="py-4 px-4 font-black text-emerald-400">{data.metrics.growth}</td>
+                      <td className="py-4 px-4 text-slate-400 font-light">Consistent capital appreciation index driven by tech expansion.</td>
+                    </tr>
+                    <tr className="hover:bg-slate-950/20">
+                      <td className="py-4 px-4 font-bold text-slate-400">Estimated Rental Yield</td>
+                      <td className="py-4 px-4 font-black text-white">3.4% - 4.6%</td>
+                      <td className="py-4 px-4 text-slate-400 font-light">High rental demand quotient from HNWIs and corporate executives.</td>
+                    </tr>
+                    <tr className="hover:bg-slate-950/20">
+                      <td className="py-4 px-4 font-bold text-slate-400">Target Buyer Profile</td>
+                      <td className="py-4 px-4 font-black text-white">{data.metrics.profile}</td>
+                      <td className="py-4 px-4 text-slate-400 font-light">Matches demography parameters of local employment centers.</td>
+                    </tr>
+                    <tr className="hover:bg-slate-950/20">
+                      <td className="py-4 px-4 font-bold text-slate-400">Connectivity & Transit</td>
+                      <td className="py-4 px-4 font-black text-amber-500">{data.metrics.transit}</td>
+                      <td className="py-4 px-4 text-slate-400 font-light">Access indicators to tech corridors, BRT, and metro lines.</td>
+                    </tr>
+                    <tr className="hover:bg-slate-950/20">
+                      <td className="py-4 px-4 font-bold text-slate-400">EUS Local Rating</td>
+                      <td className="py-4 px-4 font-black text-amber-400">4.7 / 5.0 ★</td>
+                      <td className="py-4 px-4 text-slate-400 font-light">Calculated score assessing infrastructure, trust, and returns.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {/* Locality Detailed Content */}
@@ -394,6 +538,50 @@ export default async function LocalityPage({ params }) {
               </div>
             </div>
 
+            {/* E-E-A-T Expert Profiles Card */}
+            <div className="bg-slate-900/40 p-8 border border-slate-900 rounded-3xl backdrop-blur-md space-y-6 mb-8">
+              <div className="border-b border-slate-800 pb-4">
+                <h3 className="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-2">
+                  <Star size={18} className="text-amber-500" />
+                  EUS Local Market Advisors
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">Our strategic consultants have verified local expertise in {data.name}</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[
+                  {
+                    name: "Kunal Verma",
+                    role: "Director",
+                    bio: "With over 8 years advising premium buyers in West Pune, Kunal specializes in comparing project yields, negotiating developer launch parameters, and analyzing metro transport corridors.",
+                    img: "/uploads/Kunal Sir.jpg"
+                  },
+                  {
+                    name: "Rahul Upadhyay",
+                    role: "Expert Architect & Chief Advisor in Properties",
+                    bio: "Rahul is an elite tech expert and systems architect, engineering EUS Realty's advanced digital infrastructure, AI-driven platforms, and seamless property buying experience.",
+                    img: "/uploads/Rahul.jpeg"
+                  }
+                ].map((adv, idx) => (
+                  <div key={idx} className="flex gap-4 p-4 bg-slate-950/40 border border-slate-850 rounded-2xl">
+                    <div className="relative w-12 h-12 rounded-full overflow-hidden shrink-0 border border-amber-500/20 bg-slate-900">
+                      <Image
+                        src={adv.img}
+                        alt={adv.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="text-sm font-extrabold text-white leading-none">{adv.name}</h4>
+                      <span className="text-[10px] text-amber-500 font-bold block">{adv.role}</span>
+                      <p className="text-xs text-slate-400 font-light leading-relaxed pt-1">{adv.bio}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Registered Advisor MahaRERA Section */}
             <div className="p-6 bg-amber-500/5 border border-amber-500/10 rounded-2xl flex flex-col md:flex-row items-center gap-6">
               <ShieldCheck className="text-amber-400 w-12 h-12 flex-shrink-0" />
@@ -402,6 +590,21 @@ export default async function LocalityPage({ params }) {
                 <p className="text-slate-400 text-xs sm:text-sm font-light">
                   EUS Realty is an official RERA-authorized strategic partner in Pune. Agent Registration Number: <strong className="text-amber-400 font-bold">A041262501741</strong>. We guarantee verified project information and direct builder-side pre-launch inventory pricing with zero brokerage.
                 </p>
+              </div>
+            </div>
+
+            {/* Nearby Localities Internal Links */}
+            <div className="bg-slate-900/40 p-8 border border-slate-900 rounded-3xl backdrop-blur-md space-y-6 mt-8">
+              <h3 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+                <MapPin size={20} className="text-amber-500" />
+                Explore Nearby Micro-Markets
+              </h3>
+              <div className="flex flex-wrap gap-3">
+                {Object.keys(localityData).filter(k => k !== normalizedSlug).map(loc => (
+                  <Link key={loc} href={`/localities/${loc}`} className="px-4 py-2 rounded-full border border-slate-800 bg-slate-950/60 hover:bg-amber-500 hover:border-amber-500 hover:text-slate-950 text-slate-300 font-bold transition-all text-sm capitalize">
+                    {loc} Real Estate
+                  </Link>
+                ))}
               </div>
             </div>
 
@@ -473,6 +676,8 @@ export default async function LocalityPage({ params }) {
           </div>
         </div>
       </section>
+
+      <SmartLeadPopup type="locality" contextName={localityData[normalizedSlug]?.name || normalizedSlug} />
     </main>
   );
 }

@@ -62,6 +62,14 @@ export default function HeroSearchBar() {
             Find Properties
           </span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent("open-ai-search"))}
+          className="relative overflow-hidden flex-shrink-0 w-full sm:w-auto bg-amber-500 text-slate-950 hover:bg-amber-450 px-6 py-3.5 rounded-full font-extrabold tracking-wide transition-all duration-300 hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] flex items-center justify-center gap-1.5 cursor-pointer"
+        >
+          <span>Search with AI ✦</span>
+        </button>
       </form>
 
       {/* Quick search area tags */}
@@ -76,6 +84,22 @@ export default function HeroSearchBar() {
             {area}
           </button>
         ))}
+      </div>
+
+      {/* Property Calculators Quick Links Fold */}
+      <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 mt-5 text-xs text-slate-500 font-semibold border-t border-slate-100 pt-4 max-w-lg mx-auto">
+        <span className="text-slate-400 font-bold uppercase tracking-wider text-[9px]">Research Tools:</span>
+        <Link href="/calculator" className="hover:text-amber-600 transition-colors flex items-center gap-1">
+          📊 ROI & EMI Calculator
+        </Link>
+        <span className="text-slate-200">•</span>
+        <Link href="/calculator/square-meter-to-square-feet" className="hover:text-amber-600 transition-colors flex items-center gap-1">
+          📐 Area Converter
+        </Link>
+        <span className="text-slate-200">•</span>
+        <Link href="/home-loans" className="hover:text-amber-600 transition-colors flex items-center gap-1">
+          🏦 Loan Eligibility
+        </Link>
       </div>
     </div>
   );

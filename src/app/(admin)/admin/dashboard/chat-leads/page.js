@@ -115,6 +115,7 @@ function ChatLeadsPageContent() {
 
   useEffect(() => {
     loadSessionsAndLeads();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, search, quality, status]);
 
   const searchParams = useSearchParams();

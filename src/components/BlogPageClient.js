@@ -77,7 +77,7 @@ export default function BlogPageClient({ initialBlogs }) {
           </Reveal>
           <Reveal delay={0.2}>
             <p className="text-slate-400 font-light text-base sm:text-lg md:text-xl leading-relaxed">
-              Stay ahead in Pune's fast-moving property corridors. Access verified investment analyses, micro-market projections, and direct-builder updates.
+              Stay ahead in Pune&apos;s fast-moving property corridors. Access verified investment analyses, micro-market projections, and direct-builder updates.
             </p>
           </Reveal>
         </header>

@@ -237,6 +237,34 @@ export default function BlogPostDetailClient({ post, relatedPosts }) {
                 </section>
               )}
 
+              {/* Author E-E-A-T Biography Block */}
+              <div className="p-6 bg-[#07070d] border border-white/5 rounded-2xl flex flex-col sm:flex-row gap-5 items-start mt-12">
+                <div className="relative w-16 h-16 rounded-full overflow-hidden border border-amber-500/20 shrink-0 bg-slate-900 mx-auto sm:mx-0">
+                  <Image
+                    src={post.author.image || "/uploads/Rahul.jpeg"}
+                    alt={post.author.name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="space-y-2 text-center sm:text-left">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <h4 className="text-base font-extrabold text-white">{post.author.name}</h4>
+                    <span className="text-[10px] text-amber-500 font-extrabold uppercase bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded w-max mx-auto sm:mx-0">
+                      Verified Advisor
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 font-bold leading-none">{post.author.role} · EUS Realty Insights</p>
+                  <p className="text-xs sm:text-sm text-slate-400 font-light leading-relaxed pt-1">
+                    {post.author.name === "Kunal Verma" 
+                      ? "Kunal is the Strategic Consulting Director at EUS Realty with deep expertise in comparing West Pune capital developments and yields. Licensed MahaRERA Advisor." 
+                      : post.author.name === "Rahul Upadhyay"
+                      ? "Rahul is the Growth Engineering Lead at EUS Realty, specialized in real-time pricing indicators, market analytics datasets, and tech-corridor investment portfolios."
+                      : `${post.author.name} is a strategic advisor at EUS Realty (MahaRERA: A041262501741) advising clients on luxury residences and pre-launch deals in Pune.`}
+                  </p>
+                </div>
+              </div>
+
               {/* Footer Share widgets */}
               <footer className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-6">
                 <div className="flex items-center gap-3">

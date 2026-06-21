@@ -204,10 +204,10 @@ export default function HeroContactForm() {
             
             <div className="space-y-3">
               <h4 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
-                You're on the Priority List!
+                You&apos;re on the Priority List!
               </h4>
               <p className="text-slate-600 text-base max-w-sm mx-auto leading-relaxed font-medium">
-                Thank you, <span className="text-amber-600 font-bold">{form.name || 'friend'}</span>. We've received your request beautifully. 
+                Thank you, <span className="text-amber-600 font-bold">{form.name || 'friend'}</span>. We&apos;ve received your request beautifully. 
                 <br/><br/>
                 One of our elite property strategists will connect with you within <span className="text-slate-900 font-bold">30 minutes</span> to curate your exclusive portfolio.
               </p>

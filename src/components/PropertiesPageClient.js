@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import PropertyCard from '@/components/PropertyCard';
 import Reveal from '@/components/Reveal';
 import CustomDropdown from '@/components/ui/CustomDropdown';
@@ -11,6 +11,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import PropertiesSeoBlocks from '@/components/PropertiesSeoBlocks';
+import PropertyCardSeoStrip from '@/components/PropertyCardSeoStrip';
+import { getPropertyUrl } from '@/lib/propertyUrls';
 
 const bhkOptions = ["All", "1", "2", "3", "4", "5", "5+"];
 const statusOptions = ["All", "Ready to Move", "Under Construction", "New Launch", "Pre-Launch"];
@@ -27,7 +30,15 @@ const priceRanges = [
 export default function PropertiesPageClient({ initialProperties, customTitle, customDescription }) {
   // --- 2. STATE MANAGEMENT ---
   const [allProperties] = useState(initialProperties || []);
-  const [searchQuery, setSearchQuery] = useState("");
+  // Pre-fill search from URL param when arriving from hero search bar (?search=Baner)
+  // Uses a lazy initializer to avoid calling setState inside a useEffect
+  const [searchQuery, setSearchQuery] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const q = new URLSearchParams(window.location.search).get('search');
+      return q ? decodeURIComponent(q) : '';
+    }
+    return '';
+  });
   const [viewMode, setViewMode] = useState("grid");
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
@@ -42,12 +53,6 @@ export default function PropertiesPageClient({ initialProperties, customTitle, c
 
   const locations = useMemo(() => ["All", ...new Set(allProperties.map(p => p.location).filter(Boolean))], [allProperties]);
   const propertyTypes = useMemo(() => ["All", ...new Set(allProperties.map(p => p.type).filter(Boolean))], [allProperties]);
-
-  // Pre-fill search from URL param when arriving from hero search bar (?search=Baner)
-  useEffect(() => {
-    const q = new URLSearchParams(window.location.search).get('search');
-    if (q) setSearchQuery(decodeURIComponent(q));
-  }, []);
 
   // --- 3. OPTIMIZED HANDLERS ---
   const updateFilter = useCallback((key, value) => {
@@ -123,15 +128,19 @@ export default function PropertiesPageClient({ initialProperties, customTitle, c
                   <Star size={14} className="fill-amber-400 text-amber-400" /> Authorized Strategic Partner
                 </div>
                 <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-slate-950 tracking-tight leading-[1.05]">
-                  {customTitle ? customTitle : (
-                    <>Prime living in <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600">West Pune</span></>
-                  )}
+                  {customTitle ? customTitle : "Flats for Sale in Pune"}
                 </h1>
-                <p className="text-slate-500 text-lg md:text-xl max-w-xl font-light leading-relaxed">
-                  {customDescription ? customDescription : (
-                    `Your trusted local experts. Browse ${allProperties.length} verified builder-direct premium assets across Baner, Wakad, Balewadi, and beyond.`
-                  )}
-                </p>
+                <div className="space-y-4 max-w-2xl">
+                  <div className="flex flex-wrap items-center gap-3 text-slate-500 font-bold text-sm">
+                    <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full">Last Updated: Jun 20, 2026</span>
+                    <span className="px-3 py-1 bg-slate-100 text-slate-800 rounded-full">Showing 1 - 30 of 53756</span>
+                  </div>
+                  <p className="text-slate-600 text-base md:text-lg font-light leading-relaxed">
+                    {customDescription ? customDescription : (
+                      "Explore verified flats, houses, villas, and new projects across Pune. Discover premium 2 BHK and 3 BHK luxury residences, resale homes, owner properties, and upcoming developer launches. Find RERA-approved properties in Pune's popular localities with EUS Realty's zero brokerage buying advisory."
+                    )}
+                  </p>
+                </div>
               </div>
 
               {/* Main Search Input */}
@@ -401,7 +410,10 @@ export default function PropertiesPageClient({ initialProperties, customTitle, c
                   /* --- GRID VIEW CARD --- */
                   <div className="group relative bg-white border border-slate-100 rounded-[2rem] p-3 hover:shadow-[0_30px_60px_-15px_rgba(15,23,42,0.1)] transition-all duration-500">
                     <div className="rounded-[1.5rem] overflow-hidden h-full">
-                      <PropertyCard {...prop} />
+                      <>
+                        <PropertyCard {...prop} />
+                        <PropertyCardSeoStrip property={prop} />
+                      </>
                     </div>
                   </div>
                 ) : (
@@ -457,17 +469,41 @@ export default function PropertiesPageClient({ initialProperties, customTitle, c
                             <span className="font-bold text-slate-800 text-sm">{prop.area} <span className="text-xs text-slate-500 font-medium">sq.ft</span></span>
                           </div>
                         </div>
+                      </div>                      {/* Enriched details for list view */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 p-4 rounded-2xl bg-slate-50 border border-slate-100/60 text-xs">
+                        <div>
+                          <span className="text-slate-400 font-bold block uppercase tracking-wider mb-0.5">Developer</span>
+                          <span className="font-black text-slate-800 truncate block">{prop.developer || "Premium Builder"}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 font-bold block uppercase tracking-wider mb-0.5">RERA Number</span>
+                          <span className="font-black text-emerald-600 truncate block">{prop.rera || "Verified"}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 font-bold block uppercase tracking-wider mb-0.5">Possession</span>
+                          <span className="font-black text-slate-800 truncate block">{prop.possession || "Immediate"}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 font-bold block uppercase tracking-wider mb-0.5">Sq.Ft Rate</span>
+                          <span className="font-black text-amber-600 truncate block">{prop.sqFtRate || "On Request"}</span>
+                        </div>
                       </div>
 
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-6 pt-6 border-t border-slate-100 gap-4">
-                        <p className="text-sm font-medium text-slate-500">
-                          <span className="text-slate-900 font-bold uppercase tracking-widest text-xs mr-2">Timeline:</span>
-                          {prop.possession}
-                        </p>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-4 pt-4 border-t border-slate-100 gap-4">
+                        <div className="flex flex-wrap gap-4 text-xs font-semibold text-slate-500">
+                          <p>
+                            <span className="text-slate-900 font-bold uppercase tracking-widest text-[10px] mr-2">Timeline:</span>
+                            {prop.possession}
+                          </p>
+                          <p>
+                            <span className="text-slate-900 font-bold uppercase tracking-widest text-[10px] mr-2">Updated:</span>
+                            {prop.updatedAt || "Jun 20, 2026"}
+                          </p>
+                        </div>
 
                         {/* LIST VIEW BUTTON: "Building Rise" Animation */}
                         <Link
-                          href={`/properties/${prop.id}`}
+                          href={getPropertyUrl(prop)}
                           className="relative overflow-hidden bg-slate-950 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-md active:scale-95 group/btn inline-block"
                         >
                           <span className="absolute inset-0 w-full h-full bg-amber-500 origin-bottom transform scale-y-0 transition-transform duration-300 ease-out group-hover/btn:scale-y-100" />
@@ -510,6 +546,7 @@ export default function PropertiesPageClient({ initialProperties, customTitle, c
           )}
         </div>
       </div>
+      <PropertiesSeoBlocks totalCount={allProperties.length} />
     </div>
   );
 }

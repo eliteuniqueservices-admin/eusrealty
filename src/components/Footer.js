@@ -203,6 +203,8 @@ export default function Footer() {
                   { name: 'Properties', href: '/properties' },
                   { name: 'About Us', href: '/about' },
                   { name: 'ROI Calculator', href: '/calculator' },
+                  { name: 'Area Converter', href: '/calculator/square-meter-to-square-feet' },
+                  { name: 'Loan Eligibility', href: '/home-loans' },
                   { name: 'Blog', href: '/blog' },
                   { name: 'Careers', href: '/careers' },
                   { name: 'Contact Us', href: '/contact' }

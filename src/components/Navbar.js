@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { Phone, ShieldCheck, Instagram, Linkedin, Facebook, Youtube, X, ArrowUpRight, Sparkles } from 'lucide-react';
+import { Phone, ShieldCheck, Instagram, Linkedin, Facebook, Youtube, X, ArrowUpRight, Sparkles, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import LogoAnimation from './LogoAnimation';
 
@@ -12,12 +12,87 @@ import LogoAnimation from './LogoAnimation';
 const NAV_LINKS = [
   { name: "Home",          href: "/",           emoji: "🏠" },
   { name: "Projects",      href: "/properties",  emoji: "🏙️" },
-  { name: "Home Loans",    href: "/home-loans",  emoji: "🏠" },
-  { name: "ROI Calc",      href: "/calculator",  emoji: "📈" },
-  { name: "Blog",          href: "/blog",        emoji: "✍️" },
+  { name: "Services",      href: "/services",    emoji: "🛠️" },
   { name: "Careers",       href: "/careers",     emoji: "💼" },
   { name: "About",         href: "/about",       emoji: "⭐" },
   { name: "Contact",       href: "/contact",     emoji: "📞" },
+];
+
+const MEGA_MENU_CATEGORIES = [
+  {
+    title: "Top Localities in Pune",
+    links: [
+      { name: "Flats in Baner", href: "/localities/baner" },
+      { name: "Flats in Wakad", href: "/localities/wakad" },
+      { name: "Flats in Hinjawadi", href: "/localities/hinjawadi" },
+      { name: "Flats in Tathawade", href: "/localities/tathawade" },
+      { name: "Flats in Aundh", href: "/localities/aundh" },
+      { name: "Flats in Balewadi", href: "/localities/balewadi" },
+      { name: "Flats in Pimpri", href: "/localities/pimpri" },
+      { name: "Flats in Chinchwad", href: "/localities/chinchwad" }
+    ]
+  },
+  {
+    title: "BHK & Budget Searches",
+    links: [
+      { name: "2 BHK Flats in Baner", href: "/properties/2-bhk-flats-in-baner-pune" },
+      { name: "3 BHK Flats in Wakad", href: "/properties/3-bhk-flats-in-wakad-pune" },
+      { name: "Flats under 1 Crore", href: "/properties/flats-under-1-cr-in-hinjawadi" },
+      { name: "Luxury Flats in Baner", href: "/properties/luxury-flats-in-baner" },
+      { name: "Ready to Move Flats", href: "/properties/ready-to-move-flats-in-pune" },
+      { name: "New Launch Projects", href: "/properties/new-launch-projects-in-pune" },
+      { name: "RERA Approved Projects", href: "/properties/rera-approved-projects-in-pune" },
+      { name: "No Brokerage Flats", href: "/properties/no-brokerage-flats-in-pune" }
+    ]
+  },
+  {
+    title: "Top Gated Communities",
+    links: [
+      { name: "Godrej Woodsville (Hinjewadi)", href: "/properties/godrej-woodsville-hinjewadi-pune" },
+      { name: "Supreme Estia (Baner)", href: "/properties/supreme-estia-baner-pune" },
+      { name: "VTP Cygnus (Kharadi)", href: "/properties/vtp-cygnus-kharadi-pune" },
+      { name: "Lara Solitaire (Baner)", href: "/properties/lara-solitaire-baner-pune" },
+      { name: "Pune Real Estate Hub", href: "/pune-real-estate" }
+    ]
+  },
+  {
+    title: "Builders & Comparisons",
+    links: [
+      { name: "Godrej Properties Pune", href: "/builders/godrej-properties-pune" },
+      { name: "Kolte Patil Developer", href: "/builders/kolte-patil-pune" },
+      { name: "VTP Realty Pune", href: "/builders/vtp-realty-pune" },
+      { name: "Baner vs Wakad Investment", href: "/compare/baner-vs-wakad-property-investment" },
+      { name: "Tathawade vs Hinjawadi", href: "/compare/tathawade-vs-hinjawadi" },
+      { name: "2 BHK vs 3 BHK buying", href: "/compare/2-bhk-vs-3-bhk-in-pune" },
+      { name: "Construction vs Ready-to-Move", href: "/compare/under-construction-vs-ready-to-move-pune" }
+    ]
+  }
+];
+
+const SERVICES_MENU_CATEGORIES = [
+  {
+    title: "EUS Edge",
+    links: [
+      { name: "Home Loans", href: "/home-loans" },
+      { name: "Pune Real Estate Hub", href: "/pune-real-estate" },
+    ]
+  },
+  {
+    title: "Calculators & Tools",
+    links: [
+      { name: "ROI Calculator", href: "/calculator" },
+      { name: "EMI Calculator", href: "/calculator/emi" },
+      { name: "Valuation Index", href: "/calculator/valuation" },
+    ]
+  },
+  {
+    title: "Insights & Resources",
+    links: [
+      { name: "Blog & Market Insights", href: "/blog" },
+      { name: "Tathawade vs Wakad", href: "/blog/tathawade-vs-wakad" },
+      { name: "First-Time Buyer Guide", href: "/blog/first-time-home-buyer-guide" }
+    ]
+  }
 ];
 
 const SOCIALS = [
@@ -32,6 +107,9 @@ const PHONE_DISP = "+91 76207 33613";
 
 // ─── Mobile full-screen menu overlay ──────────────────────────
 function MobileMenu({ open, onClose, activeLink }) {
+  const [mobileProjectsExpanded, setMobileProjectsExpanded] = useState(false);
+  const [mobileServicesExpanded, setMobileServicesExpanded] = useState(false);
+
   const menuVariants = {
     hidden: { clipPath: "circle(0% at calc(100% - 36px) 36px)", opacity: 0 },
     visible: {
@@ -117,6 +195,155 @@ function MobileMenu({ open, onClose, activeLink }) {
               <motion.nav variants={stagger} initial="hidden" animate="visible" className="space-y-0.5">
                 {NAV_LINKS.map((link, i) => {
                   const isActive = activeLink === link.href;
+
+                  if (link.name === "Projects") {
+                    return (
+                      <motion.div key={link.name} variants={item} className="space-y-1">
+                        <button
+                          onClick={() => setMobileProjectsExpanded(prev => !prev)}
+                          className={`w-full group flex items-center gap-4 py-[13px] sm:py-[15px] px-3 rounded-2xl transition-all duration-200 text-left ${
+                            mobileProjectsExpanded
+                              ? "bg-amber-400/[0.08]"
+                              : "hover:bg-white/[0.04]"
+                          }`}
+                        >
+                          {/* Numbered index indicator */}
+                          <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-bold shrink-0 transition-colors duration-200 ${
+                            mobileProjectsExpanded
+                              ? "bg-amber-400/20 text-amber-400 border border-amber-400/30"
+                              : "bg-white/[0.06] text-white/30 border border-white/[0.08] group-hover:text-white/50 group-hover:border-white/[0.15]"
+                          }`}>
+                            {String(i + 1).padStart(2, '0')}
+                          </span>
+
+                          {/* Link name */}
+                          <span className={`text-[1.35rem] sm:text-[1.6rem] font-bold tracking-tight leading-none transition-colors duration-200 ${
+                            mobileProjectsExpanded ? "text-amber-400" : "text-white/75 group-hover:text-white"
+                          }`}>
+                            {link.name}
+                          </span>
+
+                          {/* Chevron toggler */}
+                          <div className="ml-auto shrink-0">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
+                              mobileProjectsExpanded
+                                ? "bg-amber-400/15 text-amber-400 border border-amber-400/25 rotate-180"
+                                : "bg-transparent text-white/15 border border-transparent group-hover:bg-white/[0.06] group-hover:text-white/40 group-hover:border-white/[0.1]"
+                            }`}>
+                              <ChevronDown size={14} />
+                            </div>
+                          </div>
+                        </button>
+
+                        <AnimatePresence>
+                          {mobileProjectsExpanded && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="pl-8 pr-2 space-y-4 py-2 border-l border-white/5 ml-7 overflow-hidden text-left"
+                            >
+                              <Link href="/properties" onClick={onClose} className="block text-amber-400 text-xs font-bold uppercase tracking-wider hover:underline py-1">
+                                View All Projects →
+                              </Link>
+                              
+                              {MEGA_MENU_CATEGORIES.map((cat) => (
+                                <div key={cat.title} className="space-y-1.5">
+                                  <span className="text-[10px] text-white/40 font-black uppercase tracking-wider block">{cat.title}</span>
+                                  <div className="grid grid-cols-1 gap-1">
+                                    {cat.links.map((sublink) => (
+                                      <Link
+                                        key={sublink.name}
+                                        href={sublink.href}
+                                        onClick={onClose}
+                                        className="text-xs text-white/60 hover:text-amber-400 transition-colors py-1 block truncate"
+                                      >
+                                        {sublink.name}
+                                      </Link>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </motion.div>
+                    );
+                  }
+
+                  if (link.name === "Services") {
+                    return (
+                      <motion.div key={link.name} variants={item} className="space-y-1">
+                        <button
+                          onClick={() => setMobileServicesExpanded(prev => !prev)}
+                          className={`w-full group flex items-center gap-4 py-[13px] sm:py-[15px] px-3 rounded-2xl transition-all duration-200 text-left ${
+                            mobileServicesExpanded
+                              ? "bg-amber-400/[0.08]"
+                              : "hover:bg-white/[0.04]"
+                          }`}
+                        >
+                          {/* Numbered index indicator */}
+                          <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-bold shrink-0 transition-colors duration-200 ${
+                            mobileServicesExpanded
+                              ? "bg-amber-400/20 text-amber-400 border border-amber-400/30"
+                              : "bg-white/[0.06] text-white/30 border border-white/[0.08] group-hover:text-white/50 group-hover:border-white/[0.15]"
+                          }`}>
+                            {String(i + 1).padStart(2, '0')}
+                          </span>
+
+                          {/* Link name */}
+                          <span className={`text-[1.35rem] sm:text-[1.6rem] font-bold tracking-tight leading-none transition-colors duration-200 ${
+                            mobileServicesExpanded ? "text-amber-400" : "text-white/75 group-hover:text-white"
+                          }`}>
+                            {link.name}
+                          </span>
+
+                          {/* Chevron toggler */}
+                          <div className="ml-auto shrink-0">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
+                              mobileServicesExpanded
+                                ? "bg-amber-400/15 text-amber-400 border border-amber-400/25 rotate-180"
+                                : "bg-transparent text-white/15 border border-transparent group-hover:bg-white/[0.06] group-hover:text-white/40 group-hover:border-white/[0.1]"
+                            }`}>
+                              <ChevronDown size={14} />
+                            </div>
+                          </div>
+                        </button>
+
+                        <AnimatePresence>
+                          {mobileServicesExpanded && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="pl-8 pr-2 space-y-4 py-2 border-l border-white/5 ml-7 overflow-hidden text-left"
+                            >
+                              {SERVICES_MENU_CATEGORIES.map((cat) => (
+                                <div key={cat.title} className="space-y-1.5">
+                                  <span className="text-[10px] text-white/40 font-black uppercase tracking-wider block">{cat.title}</span>
+                                  <div className="grid grid-cols-1 gap-1">
+                                    {cat.links.map((sublink) => (
+                                      <Link
+                                        key={sublink.name}
+                                        href={sublink.href}
+                                        onClick={onClose}
+                                        className="text-xs text-white/60 hover:text-amber-400 transition-colors py-1 block truncate"
+                                      >
+                                        {sublink.name}
+                                      </Link>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </motion.div>
+                    );
+                  }
+
                   return (
                     <motion.div key={link.name} variants={item}>
                       <Link
@@ -360,6 +587,26 @@ export default function Navbar() {
   const [scrolled, setScrolled]     = useState(false);
   const [hoveredIdx, setHoveredIdx] = useState(null);
   const [animationActive, setAnimationActive] = useState(false);
+
+  const [activeDropdown, setActiveDropdown] = useState(null); // null | "projects"
+  const closeTimeoutRef = useRef(null);
+
+  const handleDropdownMouseEnter = (menuName) => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    setActiveDropdown(menuName);
+    if (menuName === "projects") setHoveredIdx(1);
+    else if (menuName === "services") setHoveredIdx(2);
+  };
+
+  const handleDropdownMouseLeave = () => {
+    closeTimeoutRef.current = setTimeout(() => {
+      setActiveDropdown(null);
+      setHoveredIdx(null);
+    }, 150);
+  };
   const [animationTheme, setAnimationTheme] = useState(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -581,6 +828,7 @@ export default function Navbar() {
           scrolled ? "shadow-[0_2px_20px_rgba(0,0,0,0.07)]" : ""
         }`}
         style={{ willChange: 'transform' }}
+        onMouseLeave={handleDropdownMouseLeave}
       >
 
         {/* ── Main Nav Bar ── */}
@@ -592,7 +840,15 @@ export default function Navbar() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 h-[60px] sm:h-16 flex items-center justify-between gap-4">
 
             {/* ── Logo ── */}
-            <Link href="/" onClick={handleLogoClick} className="flex items-center gap-2 sm:gap-2.5 group shrink-0">
+            <Link
+              href="/"
+              onClick={handleLogoClick}
+              onMouseEnter={() => {
+                setActiveDropdown(null);
+                setHoveredIdx(null);
+              }}
+              className="flex items-center gap-2 sm:gap-2.5 group shrink-0"
+            >
               <motion.div
                 className="relative w-8 h-8 sm:w-10 sm:h-10"
                 whileHover={{ scale: 1.06, rotate: -3 }}
@@ -613,7 +869,11 @@ export default function Navbar() {
             {/* ── Desktop Nav Links ── */}
             <nav
               className="hidden lg:flex items-center"
-              onMouseLeave={() => setHoveredIdx(null)}
+              onMouseLeave={() => {
+                if (activeDropdown !== "projects" && activeDropdown !== "services") {
+                  setHoveredIdx(null);
+                }
+              }}
             >
               {NAV_LINKS.map((link, i) => (
                 <NavLink
@@ -621,14 +881,29 @@ export default function Navbar() {
                   link={link}
                   isActive={pathname === link.href}
                   isHovered={hoveredIdx === i}
-                  onEnter={() => setHoveredIdx(i)}
-                  onLeave={() => {}}
+                  onEnter={() => {
+                    setHoveredIdx(i);
+                    if (link.name === "Projects") {
+                      handleDropdownMouseEnter("projects");
+                    } else if (link.name === "Services") {
+                      handleDropdownMouseEnter("services");
+                    } else {
+                      setActiveDropdown(null);
+                    }
+                  }}
+                  onLeave={null}
                 />
               ))}
             </nav>
 
             {/* ── Desktop CTAs ── */}
-            <div className="hidden lg:flex items-center gap-3 shrink-0">
+            <div
+              className="hidden lg:flex items-center gap-3 shrink-0"
+              onMouseEnter={() => {
+                setActiveDropdown(null);
+                setHoveredIdx(null);
+              }}
+            >
               {/* Phone quick-dial */}
               <a href={`tel:${PHONE}`}
                 className="flex items-center gap-2 px-3.5 py-2 rounded-full border border-slate-200 bg-white hover:bg-amber-50 hover:border-amber-200 text-slate-700 hover:text-amber-700 transition-all duration-300 text-[12px] font-bold"
@@ -678,6 +953,83 @@ export default function Navbar() {
             />
           </div>
         </div>
+
+        {/* Mega Menu Dropdown Panel */}
+        <AnimatePresence>
+          {activeDropdown === "projects" && (
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              onMouseEnter={() => handleDropdownMouseEnter("projects")}
+              onMouseLeave={handleDropdownMouseLeave}
+              className="absolute left-0 right-0 w-full bg-white border-b border-slate-200 shadow-2xl z-50 pointer-events-auto"
+            >
+              <div className="max-w-7xl mx-auto px-8 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
+                {MEGA_MENU_CATEGORIES.map((category) => (
+                  <div key={category.title} className="space-y-4 text-left">
+                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">
+                      {category.title}
+                    </h4>
+                    <ul className="space-y-2">
+                      {category.links.map((sublink) => (
+                        <li key={sublink.name}>
+                          <Link 
+                            href={sublink.href}
+                            className="text-slate-600 hover:text-amber-600 transition-all font-semibold text-xs hover:pl-1 flex items-center gap-1.5"
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                            {sublink.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Services Dropdown Panel */}
+        <AnimatePresence>
+          {activeDropdown === "services" && (
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              onMouseEnter={() => handleDropdownMouseEnter("services")}
+              onMouseLeave={handleDropdownMouseLeave}
+              className="absolute left-0 right-0 w-full bg-white border-b border-slate-200 shadow-2xl z-50 pointer-events-auto"
+            >
+              <div className="max-w-7xl mx-auto px-8 py-10 grid grid-cols-1 md:grid-cols-3 gap-8">
+                {SERVICES_MENU_CATEGORIES.map((category) => (
+                  <div key={category.title} className="space-y-4 text-left">
+                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">
+                      {category.title}
+                    </h4>
+                    <ul className="space-y-2">
+                      {category.links.map((sublink) => (
+                        <li key={sublink.name}>
+                          <Link 
+                            href={sublink.href}
+                            className="text-slate-600 hover:text-amber-600 transition-all font-semibold text-xs hover:pl-1 flex items-center gap-1.5"
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                            {sublink.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
       </header>
       {animationActive && (
         <LogoAnimation

@@ -499,6 +499,7 @@ export default function ManageBlogs() {
                 />
                 {formData.image && (
                   <div className="mt-3 w-full h-40 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={formData.image} alt="Cover preview" className="w-full h-full object-cover" />
                   </div>
                 )}

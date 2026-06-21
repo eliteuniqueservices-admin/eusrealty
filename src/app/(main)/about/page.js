@@ -17,13 +17,13 @@ import { useRef, useState, useEffect } from 'react';
 ───────────────────────────────────────────── */
 const teamMembers = [
   // {
-  //   name: 'Amarpal Singh',
+  //   name: 'Rahul Upadhyay',
   //   role: 'Visionary / Founder',
   //   badge: '30+ Yrs Legacy',
   //   tagline: 'The Quiet Empire Builder',
   //   img: 'https://randomuser.me/api/portraits/men/52.jpg',
   //   intro:
-  //     `With over three decades of deep-rooted presence in Pune&apos;s real estate landscape, Amarpal Singh is the cornerstone of EUS Realty. He built his reputation through ethical advisory, zero-commission integrity, and a developer network that spans every major project in West Pune. His philosophy is simple: put the client first, always.`,
+  //     `With over three decades of deep-rooted presence in Pune&apos;s real estate landscape, Rahul Upadhyay is the cornerstone of EUS Realty. He built his reputation through ethical advisory, zero-commission integrity, and a developer network that spans every major project in West Pune. His philosophy is simple: put the client first, always.`,
   //   expertise: ['Luxury Projects', 'Developer Relations', 'Market Foresight', 'Strategic Advisory'],
   //   accolade: '10,000+ Families Guided',
   //   wa: '917620733613',
@@ -34,7 +34,7 @@ const teamMembers = [
   // },
   {
     name: 'Kunal Verma',
-    role: 'Catalyst / Director',
+    role: 'Director',
     badge: 'MBA Graduate',
     tagline: 'Where Data Meets Legacy',
     img: '/uploads/Kunal Sir.jpg',
@@ -82,7 +82,7 @@ const teamMembers = [
   },
   {
     name: 'Rahul Upadhyay',
-    role: 'CTO & Growth Engineer',
+    role: 'Expert Architect & Chief Advisor in Properties',
     badge: 'Tech & AI Automation Expert',
     tagline: 'Architect of Systems & Digital Growth',
     img: '/uploads/Rahul.jpeg',
@@ -1037,7 +1037,7 @@ export default function AboutClient() {
                     advisory empire in West Pune was built entirely through word-of-mouth.
                   </p>
                   <p>
-                    For decades, Amarpal Singh operated as the market&apos;s most trusted advisor. He had no digital
+                    For decades, Rahul Upadhyay operated as the market&apos;s most trusted advisor. He had no digital
                     footprint. No aggressive marketing team. But what he possessed was invaluable: an ironclad
                     reputation and an unmatched understanding of Pune&apos;s property landscape.
                   </p>

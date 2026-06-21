@@ -18,6 +18,7 @@ import SuccessStoriesSection from '@/components/SuccessStoriesSection';
 import HomeFaq from '@/components/HomeFaq';
 import HeroContactForm from '@/components/HeroContactForm';
 import HoverStatCard from '@/components/HoverStatCard';
+import PropertyResearchTools from '@/components/PropertyResearchTools';
 
 export const revalidate = 3600; // Cache homepage for 1 hour
 
@@ -376,6 +377,9 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {/* User Property Research Tools */}
+      <PropertyResearchTools />
 
       {/* ═══════════════════════════════════════════════════════════
           INVESTMENT OPPORTUNITIES — Dark Section
