@@ -15,6 +15,7 @@ export default async function sitemap() {
     '/about',
     '/contact',
     '/properties',
+    '/services',
     '/careers',
     '/home-loans',
     '/calculator',

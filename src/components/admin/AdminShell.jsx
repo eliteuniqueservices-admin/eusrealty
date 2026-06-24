@@ -24,7 +24,7 @@ import { getNavItems } from '@/lib/permissions';
 import {
   LayoutDashboard, Building2, Settings, LogOut, Bell,
   ChevronDown, Menu, X, User, Users, Key, ChevronRight, Briefcase,
-  MessageSquare, Banknote, Mail, FileText,
+  MessageSquare, Banknote, Mail, FileText, Target,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -40,6 +40,7 @@ const ICON_MAP = {
   Banknote,
   Mail,
   FileText,
+  Target,
 };
 
 /* ─────────────────────────────────────────────────────────────────────────────

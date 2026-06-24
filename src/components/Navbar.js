@@ -244,7 +244,7 @@ function MobileMenu({ open, onClose, activeLink }) {
                               transition={{ duration: 0.3 }}
                               className="pl-8 pr-2 space-y-4 py-2 border-l border-white/5 ml-7 overflow-hidden text-left"
                             >
-                              <Link href="/properties" onClick={onClose} className="block text-amber-400 text-xs font-bold uppercase tracking-wider hover:underline py-1">
+                              <Link href="/properties" prefetch={false} onClick={onClose} className="block text-amber-400 text-xs font-bold uppercase tracking-wider hover:underline py-1">
                                 View All Projects →
                               </Link>
                               
@@ -256,6 +256,7 @@ function MobileMenu({ open, onClose, activeLink }) {
                                       <Link
                                         key={sublink.name}
                                         href={sublink.href}
+                                        prefetch={false}
                                         onClick={onClose}
                                         className="text-xs text-white/60 hover:text-amber-400 transition-colors py-1 block truncate"
                                       >
@@ -328,6 +329,7 @@ function MobileMenu({ open, onClose, activeLink }) {
                                       <Link
                                         key={sublink.name}
                                         href={sublink.href}
+                                        prefetch={false}
                                         onClick={onClose}
                                         className="text-xs text-white/60 hover:text-amber-400 transition-colors py-1 block truncate"
                                       >
@@ -348,6 +350,7 @@ function MobileMenu({ open, onClose, activeLink }) {
                     <motion.div key={link.name} variants={item}>
                       <Link
                         href={link.href}
+                        prefetch={false}
                         onClick={onClose}
                         className={`group flex items-center gap-4 py-[13px] sm:py-[15px] px-3 rounded-2xl transition-all duration-200 ${
                           isActive
@@ -761,7 +764,12 @@ export default function Navbar() {
       }
     };
 
-    fetchWeather();
+    // Defer the network call by 2 seconds so it doesn't block the critical initial render
+    const timerId = setTimeout(() => {
+      fetchWeather();
+    }, 2000);
+
+    return () => clearTimeout(timerId);
   }, []);
 
   const triggerAnimationDirectly = (theme) => {
@@ -977,6 +985,7 @@ export default function Navbar() {
                         <li key={sublink.name}>
                           <Link 
                             href={sublink.href}
+                            prefetch={false}
                             className="text-slate-600 hover:text-amber-600 transition-all font-semibold text-xs hover:pl-1 flex items-center gap-1.5"
                           >
                             <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
@@ -1015,6 +1024,7 @@ export default function Navbar() {
                         <li key={sublink.name}>
                           <Link 
                             href={sublink.href}
+                            prefetch={false}
                             className="text-slate-600 hover:text-amber-600 transition-all font-semibold text-xs hover:pl-1 flex items-center gap-1.5"
                           >
                             <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />

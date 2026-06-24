@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { slugify } from "@/lib/propertyUrls";
 
 const MotionLink = motion.create(Link);
@@ -124,16 +125,25 @@ export default function PropertyCard({
   updatedAt,
   developer,
   sqFtRate,
+  priority = false,
 }) {
   const displayBeds = beds || bhk;
   const cardRef = useRef(null);
   const [hovered, setHovered] = useState(false);
   const [liked, setLiked] = useState(false);
   const [particles, setParticles] = useState(false);
+  const router = useRouter();
 
   const isMongoId = id && /^[a-f\d]{24}$/i.test(id);
   const slug = isMongoId ? slugify(`${title} ${location} pune`) : id;
   const cardLink = `/properties/${slug}`;
+
+  const handleCardClick = (e) => {
+    if (e.target.closest('a') || e.target.closest('button')) {
+      return;
+    }
+    router.push(cardLink);
+  };
 
   /* ── 3-D Magnetic Tilt via Framer Motion Values ── */
   const rawX = useMotionValue(0);
@@ -201,6 +211,7 @@ export default function PropertyCard({
         onMouseMove={handleMouseMove}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={handleMouseLeave}
+        onClick={handleCardClick}
         className="relative flex flex-col bg-white rounded-[2rem] overflow-hidden border border-slate-100/80 h-full cursor-pointer select-none"
         whileHover={{ boxShadow: "0 40px 80px -20px rgba(15,23,42,0.2), 0 0 0 1px rgba(251,191,36,0.2)" }}
         transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
@@ -236,6 +247,7 @@ export default function PropertyCard({
               }
               alt={title}
               fill
+              priority={priority}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               className="object-cover"
             />

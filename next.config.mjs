@@ -1,5 +1,6 @@
-/** @type {import('next').NextConfig} */
+   /** @type {import('next').NextConfig} */
 const nextConfig = {
+  allowedDevOrigins: ['192.168.1.35'],
   images: {
     remotePatterns: [
       {
@@ -31,7 +32,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.youtube.com https://s.ytimg.com https://*.youtube.com https://*.ytimg.com https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' blob: data: https://images.unsplash.com https://plus.unsplash.com https://randomuser.me https://res.cloudinary.com https://www.google-analytics.com https://www.googletagmanager.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.youtube.com https://*.google.com https://*.googleapis.com wss://*.youtube.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; frame-src 'self' https://www.google.com https://*.google.com https://www.youtube.com https://*.youtube.com https://youtube.com https://www.youtube-nocookie.com; object-src 'none';",
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.youtube.com https://s.ytimg.com https://*.youtube.com https://*.ytimg.com https://www.googletagmanager.com https://www.google-analytics.com https://ssl.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' blob: data: https://images.unsplash.com https://plus.unsplash.com https://randomuser.me https://res.cloudinary.com https://www.google-analytics.com https://www.googletagmanager.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://ipapi.co https://api.open-meteo.com https://*.youtube.com https://*.google.com https://*.googleapis.com wss://*.youtube.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; frame-src 'self' https://www.google.com https://*.google.com https://www.youtube.com https://*.youtube.com https://youtube.com https://www.youtube-nocookie.com; object-src 'none';",
           },
           {
             key: 'X-Content-Type-Options',

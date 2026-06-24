@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, X, Send, ShieldCheck, Loader2 } from "lucide-react";
+import { usePathname } from "next/navigation";
 import PropertyCard from "./PropertyCard";
 
 export default function AiPropertyConsultant() {
@@ -17,6 +18,11 @@ export default function AiPropertyConsultant() {
   ]);
   const [matches, setMatches] = useState([]);
   const chatEndRef = useRef(null);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     // Focus trigger from HeroSearchBar

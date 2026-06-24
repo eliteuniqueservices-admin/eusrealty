@@ -105,7 +105,7 @@ export default function CustomCursor() {
           translateX: '-50%',
           translateY: '-10%', // Peak of the roof matches the exact mouse coordinate
         }}
-        className="fixed top-0 left-0 pointer-events-none z-[9999] text-amber-500 drop-shadow-[0_2px_8px_rgba(245,158,11,0.5)]"
+        className="fixed top-0 left-0 pointer-events-none z-[999999] text-amber-500 drop-shadow-[0_2px_8px_rgba(245,158,11,0.5)]"
         animate={{
           scale: hoverType === 'link' ? 1.45 : hoverType === 'property' ? 1.35 : hoverType === 'action' ? 1.25 : 1,
           rotate: hoverType === 'link' ? 12 : hoverType === 'action' ? -12 : 0,
@@ -124,7 +124,7 @@ export default function CustomCursor() {
           translateX: '-50%',
           translateY: '-50%',
         }}
-        className="fixed top-0 left-0 rounded-full pointer-events-none z-[9998] flex items-center justify-center border border-amber-500/40 bg-amber-500/5 backdrop-blur-[1px]"
+        className="fixed top-0 left-0 rounded-full pointer-events-none z-[999998] flex items-center justify-center border border-amber-500/40 bg-amber-500/5 backdrop-blur-[1px]"
         animate={{
           width: hoverType === 'property' ? 70 : hoverType === 'link' ? 45 : hoverType === 'action' ? 55 : 28,
           height: hoverType === 'property' ? 70 : hoverType === 'link' ? 45 : hoverType === 'action' ? 55 : 28,

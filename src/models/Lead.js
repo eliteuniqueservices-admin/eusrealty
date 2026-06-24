@@ -6,6 +6,28 @@ const NoteSchema = new mongoose.Schema({
   addedAt: { type: Date, default: Date.now },
 }, { _id: false });
 
+const FollowUpSchema = new mongoose.Schema({
+  type: {
+    type: String,
+    enum: ['call', 'email', 'whatsapp', 'site_visit', 'meeting'],
+    required: true,
+  },
+  scheduledAt: { type: Date, required: true },
+  completedAt: { type: Date, default: null },
+  outcome: { type: String, default: '' },
+  notes: { type: String, default: '' },
+  addedBy: { type: String, default: 'Admin' },
+  createdAt: { type: Date, default: Date.now },
+});
+
+const PropertySentSchema = new mongoose.Schema({
+  propertyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Property' },
+  propertyName: { type: String, default: '' },
+  channel: { type: String, enum: ['whatsapp', 'email'], default: 'whatsapp' },
+  sentAt: { type: Date, default: Date.now },
+  sentBy: { type: String, default: 'Admin' },
+}, { _id: false });
+
 const LeadSchema = new mongoose.Schema({
   // Core contact info
   name: { type: String, required: true, trim: true },
@@ -48,6 +70,12 @@ const LeadSchema = new mongoose.Schema({
   // Admin notes
   notes: [NoteSchema],
 
+  // Follow-up CRM
+  followUps: [FollowUpSchema],
+  nextFollowUp: { type: Date, default: null },
+  lastContactedAt: { type: Date, default: null },
+  propertiesSent: [PropertySentSchema],
+
   // Assignment
   assignedTo: { type: String, default: '' },
 }, { timestamps: true });
@@ -56,5 +84,7 @@ const LeadSchema = new mongoose.Schema({
 LeadSchema.index({ leadQuality: 1, status: 1 });
 LeadSchema.index({ createdAt: -1 });
 LeadSchema.index({ phone: 1 });
+LeadSchema.index({ nextFollowUp: 1 });
+LeadSchema.index({ lastContactedAt: 1 });
 
 export default mongoose.models.Lead || mongoose.model('Lead', LeadSchema);
