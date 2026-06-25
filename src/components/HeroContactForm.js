@@ -15,7 +15,11 @@ export default function HeroContactForm() {
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleChange = (e) => {
-    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    let value = e.target.value;
+    if (e.target.name === 'phone') {
+      value = value.replace(/\D/g, '').slice(0, 10);
+    }
+    setForm(prev => ({ ...prev, [e.target.name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -23,8 +27,8 @@ export default function HeroContactForm() {
 
     // Basic validation
     if (!form.name.trim()) { setErrorMsg('Please enter your full name.'); return; }
-    if (!form.phone.trim() || form.phone.replace(/\D/g, '').length < 10) {
-      setErrorMsg('Please enter a valid phone number.'); return;
+    if (form.phone.replace(/\D/g, '').length !== 10) {
+      setErrorMsg('Please enter a valid 10-digit phone number.'); return;
     }
 
     setFormState('submitting');
@@ -49,6 +53,9 @@ export default function HeroContactForm() {
       if (!res.ok) throw new Error(data.error || 'Something went wrong.');
 
       setFormState('success');
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('eus_lead_submitted', 'true');
+      }
       setForm({ name: '', phone: '', email: '', budget: 'Under ₹1 Cr' });
     } catch (err) {
       setErrorMsg(err.message);
@@ -114,7 +121,8 @@ export default function HeroContactForm() {
                   value={form.phone}
                   onChange={handleChange}
                   required
-                  placeholder="+91 98765 43210"
+                  placeholder="e.g. 9876543210"
+                  maxLength={10}
                   className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-amber-500/40 focus:bg-white focus:border-amber-300 transition-all font-medium text-sm placeholder:text-slate-400"
                 />
               </div>

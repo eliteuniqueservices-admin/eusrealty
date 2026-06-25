@@ -10,46 +10,63 @@ export default function SmartLeadPopup({ type = 'property', contextName = '' }) 
   
   const [formData, setFormData] = useState({ name: '', phone: '' });
   const [status, setStatus] = useState('idle'); // idle, loading, success, error
+  const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
-    // Check if user already dismissed or submitted in the last 30 days
+    // Check if user already dismissed or submitted in the last 30 days, or already filled a lead form on site
     const popupState = localStorage.getItem('eus_exit_popup');
-    if (popupState) {
-      const parsed = JSON.parse(popupState);
-      const now = new Date().getTime();
-      // If within 30 days, do not trigger
-      if (now - parsed.timestamp < 30 * 24 * 60 * 60 * 1000) {
-        setHasTriggered(true);
-        return;
+    const isLeadSubmitted = localStorage.getItem('eus_lead_submitted') === 'true';
+    const isDev = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    
+    if (isLeadSubmitted) {
+      setHasTriggered(true);
+      return;
+    }
+
+    if (popupState && !isDev) {
+      try {
+        const parsed = JSON.parse(popupState);
+        const now = new Date().getTime();
+        // If within 30 days, do not trigger
+        if (now - parsed.timestamp < 30 * 24 * 60 * 60 * 1000) {
+          setHasTriggered(true);
+          return;
+        }
+      } catch (e) {
+        console.error('Error parsing popup state:', e);
       }
     }
 
-    const handleMouseLeave = (e) => {
-      // Trigger if mouse leaves the top of the viewport (exit intent)
-      if (e.clientY <= 0 && !hasTriggered) {
-        setIsVisible(true);
-        setHasTriggered(true);
-      }
+    if (hasTriggered) return;
+
+    let lastActivity = Date.now();
+    let localHasTriggered = false;
+
+    const updateActivity = () => {
+      lastActivity = Date.now();
     };
 
-    const handleScroll = () => {
-      if (hasTriggered) return;
-      const scrollDepth = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight;
-      // Trigger at 60% scroll for mobile users who don't have mouseleave
-      if (scrollDepth > 0.6) {
+    const events = ['mousemove', 'keydown', 'scroll', 'click', 'touchstart'];
+    
+    events.forEach(event => {
+      document.addEventListener(event, updateActivity, { passive: true });
+    });
+
+    const checkInactivity = setInterval(() => {
+      if (!isVisible && !localHasTriggered && Date.now() - lastActivity >= 20000) { // 20 seconds
         setIsVisible(true);
+        localHasTriggered = true;
         setHasTriggered(true);
       }
-    };
-
-    document.addEventListener('mouseleave', handleMouseLeave);
-    window.addEventListener('scroll', handleScroll);
+    }, 1000);
 
     return () => {
-      document.removeEventListener('mouseleave', handleMouseLeave);
-      window.removeEventListener('scroll', handleScroll);
+      clearInterval(checkInactivity);
+      events.forEach(event => {
+        document.removeEventListener(event, updateActivity);
+      });
     };
-  }, [hasTriggered]);
+  }, [isVisible, hasTriggered]);
 
   const handleClose = () => {
     setIsVisible(false);
@@ -59,18 +76,26 @@ export default function SmartLeadPopup({ type = 'property', contextName = '' }) 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMsg('');
+
+    if (formData.phone.replace(/\D/g, '').length !== 10) {
+      setErrorMsg('Please enter a valid 10-digit WhatsApp number.');
+      setStatus('error');
+      return;
+    }
+
     setStatus('loading');
 
     try {
-      const response = await fetch('/api/leads', {
+      const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: formData.name,
           phone: formData.phone,
-          source: 'exit_popup',
           objective: type === 'property' ? `Requested Price Sheet for ${contextName}` : `Requested Yield Report for ${contextName}`,
           propertyType: type === 'property' ? 'Project Details' : 'Market Report',
+          source: 'Exit Popup',
         })
       });
 
@@ -78,6 +103,7 @@ export default function SmartLeadPopup({ type = 'property', contextName = '' }) 
 
       setStatus('success');
       localStorage.setItem('eus_exit_popup', JSON.stringify({ timestamp: new Date().getTime(), status: 'submitted' }));
+      localStorage.setItem('eus_lead_submitted', 'true');
       
       // Auto close after 3 seconds
       setTimeout(() => {
@@ -143,9 +169,9 @@ export default function SmartLeadPopup({ type = 'property', contextName = '' }) 
                 </motion.div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {status === 'error' && (
+                  {(status === 'error' || errorMsg) && (
                     <div className="p-3 bg-red-50 text-red-600 text-xs font-bold rounded-xl flex items-center gap-2">
-                      <AlertCircle size={16} /> Something went wrong. Please try again.
+                      <AlertCircle size={16} /> {errorMsg || 'Something went wrong. Please try again.'}
                     </div>
                   )}
                   
@@ -167,9 +193,10 @@ export default function SmartLeadPopup({ type = 'property', contextName = '' }) 
                       type="tel"
                       required
                       value={formData.phone}
-                      onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                      onChange={e => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                      maxLength={10}
                       className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl px-4 py-3.5 outline-none focus:bg-white focus:border-amber-400 focus:ring-4 focus:ring-amber-400/10 transition-all font-medium"
-                      placeholder="+91"
+                      placeholder="e.g. 9876543210"
                     />
                   </div>
 

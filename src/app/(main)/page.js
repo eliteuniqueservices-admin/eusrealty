@@ -1,11 +1,10 @@
 import {
-  Search, MapPin, ArrowRight, ShieldCheck, Star, Quote,
-  ChevronRight, Building2, TrendingUp, Award, Users, Home as HomeIcon,
+  Search, ArrowRight, ShieldCheck, Star,
+  Building2, TrendingUp, Award, Users, Home as HomeIcon,
   Zap, Phone, CheckCircle2, BarChart3, Sparkles, Clock
 } from 'lucide-react';
 import PropertyCard from '@/components/PropertyCard';
 import Reveal from '@/components/Reveal';
-import DarkProjectCard from '@/components/DarkProjectCard';
 import Link from 'next/link';
 import dbConnect from '@/lib/mongodb';
 import Property from '@/models/Property';
@@ -15,6 +14,13 @@ import MarqueeBanner from '@/components/MarqueeBanner';
 import HeroSuccessStories from '@/components/HeroSuccessStories';
 import HeroSearchBar from '@/components/HeroSearchBar';
 import dynamic from 'next/dynamic';
+
+// Below-the-fold components — lazy loaded to reduce initial bundle
+const DarkProjectCard = dynamic(() => import('@/components/DarkProjectCard'), { ssr: true });
+const HeroContactForm = dynamic(() => import('@/components/HeroContactForm'), {
+  ssr: true,
+  loading: () => <div className="bg-white p-7 sm:p-10 rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-slate-100 h-[480px] animate-pulse" />,
+});
 
 const SuccessStoriesSection = dynamic(() => import('@/components/SuccessStoriesSection'), {
   loading: () => <div className="max-w-7xl mx-auto px-4 sm:px-6 py-20 h-[450px] rounded-[2rem] bg-white border border-slate-100 skeleton-shimmer my-16 animate-pulse" />,
@@ -81,13 +87,18 @@ export default async function Home() {
 
   try {
     await dbConnect();
-    const mandates = await Property.find({ isMandate: true }).sort({ createdAt: -1 }).limit(4).lean();
+    // Run both queries in parallel to halve server response time
+    const [mandates, sigProps] = await Promise.all([
+      Property.find({ isMandate: true }).sort({ createdAt: -1 }).limit(4).lean(),
+      Property.find({ isSignature: true }).sort({ createdAt: -1 }).lean(),
+    ]);
+    
     if (mandates.length > 0) {
       featuredProjects = mandates;
     } else {
       featuredProjects = await Property.find({}).sort({ createdAt: -1 }).limit(4).lean();
     }
-    signatureProperties = await Property.find({ isSignature: true }).sort({ createdAt: -1 }).lean();
+    signatureProperties = sigProps;
   } catch (error) {
     console.error("Failed to load featured properties from database:", error.message);
   }
@@ -173,70 +184,62 @@ export default async function Home() {
             {/* Animated Trust Badge */}
             <HeroClient />
 
-            {/* Main Headline */}
-            <Reveal delay={0.1} variant="fade-up" blur={true}>
-              <h1 className="text-[clamp(2.2rem,7vw,4.5rem)] font-black text-slate-950 tracking-[-0.03em] leading-[1.05] mb-6 md:mb-8 max-w-5xl">
-                Discover Pune&apos;s most{' '}
-                <span
-                  className="relative inline-block"
-                  style={{
-                    background: 'linear-gradient(135deg, #0f172a 0%, #78716c 40%, #f59e0b 70%, #d97706 100%)',
-                    backgroundClip: 'text',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                  }}
-                >
-                  exclusive residences.
-                  {/* Underline glow */}
-                  <span className="absolute -bottom-2 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-amber-400 to-transparent rounded-full opacity-70" />
-                </span>
-              </h1>
-            </Reveal>
+            {/* Main Headline — No Reveal wrapper for faster LCP */}
+            <h1 className="text-[clamp(2.2rem,7vw,4.5rem)] font-black text-slate-950 tracking-[-0.03em] leading-[1.05] mb-6 md:mb-8 max-w-5xl">
+              Discover Pune&apos;s most{' '}
+              <span
+                className="relative inline-block"
+                style={{
+                  background: 'linear-gradient(135deg, #0f172a 0%, #78716c 40%, #f59e0b 70%, #d97706 100%)',
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                }}
+              >
+                exclusive residences.
+                {/* Underline glow */}
+                <span className="absolute -bottom-2 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-amber-400 to-transparent rounded-full opacity-70" />
+              </span>
+            </h1>
 
-            {/* Subtitle */}
-            <Reveal delay={0.2} variant="fade-up">
-              <p className="text-[clamp(1rem,2.5vw,1.35rem)] text-slate-500 max-w-2xl mb-10 md:mb-14 leading-relaxed font-light px-2">
-                Discover <span className="text-amber-600 font-semibold">Verified Properties</span>,{' '}
-                <span className="text-slate-700 font-semibold">Exclusive Opportunities</span>, and{' '}
-                <span className="text-amber-600 font-semibold">Expert Real Estate Guidance</span>—All in One Place.
-              </p>
-            </Reveal>
+            {/* Subtitle — No Reveal wrapper for faster LCP */}
+            <p className="text-[clamp(1rem,2.5vw,1.35rem)] text-slate-500 max-w-2xl mb-10 md:mb-14 leading-relaxed font-light px-2">
+              Discover <span className="text-amber-600 font-semibold">Verified Properties</span>,{' '}
+              <span className="text-slate-700 font-semibold">Exclusive Opportunities</span>, and{' '}
+              <span className="text-amber-600 font-semibold">Expert Real Estate Guidance</span>—All in One Place.
+            </p>
 
-            {/* Search Bar */}
-            <Reveal delay={0.3} variant="fade-up">
-              <HeroSearchBar />
-              {/* Micro Ticker Success Stories */}
-              <HeroSuccessStories />
-            </Reveal>
+            {/* Search Bar — No Reveal wrapper for faster LCP */}
+            <HeroSearchBar />
+            {/* Micro Ticker Success Stories */}
+            <HeroSuccessStories />
           </div>
 
-          {/* Hero Stats Row */}
-          <Reveal delay={0.5} variant="fade-up">
-            <div className="mt-16 md:mt-20 grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6 max-w-4xl mx-auto">
-              {[
-                { value: 500, suffix: "+", label: "Projects Listed", icon: <Building2 size={20} /> },
-                { value: 10000, suffix: "+", label: "Happy Clients", icon: <Users size={20} /> },
-                { value: 98, suffix: "%", label: "RERA Verified", icon: <ShieldCheck size={20} /> },
-                { value: 0, suffix: "₹", label: "Brokerage Fee", icon: <TrendingUp size={20} />, prefix: true },
-              ].map((stat, i) => (
-                <div
-                  key={i}
-                  className="group relative bg-white rounded-2xl md:rounded-3xl border border-slate-100 p-5 md:p-6 text-center hover:-translate-y-1 hover:shadow-card transition-all duration-300 overflow-hidden"
-                >
-                  {/* Hover glow */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-amber-50/0 to-amber-50/0 group-hover:from-amber-50/80 group-hover:to-transparent transition-all duration-300 rounded-2xl" />
+          {/* Hero Stats Row — No Reveal wrapper for faster LCP */}
+          <div className="mt-16 md:mt-20 grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6 max-w-4xl mx-auto">
+            {[
+              { value: 500, suffix: "+", label: "Projects Listed", icon: <Building2 size={20} /> },
+              { value: 10000, suffix: "+", label: "Happy Clients", icon: <Users size={20} /> },
+              { value: 98, suffix: "%", label: "RERA Verified", icon: <ShieldCheck size={20} /> },
+              { value: 0, suffix: "₹", label: "Brokerage Fee", icon: <TrendingUp size={20} />, prefix: true },
+            ].map((stat, i) => (
+              <div
+                key={i}
+                className="group relative bg-white rounded-2xl md:rounded-3xl border border-slate-100 p-5 md:p-6 text-center hover:-translate-y-1 hover:shadow-card transition-all duration-300 overflow-hidden"
+              >
+                {/* Hover glow */}
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-50/0 to-amber-50/0 group-hover:from-amber-50/80 group-hover:to-transparent transition-all duration-300 rounded-2xl" />
 
-                  <div className="relative z-10">
-                    <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-3 group-hover:bg-slate-950 group-hover:text-amber-400 transition-colors duration-300">
-                      {stat.icon}
-                    </div>
-                    <StatsCounter value={stat.value} suffix={stat.suffix} prefix={stat.prefix} />
-                    <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">{stat.label}</p>
+                <div className="relative z-10">
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-3 group-hover:bg-slate-950 group-hover:text-amber-400 transition-colors duration-300">
+                    {stat.icon}
                   </div>
+                  <StatsCounter value={stat.value} suffix={stat.suffix} prefix={stat.prefix} />
+                  <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">{stat.label}</p>
                 </div>
-              ))}
-            </div>
-          </Reveal>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Scroll indicator */}
@@ -581,63 +584,9 @@ export default async function Home() {
                 </div>
               </Reveal>
 
-              {/* Right: Form Card */}
+              {/* Right: Form Card — Uses HeroContactForm with full submission logic */}
               <Reveal delay={0.25}>
-                <div className="bg-white p-7 sm:p-10 rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-slate-100">
-                  <h3 className="text-2xl md:text-3xl font-black text-slate-900 mb-1.5 text-center tracking-tight">
-                    Book a Strategy Session
-                  </h3>
-                  <p className="text-sm text-center text-slate-500 mb-8 font-light">
-                    100% Free Advisory. No obligations. Response in 2 hours.
-                  </p>
-
-                  <form className="space-y-4">
-                    {[
-                      { label: "Full Name", type: "text", placeholder: "Rahul Upadhyay" },
-                      { label: "Phone Number", type: "tel", placeholder: "+91 98765 43210" },
-                      { label: "Email Address", type: "email", placeholder: "rahulUpadhyay@example.com" },
-                    ].map((field) => (
-                      <div key={field.label} className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-                          {field.label}
-                        </label>
-                        <input
-                          type={field.type}
-                          placeholder={field.placeholder}
-                          className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-amber-500/40 focus:bg-white focus:border-amber-300 transition-all font-medium text-sm placeholder:text-slate-400"
-                        />
-                      </div>
-                    ))}
-
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-                        Budget Range
-                      </label>
-                      <select className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-amber-500/40 focus:bg-white focus:border-amber-300 transition-all font-medium text-sm text-slate-700">
-                        <option>Under ₹1 Cr</option>
-                        <option>₹1 Cr – ₹3 Cr</option>
-                        <option>₹3 Cr – ₹5 Cr</option>
-                        <option>₹5 Cr – ₹10 Cr</option>
-                        <option>Above ₹10 Cr</option>
-                      </select>
-                    </div>
-
-                    <button
-                      type="submit"
-                      className="relative overflow-hidden w-full bg-slate-950 text-white font-bold py-4 rounded-2xl group shadow-xl tracking-wide mt-2"
-                    >
-                      <span className="absolute inset-0 bg-gradient-to-r from-amber-500 to-amber-400 origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-300 ease-out" />
-                      <span className="relative z-10 flex items-center justify-center gap-3 group-hover:text-slate-950 transition-colors duration-300">
-                        Claim Free Consultation
-                        <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                      </span>
-                    </button>
-
-                    <p className="text-center text-xs text-slate-400 mt-3">
-                      🔒 Your details are 100% secure. We never share your information.
-                    </p>
-                  </form>
-                </div>
+                <HeroContactForm />
               </Reveal>
             </div>
           </div>

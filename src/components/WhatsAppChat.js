@@ -200,6 +200,9 @@ function LeadFormCard({ phoneNumber, onSubmitted, sessionId }) {
 
     setSubmitting(false);
     setSubmitted(true);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('eus_lead_submitted', 'true');
+    }
     if (onSubmitted) onSubmitted(name.trim());
     speakCongratulation(name);
   };

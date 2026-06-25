@@ -167,8 +167,20 @@ export default function PropertyCard({
     damping: 20,
   });
 
+  const rectRef = useRef(null);
+
+  const handleMouseEnter = () => {
+    setHovered(true);
+    if (cardRef.current) {
+      rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+  };
+
   const handleMouseMove = (e) => {
-    const rect = cardRef.current?.getBoundingClientRect();
+    if (!rectRef.current && cardRef.current) {
+      rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+    const rect = rectRef.current;
     if (!rect) return;
     rawX.set((e.clientX - rect.left) / rect.width - 0.5);
     rawY.set((e.clientY - rect.top) / rect.height - 0.5);
@@ -178,6 +190,7 @@ export default function PropertyCard({
     rawX.set(0);
     rawY.set(0);
     setHovered(false);
+    rectRef.current = null;
   };
 
   const handleLike = (e) => {
@@ -209,7 +222,7 @@ export default function PropertyCard({
         ref={cardRef}
         style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
         onMouseMove={handleMouseMove}
-        onMouseEnter={() => setHovered(true)}
+        onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onClick={handleCardClick}
         className="relative flex flex-col bg-white rounded-[2rem] overflow-hidden border border-slate-100/80 h-full cursor-pointer select-none"

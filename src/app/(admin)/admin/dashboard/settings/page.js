@@ -115,13 +115,20 @@ export default function SettingsPage() {
     setShowSuccess(false);
 
     if (activeSection === 'profile') {
+      const phoneDigits = profileData.phone.replace(/\D/g, '');
+      if (!phoneDigits || phoneDigits.length !== 10) {
+        setErrorAlert("Please enter a valid 10-digit phone number.");
+        setIsSaving(false);
+        return;
+      }
+
       try {
         const res = await fetch('/api/admin/profile', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name: profileData.name,
-            phone: profileData.phone,
+            phone: phoneDigits,
             office: profileData.office
           })
         });
@@ -294,8 +301,10 @@ export default function SettingsPage() {
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Phone Number</label>
                       <input 
-                        type="tel" value={profileData.phone} 
-                        onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                        type="tel" 
+                        value={profileData.phone} 
+                        maxLength={10}
+                        onChange={(e) => setProfileData({...profileData, phone: e.target.value.replace(/\D/g, '').slice(0, 10)})}
                         className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-bold text-slate-800"
                       />
                     </div>

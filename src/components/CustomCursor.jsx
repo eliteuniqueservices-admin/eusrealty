@@ -9,6 +9,32 @@ export default function CustomCursor() {
   const [hoverType, setHoverType] = useState('none'); // 'none' | 'link' | 'property' | 'action'
   const [isMobile, setIsMobile] = useState(true);
 
+  // Refs to avoid closures stale state and prevent redundant state sets / re-renders
+  const hoverTypeRef = useRef('none');
+  const isVisibleRef = useRef(false);
+  const isMobileRef = useRef(true);
+
+  const updateHoverType = (newType) => {
+    if (hoverTypeRef.current !== newType) {
+      hoverTypeRef.current = newType;
+      setHoverType(newType);
+    }
+  };
+
+  const updateIsVisible = (visible) => {
+    if (isVisibleRef.current !== visible) {
+      isVisibleRef.current = visible;
+      setIsVisible(visible);
+    }
+  };
+
+  const updateIsMobile = (mobile) => {
+    if (isMobileRef.current !== mobile) {
+      isMobileRef.current = mobile;
+      setIsMobile(mobile);
+    }
+  };
+
   // Mouse coordinates using MotionValues for smooth framer-motion springs
   const cursorX = useMotionValue(-100);
   const cursorY = useMotionValue(-100);
@@ -25,7 +51,7 @@ export default function CustomCursor() {
     // Detect direct touch input (tap/swipe) and fallback to native browser behaviors
     const handleTouchStart = () => {
       isTouchMode = true;
-      setIsMobile(true);
+      updateIsMobile(true);
       document.documentElement.classList.remove('has-custom-cursor');
       
       clearTimeout(touchTimer);
@@ -38,13 +64,13 @@ export default function CustomCursor() {
       if (isTouchMode) return;
 
       // Enable custom cursor and apply the CSS override class
-      setIsMobile(false);
+      updateIsMobile(false);
       document.documentElement.classList.add('has-custom-cursor');
       
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
       
-      if (!isVisible) setIsVisible(true);
+      updateIsVisible(true);
 
       // Event delegation: scan target element hierarchy
       const target = e.target;
@@ -55,23 +81,23 @@ export default function CustomCursor() {
       const isAction = target.closest('[data-cursor="action"]');
 
       if (isAction) {
-        setHoverType('action');
+        updateHoverType('action');
       } else if (isPropertyCard) {
-        setHoverType('property');
+        updateHoverType('property');
       } else if (isClickable) {
-        setHoverType('link');
+        updateHoverType('link');
       } else {
-        setHoverType('none');
+        updateHoverType('none');
       }
     };
 
     const handleMouseLeave = () => {
-      setIsVisible(false);
+      updateIsVisible(false);
       document.documentElement.classList.remove('has-custom-cursor');
     };
 
     const handleMouseEnter = () => {
-      setIsVisible(true);
+      updateIsVisible(true);
       if (!isTouchMode) {
         document.documentElement.classList.add('has-custom-cursor');
       }
@@ -90,7 +116,7 @@ export default function CustomCursor() {
       document.removeEventListener('touchstart', handleTouchStart);
       clearTimeout(touchTimer);
     };
-  }, [cursorX, cursorY, isVisible, isMobile]);
+  }, [cursorX, cursorY]);
 
   // Render standard cursor on mobile
   if (isMobile || !isVisible) return null;
@@ -105,7 +131,7 @@ export default function CustomCursor() {
           translateX: '-50%',
           translateY: '-10%', // Peak of the roof matches the exact mouse coordinate
         }}
-        className="fixed top-0 left-0 pointer-events-none z-[999999] text-amber-500 drop-shadow-[0_2px_8px_rgba(245,158,11,0.5)]"
+        className="fixed top-0 left-0 pointer-events-none z-[999999] text-amber-500 drop-shadow-[0_2px_8px_rgba(245,158,11,0.5)] will-change-transform"
         animate={{
           scale: hoverType === 'link' ? 1.45 : hoverType === 'property' ? 1.35 : hoverType === 'action' ? 1.25 : 1,
           rotate: hoverType === 'link' ? 12 : hoverType === 'action' ? -12 : 0,
@@ -124,21 +150,20 @@ export default function CustomCursor() {
           translateX: '-50%',
           translateY: '-50%',
         }}
-        className="fixed top-0 left-0 rounded-full pointer-events-none z-[999998] flex items-center justify-center border border-amber-500/40 bg-amber-500/5 backdrop-blur-[1px]"
+        className="fixed top-0 left-0 w-7 h-7 rounded-full pointer-events-none z-[999998] flex items-center justify-center border border-amber-500/40 bg-amber-500/5 will-change-transform"
         animate={{
-          width: hoverType === 'property' ? 70 : hoverType === 'link' ? 45 : hoverType === 'action' ? 55 : 28,
-          height: hoverType === 'property' ? 70 : hoverType === 'link' ? 45 : hoverType === 'action' ? 55 : 28,
+          scale: hoverType === 'property' ? 2.5 : hoverType === 'link' ? 1.6 : hoverType === 'action' ? 1.96 : 1,
           backgroundColor: hoverType === 'property' ? 'rgba(245, 158, 11, 0.12)' : hoverType === 'link' ? 'rgba(245, 158, 11, 0.08)' : 'rgba(245, 158, 11, 0.03)',
           borderColor: hoverType !== 'none' ? 'rgba(245, 158, 11, 0.8)' : 'rgba(245, 158, 11, 0.4)',
           boxShadow: hoverType === 'property' ? '0 0 20px rgba(245, 158, 11, 0.3)' : 'none',
         }}
-        transition={{ type: 'spring', stiffness: 220, damping: 24, mass: 0.8 }}
+        transition={{ type: 'spring', stiffness: 320, damping: 28, mass: 0.5 }}
       >
         {/* Render contextual icons inside the outer follower */}
         {hoverType === 'property' && (
           <motion.div
             initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
+            animate={{ scale: 0.45, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             className="text-amber-400 flex flex-col items-center justify-center"
@@ -150,7 +175,7 @@ export default function CustomCursor() {
         {hoverType === 'link' && (
           <motion.div
             initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
+            animate={{ scale: 0.7, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             className="text-amber-400"
           >
@@ -161,7 +186,7 @@ export default function CustomCursor() {
         {hoverType === 'action' && (
           <motion.div
             initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
+            animate={{ scale: 0.55, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             className="text-amber-400 flex flex-col items-center justify-center"
           >

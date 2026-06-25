@@ -87,6 +87,12 @@ export default function EmployeesPage() {
   };
 
   const handleSave = async () => {
+    const phoneDigits = form.mobile.replace(/\D/g, '');
+    if (phoneDigits.length !== 10) {
+      alert('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+
     setSaving(true);
     try {
       const url = editId ? `/api/employees/${editId}` : '/api/employees';
@@ -94,7 +100,7 @@ export default function EmployeesPage() {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, mobile: phoneDigits }),
       });
       if (res.ok) {
         setDialogOpen(false);
@@ -253,7 +259,13 @@ export default function EmployeesPage() {
             </div>
             <div className="space-y-2">
               <Label>Mobile *</Label>
-              <Input placeholder="+91 98765 43210" value={form.mobile} onChange={e => setForm({ ...form, mobile: e.target.value })} />
+              <Input 
+                type="tel"
+                maxLength={10}
+                placeholder="e.g. 9876543210" 
+                value={form.mobile} 
+                onChange={e => setForm({ ...form, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) })} 
+              />
             </div>
             <div className="space-y-2">
               <Label>Department *</Label>

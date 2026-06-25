@@ -25,10 +25,10 @@ const Reveal = forwardRef(({
   children,
   variant = "fade-up",
   delay = 0,
-  duration = 0.8,
-  distance = 40,
+  duration = 0.7,
+  distance = 24,
   opacity = 0,
-  blur = true,
+  blur = false,
   once = true,
   amount = "some", 
   staggerChildren = 0,
@@ -68,12 +68,12 @@ const Reveal = forwardRef(({
     // 2. Base States
     const baseInitial = {
       opacity,
-      filter: blur ? "blur(5px)" : "blur(0px)",
+      ...(blur ? { filter: "blur(4px)" } : {}),
     };
 
     const baseAnimate = {
       opacity: 1,
-      filter: "blur(0px)",
+      ...(blur ? { filter: "blur(0px)" } : {}),
     };
 
     const movementMap = {

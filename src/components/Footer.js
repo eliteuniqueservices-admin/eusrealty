@@ -24,6 +24,7 @@ import {
 // Magnetic button wrapper using framer-motion
 function MagneticSocial({ children, link, label }) {
   const ref = useRef(null);
+  const rectRef = useRef(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
@@ -31,10 +32,19 @@ function MagneticSocial({ children, link, label }) {
   const springX = useSpring(x, springConfig);
   const springY = useSpring(y, springConfig);
 
+  const handleMouseEnter = () => {
+    if (ref.current) {
+      rectRef.current = ref.current.getBoundingClientRect();
+    }
+  };
+
   const handleMouseMove = (e) => {
-    const { clientX, clientY } = e;
-    const rect = ref.current?.getBoundingClientRect();
+    if (!rectRef.current && ref.current) {
+      rectRef.current = ref.current.getBoundingClientRect();
+    }
+    const rect = rectRef.current;
     if (!rect) return;
+    const { clientX, clientY } = e;
     const dx = clientX - (rect.left + rect.width / 2);
     const dy = clientY - (rect.top + rect.height / 2);
     // Limit translation distance
@@ -45,6 +55,7 @@ function MagneticSocial({ children, link, label }) {
   const handleMouseLeave = () => {
     x.set(0);
     y.set(0);
+    rectRef.current = null;
   };
 
   return (
@@ -54,6 +65,7 @@ function MagneticSocial({ children, link, label }) {
       target="_blank"
       rel="noopener noreferrer"
       aria-label={label}
+      onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{ x: springX, y: springY }}
@@ -68,6 +80,7 @@ function MagneticSocial({ children, link, label }) {
 
 export default function Footer() {
   const footerRef = useRef(null);
+  const rectRef = useRef(null);
 
   // States for interactive components
   const [isHovered, setIsHovered] = useState(false);
@@ -79,13 +92,28 @@ export default function Footer() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    if (footerRef.current) {
+      rectRef.current = footerRef.current.getBoundingClientRect();
+    }
+  };
+
   const handleMouseMove = (e) => {
-    const rect = footerRef.current?.getBoundingClientRect();
+    if (!rectRef.current && footerRef.current) {
+      rectRef.current = footerRef.current.getBoundingClientRect();
+    }
+    const rect = rectRef.current;
     if (!rect) return;
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     footerRef.current.style.setProperty('--spotlight-x', `${x}px`);
     footerRef.current.style.setProperty('--spotlight-y', `${y}px`);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    rectRef.current = null;
   };
 
   const handleCopyEmail = async (e) => {
@@ -128,6 +156,9 @@ export default function Footer() {
       if (res.ok) {
         setIsSubscribed(true);
         setEmailInput('');
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('eus_lead_submitted', 'true');
+        }
       } else {
         alert(data.error || 'Subscription failed.');
       }
@@ -141,8 +172,8 @@ export default function Footer() {
     <footer
       ref={footerRef}
       onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       className="relative bg-slate-950 text-white pt-24 pb-12 overflow-hidden border-t border-slate-900 select-none"
     >
       {/* Dynamic Cursor Spotlight Glow */}

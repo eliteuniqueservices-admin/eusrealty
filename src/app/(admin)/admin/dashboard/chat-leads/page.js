@@ -180,11 +180,22 @@ function ChatLeadsPageContent() {
     e.preventDefault();
     if (!selectedSession) return;
 
+    if (editForm.phone) {
+      const phoneDigits = editForm.phone.replace(/\D/g, '');
+      if (phoneDigits.length !== 10) {
+        alert('Please enter a valid 10-digit phone number.');
+        return;
+      }
+    }
+
     setSavingLead(true);
     try {
       const payload = {
         ...editForm,
       };
+      if (editForm.phone) {
+        payload.phone = editForm.phone.replace(/\D/g, '');
+      }
       if (noteText.trim()) {
         payload.noteText = noteText;
       }
@@ -538,8 +549,9 @@ function ChatLeadsPageContent() {
                         <Label htmlFor="phone" className="text-xs font-bold text-slate-600">Phone</Label>
                         <Input 
                           id="phone"
+                          maxLength={10}
                           value={editForm.phone}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value.replace(/\D/g, '').slice(0, 10) }))}
                           className="h-10 rounded-lg border-slate-200"
                         />
                       </div>

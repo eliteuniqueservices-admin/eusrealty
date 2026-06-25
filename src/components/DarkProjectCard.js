@@ -19,8 +19,20 @@ export default function DarkProjectCard({ project, index }) {
   const shineX = useSpring(useTransform(rawX, [-0.5, 0.5], [0, 100]), { stiffness: 150, damping: 20 });
   const shineY = useSpring(useTransform(rawY, [-0.5, 0.5], [0, 100]), { stiffness: 150, damping: 20 });
 
+  const rectRef = useRef(null);
+
+  const handleMouseEnter = () => {
+    setHovered(true);
+    if (cardRef.current) {
+      rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+  };
+
   const handleMouseMove = (e) => {
-    const rect = cardRef.current?.getBoundingClientRect();
+    if (!rectRef.current && cardRef.current) {
+      rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+    const rect = rectRef.current;
     if (!rect) return;
     rawX.set((e.clientX - rect.left) / rect.width - 0.5);
     rawY.set((e.clientY - rect.top) / rect.height - 0.5);
@@ -30,6 +42,7 @@ export default function DarkProjectCard({ project, index }) {
     rawX.set(0);
     rawY.set(0);
     setHovered(false);
+    rectRef.current = null;
   };
 
   const price = project.configDetails?.[0]?.price;
@@ -54,7 +67,7 @@ export default function DarkProjectCard({ project, index }) {
         href={`/properties/${project._id?.toString() || 'dummy'}`}
         style={{ rotateX, rotateY, transformStyle: "preserve-3d", display: 'flex', flexDirection: 'column' }}
         onMouseMove={handleMouseMove}
-        onMouseEnter={() => setHovered(true)}
+        onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         animate={hovered
           ? { borderColor: "rgba(251,191,36,0.4)", backgroundColor: "rgba(20,20,25,0.9)", boxShadow: "0 30px 60px -15px rgba(0,0,0,0.8), 0 0 20px rgba(251,191,36,0.1) inset" }

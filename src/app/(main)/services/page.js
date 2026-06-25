@@ -134,15 +134,31 @@ function FloatingOrb({ style, duration = 8, delay = 0 }) {
 ───────────────────────────────────────────── */
 function ServiceCard({ item, index }) {
   const ref = useRef(null);
+  const rectRef = useRef(null);
   const [hovered, setHovered] = useState(false);
 
+  const handleMouseEnter = () => {
+    setHovered(true);
+    if (ref.current) {
+      rectRef.current = ref.current.getBoundingClientRect();
+    }
+  };
+
   const handleMouseMove = (e) => {
-    const rect = ref.current?.getBoundingClientRect();
+    if (!rectRef.current && ref.current) {
+      rectRef.current = ref.current.getBoundingClientRect();
+    }
+    const rect = rectRef.current;
     if (!rect) return;
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     ref.current.style.setProperty('--mouse-x', `${x}%`);
     ref.current.style.setProperty('--mouse-y', `${y}%`);
+  };
+
+  const handleMouseLeave = () => {
+    setHovered(false);
+    rectRef.current = null;
   };
 
   return (
@@ -154,8 +170,8 @@ function ServiceCard({ item, index }) {
         viewport={{ once: true, margin: '-40px' }}
         transition={{ duration: 0.7, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
         whileHover={{ y: -6, boxShadow: '0 28px 60px -12px rgba(15,23,42,0.1)' }}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
         className="group relative h-full p-6 sm:p-7 rounded-[2rem] bg-white border border-slate-100 overflow-hidden transition-all duration-300 hover:border-amber-400/30"
       >

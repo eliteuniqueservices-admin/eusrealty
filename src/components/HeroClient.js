@@ -23,11 +23,8 @@ export default function HeroClient() {
 
   return (
     <>
-      {/* Animated Trust Badge with spinning conic border */}
-      <motion.div
-        initial={{ opacity: 0, y: 20, scale: 0.9 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      {/* Trust Badge — renders immediately for LCP */}
+      <div
         className="group relative inline-flex items-center justify-center mb-8 md:mb-10 p-[2px] rounded-full overflow-hidden cursor-pointer hover:-translate-y-0.5 transition-transform duration-300"
       >
         {/* Spinning conic gradient border */}
@@ -49,7 +46,7 @@ export default function HeroClient() {
           <span className="hidden sm:inline font-bold text-amber-600">RERA Registered</span>
           <ChevronRight size={15} className="text-amber-500 group-hover:translate-x-1 transition-transform" />
         </div>
-      </motion.div>
+      </div>
 
       {/* Animated rotating keyword (typewriter style) */}
       <motion.div

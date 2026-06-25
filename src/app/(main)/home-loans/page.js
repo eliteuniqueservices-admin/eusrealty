@@ -119,6 +119,9 @@ export default function HomeLoanCalculator() {
       const responseData = await res.json();
       if (res.ok) {
         setResults(responseData);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('eus_lead_submitted', 'true');
+        }
       } else {
         alert(responseData.error || 'Failed to calculate eligibility.');
       }
@@ -200,7 +203,7 @@ export default function HomeLoanCalculator() {
                         </div>
                         <div>
                           <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Mobile Number</label>
-                          <input type="tel" {...register('mobile', { required: true, pattern: /^[0-9]{10}$/ })} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 transition-colors" placeholder="9876543210" />
+                          <input type="tel" maxLength={10} onInput={(e) => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10); }} {...register('mobile', { required: true, pattern: /^[0-9]{10}$/ })} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 transition-colors" placeholder="9876543210" />
                         </div>
                         <div>
                           <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Email Address</label>

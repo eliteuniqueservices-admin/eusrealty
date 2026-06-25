@@ -24,11 +24,11 @@ export const revalidate = 3600; // Revalidate cache hourly
 
 // Generate static params for all programmatic SEO pages and seeded properties
 export async function generateStaticParams() {
-  await dbConnect();
   const programmaticPaths = Object.keys(seoLandingPages).map(slug => ({ slug }));
   
   let propertyPaths = [];
   try {
+    await dbConnect();
     const dbProperties = await Property.find({}).lean();
     propertyPaths = dbProperties.map(p => ({ slug: getPropertySlug(p) }));
     // Also include legacy ID paths just in case
@@ -36,7 +36,7 @@ export async function generateStaticParams() {
       propertyPaths.push({ slug: String(p._id) });
     });
   } catch (error) {
-    console.error('Static params properties error:', error);
+    console.error('Static params properties error:', error.message);
   }
 
   return [...programmaticPaths, ...propertyPaths];
@@ -46,7 +46,6 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }) {
   const resolvedParams = await params;
   const { slug } = resolvedParams;
-  await dbConnect();
 
   // 1. Check if programmatic SEO page
   if (seoLandingPages[slug]) {
@@ -58,6 +57,13 @@ export async function generateMetadata({ params }) {
         canonical: `https://eusrealty.co.in/properties/${slug}`,
       }
     };
+  }
+
+  try {
+    await dbConnect();
+  } catch (error) {
+    console.error('generateMetadata dbConnect error:', error.message);
+    return { title: 'EUS Realty | Premium Properties' };
   }
 
   // 2. Check if specific property details page
@@ -96,7 +102,6 @@ export async function generateMetadata({ params }) {
 export default async function PropertyOrListingPage({ params }) {
   const resolvedParams = await params;
   const { slug } = resolvedParams;
-  await dbConnect();
 
   // ─────────────────────────────────────────────────────────────
   // CASE A: PROGRAMMATIC SEO LISTING PAGE
@@ -131,9 +136,10 @@ export default async function PropertyOrListingPage({ params }) {
 
     let dbProperties = [];
     try {
+      await dbConnect();
       dbProperties = await Property.find(query).sort({ createdAt: -1 }).lean();
     } catch (e) {
-      console.error(e);
+      console.error('Programmatic page query error:', e.message);
     }
 
     // Filter budget in memory if maxCr set
@@ -221,6 +227,7 @@ export default async function PropertyOrListingPage({ params }) {
   const potentialId = getIdFromPropertyParam(slug);
   let property = null;
   try {
+    await dbConnect();
     if (mongoose.Types.ObjectId.isValid(potentialId)) {
       property = await Property.findById(potentialId).lean();
     } else {
@@ -228,6 +235,7 @@ export default async function PropertyOrListingPage({ params }) {
       property = allProps.find(p => getPropertySlug(p) === slug);
     }
   } catch (error) {
+    console.error('Property detail page query error:', error.message);
     return notFound();
   }
 

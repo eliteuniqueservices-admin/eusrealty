@@ -126,28 +126,43 @@ function InteractiveCalculator() {
  ───────────────────────────────────────────── */
 function CareerCard3D({ title, desc, icon, index }) {
   const cardRef = useRef(null);
+  const rectRef = useRef(null);
   const [hovered, setHovered] = useState(false);
-  const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
 
   const rawX = useMotionValue(0);
   const rawY = useMotionValue(0);
   const rotateX = useSpring(useTransform(rawY, [-0.5, 0.5], [6, -6]), { stiffness: 180, damping: 22 });
   const rotateY = useSpring(useTransform(rawX, [-0.5, 0.5], [-6, 6]), { stiffness: 180, damping: 22 });
 
+  const handleMouseEnter = () => {
+    setHovered(true);
+    if (cardRef.current) {
+      rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+  };
+
   const handleMouseMove = (e) => {
-    const rect = cardRef.current?.getBoundingClientRect();
+    if (!rectRef.current && cardRef.current) {
+      rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+    const rect = rectRef.current;
     if (!rect) return;
     const nx = (e.clientX - rect.left) / rect.width;
     const ny = (e.clientY - rect.top) / rect.height;
     rawX.set(nx - 0.5);
     rawY.set(ny - 0.5);
-    setMousePos({ x: nx * 100, y: ny * 100 });
+    cardRef.current.style.setProperty('--spotlight-x', `${nx * 100}%`);
+    cardRef.current.style.setProperty('--spotlight-y', `${ny * 100}%`);
   };
 
   const handleMouseLeave = () => {
     rawX.set(0); rawY.set(0);
-    setMousePos({ x: 50, y: 50 });
     setHovered(false);
+    rectRef.current = null;
+    if (cardRef.current) {
+      cardRef.current.style.setProperty('--spotlight-x', '50%');
+      cardRef.current.style.setProperty('--spotlight-y', '50%');
+    }
   };
 
   return (
@@ -155,7 +170,7 @@ function CareerCard3D({ title, desc, icon, index }) {
       <motion.div
         ref={cardRef}
         style={{ rotateX, rotateY, transformStyle: 'preserve-3d', border: '1px solid rgba(255,255,255,0.05)' }}
-        onMouseEnter={() => setHovered(true)}
+        onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
         className="relative p-8 sm:p-10 rounded-[2.5rem] bg-[#07070d] cursor-pointer overflow-hidden"
@@ -169,7 +184,7 @@ function CareerCard3D({ title, desc, icon, index }) {
           className="absolute inset-0 pointer-events-none z-0 transition-opacity duration-500"
           style={{
             opacity: hovered ? 1 : 0,
-            background: `radial-gradient(circle 240px at ${mousePos.x}% ${mousePos.y}%, rgba(251,191,36,0.2) 0%, transparent 65%)`,
+            background: `radial-gradient(circle 240px at var(--spotlight-x, 50%) var(--spotlight-y, 50%), rgba(251,191,36,0.2) 0%, transparent 65%)`,
           }}
         />
 
@@ -271,6 +286,10 @@ export default function CareersPageClient({ initialJobPosts }) {
 
   const handleSubmitApplication = async (e) => {
     e.preventDefault();
+    if (applyForm.phone.replace(/\D/g, '').length !== 10) {
+      alert('Please enter a valid 10-digit phone number.');
+      return;
+    }
     try {
       setSubmitting(true);
       
@@ -306,6 +325,9 @@ export default function CareersPageClient({ initialJobPosts }) {
       }
       
       alert('Application submitted successfully!');
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('eus_lead_submitted', 'true');
+      }
       setApplyForm({ name: '', email: '', phone: '', experience: '' });
       setSelectedFile(null);
       setShowApplyModal(false);
@@ -401,9 +423,10 @@ export default function CareersPageClient({ initialJobPosts }) {
                 <input 
                   type="tel" 
                   required 
-                  placeholder="+91" 
+                  placeholder="e.g. 9876543210" 
                   value={applyForm.phone} 
-                  onChange={e => setApplyForm({ ...applyForm, phone: e.target.value })} 
+                  onChange={e => setApplyForm({ ...applyForm, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })} 
+                  maxLength={10}
                   className="w-full bg-[#12121a] rounded-xl px-4 py-3.5 text-white font-medium border border-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 focus:bg-[#161622] transition-all" 
                 />
               </div>

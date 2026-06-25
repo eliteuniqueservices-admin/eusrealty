@@ -200,8 +200,8 @@ function AnimatedCounter({ value, duration = 1.5 }) {
 
 function TeamCard({ member, index }) {
   const cardRef = useRef(null);
+  const rectRef = useRef(null);
   const [hovered, setHovered] = useState(false);
-  const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
 
   /* ── Framer magnetic tilt ── */
   const rawX = useMotionValue(0);
@@ -209,20 +209,35 @@ function TeamCard({ member, index }) {
   const rotateX = useSpringFM(useTransform(rawY, [-0.5, 0.5], [6, -6]), { stiffness: 160, damping: 22 });
   const rotateY = useSpringFM(useTransform(rawX, [-0.5, 0.5], [-6, 6]), { stiffness: 160, damping: 22 });
 
+  const handleMouseEnter = () => {
+    setHovered(true);
+    if (cardRef.current) {
+      rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+  };
+
   const handleMouseMove = (e) => {
-    const rect = cardRef.current?.getBoundingClientRect();
+    if (!rectRef.current && cardRef.current) {
+      rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+    const rect = rectRef.current;
     if (!rect) return;
     const nx = (e.clientX - rect.left) / rect.width;
     const ny = (e.clientY - rect.top) / rect.height;
     rawX.set(nx - 0.5);
     rawY.set(ny - 0.5);
-    setMousePos({ x: nx * 100, y: ny * 100 });
+    cardRef.current.style.setProperty('--spotlight-x', `${nx * 100}%`);
+    cardRef.current.style.setProperty('--spotlight-y', `${ny * 100}%`);
   };
 
   const handleMouseLeave = () => {
     rawX.set(0); rawY.set(0);
-    setMousePos({ x: 50, y: 50 });
     setHovered(false);
+    rectRef.current = null;
+    if (cardRef.current) {
+      cardRef.current.style.setProperty('--spotlight-x', '50%');
+      cardRef.current.style.setProperty('--spotlight-y', '50%');
+    }
   };
 
   return (
@@ -233,7 +248,7 @@ function TeamCard({ member, index }) {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: '-60px' }}
         transition={{ duration: 0.8, delay: index * 0.09, ease: [0.16, 1, 0.3, 1] }}
-        onMouseEnter={() => setHovered(true)}
+        onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
         className="relative group overflow-hidden rounded-2xl bg-[#07070d] cursor-pointer"
@@ -248,7 +263,7 @@ function TeamCard({ member, index }) {
           className="absolute inset-0 pointer-events-none z-0 transition-opacity duration-500"
           style={{
             opacity: hovered ? 1 : 0,
-            background: `radial-gradient(circle 320px at ${mousePos.x}% ${mousePos.y}%, ${member.glowColor} 0%, transparent 65%)`,
+            background: `radial-gradient(circle 320px at var(--spotlight-x, 50%) var(--spotlight-y, 50%), ${member.glowColor} 0%, transparent 65%)`,
           }}
         />
 
@@ -471,19 +486,36 @@ function TeamCard({ member, index }) {
 ───────────────────────────────────────────── */
 function StatCard({ stat, index }) {
   const cardRef = useRef(null);
+  const rectRef = useRef(null);
   const [hovered, setHovered] = useState(false);
   const rawX = useMotionValue(0);
   const rawY = useMotionValue(0);
   const rotateX = useSpringFM(useTransform(rawY, [-0.5, 0.5], [8, -8]), { stiffness: 180, damping: 22 });
   const rotateY = useSpringFM(useTransform(rawX, [-0.5, 0.5], [-8, 8]), { stiffness: 180, damping: 22 });
 
+  const handleMouseEnter = () => {
+    setHovered(true);
+    if (cardRef.current) {
+      rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+  };
+
   const handleMouseMove = (e) => {
-    const rect = cardRef.current?.getBoundingClientRect();
+    if (!rectRef.current && cardRef.current) {
+      rectRef.current = cardRef.current.getBoundingClientRect();
+    }
+    const rect = rectRef.current;
     if (!rect) return;
     rawX.set((e.clientX - rect.left) / rect.width - 0.5);
     rawY.set((e.clientY - rect.top) / rect.height - 0.5);
   };
-  const handleMouseLeave = () => { rawX.set(0); rawY.set(0); setHovered(false); };
+
+  const handleMouseLeave = () => {
+    rawX.set(0);
+    rawY.set(0);
+    setHovered(false);
+    rectRef.current = null;
+  };
 
   return (
     <div style={{ perspective: '800px' }}>
@@ -493,7 +525,7 @@ function StatCard({ stat, index }) {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: '-40px' }}
         transition={{ duration: 0.75, delay: stat.delay, ease: [0.16, 1, 0.3, 1] }}
-        onMouseEnter={() => setHovered(true)}
+        onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
         className="relative p-8 sm:p-10 rounded-3xl overflow-hidden cursor-default"

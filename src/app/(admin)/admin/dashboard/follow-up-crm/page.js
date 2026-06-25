@@ -664,9 +664,21 @@ function FollowUpCRMContent() {
   const handleUpdateLead = async (e) => {
     e.preventDefault();
     if (!selectedLead) return;
+
+    if (editForm.phone) {
+      const phoneDigits = editForm.phone.replace(/\D/g, '');
+      if (phoneDigits.length !== 10) {
+        alert('Please enter a valid 10-digit phone number.');
+        return;
+      }
+    }
+
     setSavingLead(true);
     try {
       const payload = { ...editForm };
+      if (editForm.phone) {
+        payload.phone = editForm.phone.replace(/\D/g, '');
+      }
       if (noteText.trim()) payload.noteText = noteText;
 
       const res = await fetch(`/api/leads/${selectedLead._id}`, {
@@ -1019,7 +1031,12 @@ function FollowUpCRMContent() {
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs font-bold text-slate-600">Phone</Label>
-                        <Input value={editForm.phone} onChange={(e) => setEditForm(p => ({ ...p, phone: e.target.value }))} className="h-9 rounded-lg border-slate-200 text-sm" />
+                        <Input 
+                          maxLength={10}
+                          value={editForm.phone} 
+                          onChange={(e) => setEditForm(p => ({ ...p, phone: e.target.value.replace(/\D/g, '').slice(0, 10) }))} 
+                          className="h-9 rounded-lg border-slate-200 text-sm" 
+                        />
                       </div>
                     </div>
 

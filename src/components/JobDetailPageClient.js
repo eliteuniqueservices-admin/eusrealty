@@ -44,6 +44,10 @@ export default function JobDetailPageClient({ job }) {
 
   const handleSubmitApplication = async (e) => {
     e.preventDefault();
+    if (applyForm.phone.replace(/\D/g, '').length !== 10) {
+      alert('Please enter a valid 10-digit phone number.');
+      return;
+    }
     try {
       setSubmitting(true);
       
@@ -79,6 +83,9 @@ export default function JobDetailPageClient({ job }) {
       }
       
       alert('Application submitted successfully!');
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('eus_lead_submitted', 'true');
+      }
       setApplyForm({ name: '', email: '', phone: '', experience: '' });
       setSelectedFile(null);
       setShowApplyModal(false);
@@ -149,9 +156,10 @@ export default function JobDetailPageClient({ job }) {
                 <input 
                   type="tel" 
                   required 
-                  placeholder="+91" 
+                  placeholder="e.g. 9876543210" 
                   value={applyForm.phone} 
-                  onChange={e => setApplyForm({ ...applyForm, phone: e.target.value })} 
+                  onChange={e => setApplyForm({ ...applyForm, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })} 
+                  maxLength={10}
                   className="w-full bg-[#12121a] rounded-xl px-4 py-3.5 text-white font-medium border border-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 focus:bg-[#161622] transition-all" 
                 />
               </div>

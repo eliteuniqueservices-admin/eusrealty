@@ -84,6 +84,11 @@ function ManageAppsContent() {
   // Handlers
   const handleAddSubmit = async (e) => {
     e.preventDefault();
+    const phoneDigits = newApp.phone.replace(/\D/g, '');
+    if (phoneDigits.length !== 10) {
+      alert('Please enter a valid 10-digit phone number.');
+      return;
+    }
     try {
       const res = await fetch('/api/job-applications', {
         method: 'POST',
@@ -91,7 +96,7 @@ function ManageAppsContent() {
         body: JSON.stringify({
           name: newApp.name,
           email: newApp.email,
-          phone: newApp.phone,
+          phone: phoneDigits,
           position: newApp.role,
           experience: newApp.experience,
           resumeUrl: '/uploads/manual-add.pdf' // manual fallback PDF url
@@ -408,8 +413,15 @@ function ManageAppsContent() {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-700">Phone Number *</label>
-                    <input required type="tel" placeholder="+91..." className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-colors text-sm font-medium text-slate-950"
-                      value={newApp.phone} onChange={e => setNewApp({...newApp, phone: e.target.value})} />
+                    <input 
+                      required 
+                      type="tel" 
+                      maxLength={10}
+                      placeholder="e.g. 9876543210" 
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-colors text-sm font-medium text-slate-950"
+                      value={newApp.phone} 
+                      onChange={e => setNewApp({...newApp, phone: e.target.value.replace(/\D/g, '').slice(0, 10)})} 
+                    />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-700">Email Address *</label>

@@ -13,11 +13,12 @@ export default function ExitIntentPopup() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const isFilled = localStorage.getItem('eus_exit_popup_filled');
-      if (isFilled === 'true') return;
+      const isFilled = localStorage.getItem('eus_exit_popup_filled') === 'true' || localStorage.getItem('eus_lead_submitted') === 'true';
+      if (isFilled) return;
     }
 
     let lastActivity = Date.now();
+    let hasTriggered = false;
 
     const updateActivity = () => {
       lastActivity = Date.now();
@@ -30,9 +31,9 @@ export default function ExitIntentPopup() {
     });
 
     const checkInactivity = setInterval(() => {
-      // Only check if popup is not already open
-      if (!isOpen && Date.now() - lastActivity >= 15000) { // 15 seconds
+      if (!isOpen && !hasTriggered && Date.now() - lastActivity >= 20000) { // 20 seconds
         setIsOpen(true);
+        hasTriggered = true;
       }
     }, 1000);
 
@@ -87,6 +88,7 @@ export default function ExitIntentPopup() {
       setSubmitted(true);
       if (typeof window !== 'undefined') {
         localStorage.setItem('eus_exit_popup_filled', 'true');
+        localStorage.setItem('eus_lead_submitted', 'true');
       }
     } catch (err) {
       console.error(err);

@@ -62,6 +62,21 @@ export async function POST(request) {
       return Response.json({ error: 'Invalid phone number length. Must be between 8 and 15 digits.' }, { status: 400 });
     }
 
+    // Calculate score & quality
+    const leadDataForScore = {
+      name: cleanName,
+      phone: cleanPhone,
+      email: cleanEmail || '',
+      budget: cleanBudget || '',
+      preferredLocation: cleanPreferredLocation || (cleanObjective !== 'Home Loan Help' && cleanObjective !== 'Free Site Visit' ? cleanObjective : ''),
+      propertyType: cleanPropertyType || '',
+      possession: cleanPossession || '',
+      siteVisitRequested: cleanObjective === 'Free Site Visit',
+      callbackRequested: true
+    };
+    
+    const { score, quality } = calculateLeadScore(leadDataForScore);
+
     // -------------------------------------------------------
     // Save Lead to MongoDB
     // -------------------------------------------------------
@@ -70,21 +85,6 @@ export async function POST(request) {
     try {
       await dbConnect();
       
-      // Calculate score & quality
-      const leadDataForScore = {
-        name: cleanName,
-        phone: cleanPhone,
-        email: cleanEmail || '',
-        budget: cleanBudget || '',
-        preferredLocation: cleanPreferredLocation || (cleanObjective !== 'Home Loan Help' && cleanObjective !== 'Free Site Visit' ? cleanObjective : ''),
-        propertyType: cleanPropertyType || '',
-        possession: cleanPossession || '',
-        siteVisitRequested: cleanObjective === 'Free Site Visit',
-        callbackRequested: true
-      };
-      
-      const { score, quality } = calculateLeadScore(leadDataForScore);
-
       dbLead = await Lead.create({
         name: cleanName,
         phone: cleanPhone,
@@ -118,17 +118,19 @@ export async function POST(request) {
     const backgroundTasks = [];
 
     // 1. Create Admin Notification
-    const notificationPromise = Notification.create({
-      title: `${quality === 'Hot' ? '🔥 Hot' : quality === 'Warm' ? '🟡 Warm' : '❄️ Cold'} Lead: ${dbLead.name}`,
-      message: `${dbLead.name} (${dbLead.phone}) requested callback for: ${cleanObjective}${cleanBudget ? ` | Budget: ${cleanBudget}` : ''}`,
-      type: quality === 'Hot' ? 'hot_lead' : 'lead',
-      isRead: false,
-      relatedId: dbLead._id.toString(),
-      relatedModel: 'Lead',
-      icon: quality === 'Hot' ? '🔥' : '📞'
-    }).catch(err => console.error('Notification creation failed:', err));
-    
-    backgroundTasks.push(notificationPromise);
+    if (dbLead) {
+      const notificationPromise = Notification.create({
+        title: `${quality === 'Hot' ? '🔥 Hot' : quality === 'Warm' ? '🟡 Warm' : '❄️ Cold'} Lead: ${dbLead.name}`,
+        message: `${dbLead.name} (${dbLead.phone}) requested callback for: ${cleanObjective}${cleanBudget ? ` | Budget: ${cleanBudget}` : ''}`,
+        type: quality === 'Hot' ? 'hot_lead' : 'lead',
+        isRead: false,
+        relatedId: dbLead._id.toString(),
+        relatedModel: 'Lead',
+        icon: quality === 'Hot' ? '🔥' : '📞'
+      }).catch(err => console.error('Notification creation failed:', err));
+      
+      backgroundTasks.push(notificationPromise);
+    }
 
     // 2. SEND EMAILS via Gmail SMTP
     let transporter;
@@ -345,8 +347,10 @@ export async function POST(request) {
 
     // Wait for all external API calls and notifications to finish concurrently
     await Promise.all(backgroundTasks);
+
     if (dbErrorMsg) {
-      return Response.json({ error: 'Lead data could not be saved to DB: ' + dbErrorMsg }, { status: 500 });
+      console.warn('Database save failed, but proceeding with success response since email/Telegram alerts were processed:', dbErrorMsg);
+      return Response.json({ success: true, warning: 'Database offline, fallback notification dispatched' }, { status: 200 });
     }
 
     return Response.json({ success: true, leadId: dbLead?._id }, { status: 200 });

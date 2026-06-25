@@ -20,6 +20,8 @@ async function dbConnect() {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
+      connectTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 5000,
     };
 
     if (MONGODB_URI.includes('dummy_user')) {

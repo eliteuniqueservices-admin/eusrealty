@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Mail, Phone, MapPin, Clock, Send, CheckCircle, ArrowRight,
   Star, AlertCircle, MessageCircle, ChevronDown, Sparkles, Home,
-  Facebook, Instagram, Linkedin, Youtube, ArrowUpRight
+  Facebook, Instagram, Linkedin, Youtube, ArrowUpRight, X
 } from 'lucide-react';
 import { speakCongratulation, cancelSpeech } from '@/lib/elevenLabsTTS';
 
@@ -141,16 +141,16 @@ function ConfettiCanvas({ active }) {
    SUCCESS / CELEBRATION POPUP
 ────────────────────────────────────────────────────────── */
 function CelebrationPopup({ name, onClose }) {
-  const firstName = name?.trim().split(' ')[0] || 'Friend';
+  const firstName = name?.trim().split(' ')[0] || 'Guest';
   const [phase, setPhase] = useState(0);
   const [mounted, setMounted] = useState(true);
 
   useEffect(() => {
-    const t1 = setTimeout(() => setPhase(1), 400);
+    const t1 = setTimeout(() => setPhase(1), 300);
     const t2 = setTimeout(() => {
       setPhase(2);
-      setTimeout(onClose, 600);
-    }, 12000);
+      setTimeout(onClose, 500);
+    }, 15000); // 15 seconds
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
@@ -164,190 +164,152 @@ function CelebrationPopup({ name, onClose }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[9999] overflow-y-auto bg-slate-950/75 backdrop-blur-md"
-      style={{ backdropFilter: 'blur(16px)' }}
+      className="fixed inset-0 z-[9999] overflow-y-auto bg-slate-950/80 backdrop-blur-xl flex items-center justify-center p-4"
     >
-      <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-6 md:p-8">
-        <motion.div
-          initial={{ scale: 0.3, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 160, damping: 20, delay: 0.1 }}
-          className="relative w-full max-w-lg my-auto"
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        transition={{ type: 'spring', duration: 0.6 }}
+        className="relative w-full max-w-xl bg-[#09090e]/95 border border-amber-500/25 rounded-[3rem] p-8 md:p-12 shadow-[0_30px_80px_rgba(0,0,0,0.8),_0_0_50px_rgba(245,158,11,0.15)] overflow-hidden text-center"
+      >
+        {/* conic glow animation */}
+        <div className="absolute -inset-48 bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.08),transparent_50%)] pointer-events-none" />
+        
+        <ConfettiCanvas active />
+
+        {/* Top Right Close Button */}
+        <button 
+          onClick={() => { setPhase(2); setTimeout(onClose, 500); }}
+          className="absolute top-6 right-6 z-30 w-10 h-10 flex items-center justify-center bg-white/5 text-slate-400 rounded-full hover:bg-white/10 hover:text-white transition-all border border-white/10 active:scale-95"
         >
+          <X size={18} />
+        </button>
+
+        {/* Dynamic Premium Animated Icon */}
+        <div className="relative flex justify-center mb-8">
+          <div className="absolute w-24 h-24 rounded-full bg-amber-500/5 blur-xl animate-pulse" />
           <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
-            className="absolute -inset-4 rounded-[3rem] pointer-events-none"
-            style={{
-              background: 'conic-gradient(from 0deg, rgba(251,191,36,0), rgba(251,191,36,0.6), rgba(251,191,36,0), rgba(251,191,36,0.3), rgba(251,191,36,0))',
-              filter: 'blur(12px)',
-            }}
-          />
-
-          <div
-            className="relative rounded-[2.5rem] overflow-hidden text-center"
-            style={{
-              background: 'linear-gradient(145deg, #0d0d1a 0%, #07070f 60%, #0d0d1a 100%)',
-              border: '1px solid rgba(251,191,36,0.3)',
-              boxShadow: '0 40px 100px -20px rgba(0,0,0,0.9), 0 0 60px -10px rgba(251,191,36,0.2)',
-            }}
+            initial={{ scale: 0.5, rotate: -30 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
+            className="relative z-10 w-20 h-20 bg-gradient-to-br from-slate-900 to-slate-950 rounded-2xl flex items-center justify-center border-2 border-amber-500/40 shadow-[0_15px_30px_rgba(0,0,0,0.5),_0_0_20px_rgba(245,158,11,0.2)]"
           >
-            <ConfettiCanvas active />
+            {/* Animated Luxury Architectural Villa Outline */}
+            <svg className="w-11 h-11" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <motion.path 
+                d="M8 28L32 10L56 28" 
+                stroke="url(#modalGold)" 
+                strokeWidth="2.5" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 1.2, ease: "easeOut" }}
+              />
+              <motion.path 
+                d="M14 28V50C14 51.1 14.9 52 16 52H48C49.1 52 50 51.1 50 50V28" 
+                stroke="url(#modalGold)" 
+                strokeWidth="2.5" 
+                strokeLinecap="round"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 1.2, ease: "easeOut", delay: 0.3 }}
+              />
+              <motion.path 
+                d="M28 52V36C28 34.9 28.9 34 30 34H34C35.1 34 36 34.9 36 36V52" 
+                stroke="url(#modalGold)" 
+                strokeWidth="2"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 0.8, ease: "easeOut", delay: 0.6 }}
+              />
+              <motion.circle cx="20" cy="34" r="1.5" fill="#fbbf24" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} />
+              <motion.circle cx="44" cy="34" r="1.5" fill="#fbbf24" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} />
+              <defs>
+                <linearGradient id="modalGold" x1="8" y1="10" x2="56" y2="52" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#f59e0b" />
+                  <stop offset="50%" stopColor="#fbbf24" />
+                  <stop offset="100%" stopColor="#d97706" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </motion.div>
+        </div>
 
-            <div className="relative z-20 p-6 sm:p-10 md:p-14">
-              <div className="relative flex items-center justify-center mb-6 sm:mb-8 [--sparkle-translate:-52px] sm:[--sparkle-translate:-68px]">
-                <motion.div
-                  animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="absolute w-24 sm:w-28 h-24 sm:h-28 rounded-full border border-amber-400/40"
-                />
-                <motion.div
-                  animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0, 0.3] }}
-                  transition={{ duration: 2, repeat: Infinity, delay: 0.4 }}
-                  className="absolute w-32 sm:w-36 h-32 sm:h-36 rounded-full border border-amber-400/20"
-                />
+        {/* Text Content */}
+        <AnimatePresence>
+          {phase >= 1 && (
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="space-y-6"
+            >
+              <div className="space-y-2">
+                <span className="text-[10px] font-black tracking-[0.3em] uppercase text-amber-500 bg-amber-500/10 border border-amber-500/25 px-4 py-1.5 rounded-full inline-block">
+                  VIP Priority Access Activated
+                </span>
+                <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight pt-2">
+                  Welcome to the Club,{' '}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500">
+                    {firstName}
+                  </span>
+                </h2>
+                <p className="text-slate-400 font-light text-base md:text-lg max-w-md mx-auto leading-relaxed">
+                  Your luxury estate request has been successfully routed to our executive advisory desk.
+                </p>
+              </div>
 
-                <motion.div
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ type: 'spring', stiffness: 200, damping: 16, delay: 0.3 }}
-                  className="w-20 sm:w-24 h-20 sm:h-24 rounded-full flex items-center justify-center relative z-10"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(251,191,36,0.2), rgba(217,119,6,0.15))',
-                    border: '2px solid rgba(251,191,36,0.5)',
-                    boxShadow: '0 0 40px rgba(251,191,36,0.3), inset 0 0 20px rgba(251,191,36,0.05)',
-                  }}
-                >
-                  <motion.span
-                    animate={{ rotate: [0, -15, 15, -10, 10, 0] }}
-                    transition={{ delay: 0.8, duration: 0.8 }}
-                    className="text-4xl sm:text-5xl select-none"
-                  >🏡</motion.span>
-                </motion.div>
+              <div className="h-px w-24 bg-gradient-to-r from-transparent via-amber-500/40 to-transparent mx-auto my-6" />
 
-                {[0, 60, 120, 180, 240, 300].map((deg, i) => (
+              {/* Status Checklist UI (Premium & Sleek) */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-md mx-auto">
+                {[
+                  { label: 'Request Logged', desc: 'Secure database lock' },
+                  { label: 'Advisors Alerted', desc: 'SMS & Telegram dispatch' },
+                  { label: 'VIP Callback', desc: 'Within 15 minutes' }
+                ].map((item, i) => (
                   <motion.div
-                    key={i}
-                    className="absolute"
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 5 + i * 0.5, repeat: Infinity, ease: 'linear', delay: i * 0.2 }}
-                    style={{ width: '100%', height: '100%' }}
+                    key={item.label}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 + i * 0.15 }}
+                    className="flex flex-col items-center p-3 rounded-2xl bg-white/[0.02] border border-white/5 shadow-inner"
                   >
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0 }}
-                      animate={{ opacity: [0, 1, 0], scale: [0, 1, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.25 }}
-                      className="absolute text-amber-400"
-                      style={{
-                        top: '50%',
-                        left: '50%',
-                        transform: `rotate(${deg}deg) translateY(var(--sparkle-translate))`,
-                        fontSize: '12px',
-                      }}
-                    >✦</motion.div>
+                    <div className="w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xs font-bold mb-2 border border-emerald-500/20">
+                      ✓
+                    </div>
+                    <span className="text-xs font-bold text-slate-200">{item.label}</span>
+                    <span className="text-[9px] text-slate-500 font-semibold mt-0.5">{item.desc}</span>
                   </motion.div>
                 ))}
               </div>
 
-              <AnimatePresence>
-                {phase >= 1 && (
+              {/* CTA Button */}
+              <div className="pt-4">
+                <motion.button
+                  onClick={() => { setPhase(2); setTimeout(onClose, 500); }}
+                  whileHover={{ scale: 1.02, boxShadow: '0 20px 40px -10px rgba(245,158,11,0.25)' }}
+                  whileTap={{ scale: 0.98 }}
+                  className="relative overflow-hidden w-full py-4 rounded-2xl font-black text-slate-950 text-xs tracking-[0.2em] uppercase transition-all shadow-xl shadow-amber-500/10 border border-amber-400/20"
+                  style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b)' }}
+                >
+                  {/* shine effect */}
                   <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                  >
-                    <motion.p
-                      className="text-xs font-black tracking-[0.25em] uppercase text-amber-500 mb-3"
-                      initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-                    >
-                      ✦ Congratulations ✦
-                    </motion.p>
-
-                    <motion.h2
-                      className="text-3xl sm:text-4xl font-black text-white leading-tight mb-3 tracking-tight"
-                      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
-                    >
-                      Hello,{' '}
-                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-amber-500">
-                        {firstName}! 🎉
-                      </span>
-                    </motion.h2>
-
-                    <motion.p
-                      className="text-lg sm:text-xl text-slate-300 font-light leading-relaxed mb-2"
-                      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
-                    >
-                      You are <span className="text-amber-400 font-bold">one step closer</span>
-                      <br />to your dream home.
-                    </motion.p>
-
-                    <motion.div
-                      initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: 0.7, duration: 0.6 }}
-                      className="h-px w-24 mx-auto my-6"
-                      style={{ background: 'linear-gradient(90deg, transparent, rgba(251,191,36,0.6), transparent)' }}
-                    />
-
-                    <motion.p
-                      className="text-sm text-slate-400 font-light leading-relaxed mb-8"
-                      initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
-                    >
-                      Your dream home journey has begun. Our senior consultants will reach out to you personally within{' '}
-                      <span className="text-white font-semibold">2 hours.</span>
-                    </motion.p>
-
-                    <motion.div
-                      className="flex flex-wrap items-center justify-center gap-3 mb-8"
-                      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.0 }}
-                    >
-                      {[
-                        { icon: '✅', text: 'Request Received' },
-                        { icon: '📧', text: 'Team Notified' },
-                        { icon: '📞', text: 'Call Incoming' },
-                      ].map(({ icon, text }, i) => (
-                        <motion.div
-                          key={text}
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 1.1 + i * 0.15 }}
-                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold"
-                          style={{
-                            background: 'rgba(251,191,36,0.07)',
-                            border: '1px solid rgba(251,191,36,0.2)',
-                            color: '#fbbf24',
-                          }}
-                        >
-                          <span>{icon}</span> {text}
-                        </motion.div>
-                      ))}
-                    </motion.div>
-
-                    <motion.button
-                      onClick={() => { setPhase(2); setTimeout(onClose, 500); }}
-                      whileHover={{ scale: 1.04 }}
-                      whileTap={{ scale: 0.96 }}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 1.4, type: 'spring', stiffness: 300 }}
-                      className="relative overflow-hidden w-full py-4 rounded-2xl font-black text-slate-950 text-sm tracking-widest uppercase shadow-lg shadow-amber-500/20"
-                      style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b)' }}
-                    >
-                      <motion.div
-                        animate={{ x: ['-100%', '200%'] }}
-                        transition={{ duration: 2, repeat: Infinity, ease: 'linear', delay: 1 }}
-                        className="absolute inset-0 opacity-30"
-                        style={{ background: 'linear-gradient(90deg, transparent, white, transparent)', width: '40%' }}
-                      />
-                      <span className="relative z-10 flex items-center justify-center gap-2">
-                        <Home size={16} /> Explore Our Portfolio
-                      </span>
-                    </motion.button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
-        </motion.div>
-      </div>
+                    animate={{ x: ['-100%', '200%'] }}
+                    transition={{ duration: 2.2, repeat: Infinity, ease: 'linear' }}
+                    className="absolute inset-0 opacity-40 pointer-events-none"
+                    style={{ background: 'linear-gradient(90deg, transparent, white, transparent)', width: '30%' }}
+                  />
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    <Home size={14} /> Explore Our Portfolio
+                  </span>
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
     </motion.div>
   );
 
@@ -410,15 +372,31 @@ function AnimatedInput({ label, icon, ...props }) {
 ────────────────────────────────────────────────────────── */
 function ContactCard({ item, i, fadeUp }) {
   const ref = useRef(null);
+  const rectRef = useRef(null);
   const [hovered, setHovered] = useState(false);
 
+  const handleMouseEnter = () => {
+    setHovered(true);
+    if (ref.current) {
+      rectRef.current = ref.current.getBoundingClientRect();
+    }
+  };
+
   const handleMouseMove = (e) => {
-    const rect = ref.current?.getBoundingClientRect();
+    if (!rectRef.current && ref.current) {
+      rectRef.current = ref.current.getBoundingClientRect();
+    }
+    const rect = rectRef.current;
     if (!rect) return;
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     ref.current.style.setProperty('--mouse-x', `${x}%`);
     ref.current.style.setProperty('--mouse-y', `${y}%`);
+  };
+
+  const handleMouseLeave = () => {
+    setHovered(false);
+    rectRef.current = null;
   };
 
   return (
@@ -428,8 +406,8 @@ function ContactCard({ item, i, fadeUp }) {
       href={item.action || undefined}
       whileHover={{ y: -5, boxShadow: '0 24px 50px -10px rgba(15,23,42,0.08)' }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       onMouseMove={handleMouseMove}
       className={`group p-6 md:p-7 rounded-[2rem] bg-white border border-slate-100 relative overflow-hidden transition-all duration-300 hover:border-amber-500/30 ${!item.action && 'cursor-default'}`}
     >
@@ -469,15 +447,31 @@ function ContactCard({ item, i, fadeUp }) {
 ────────────────────────────────────────────────────────── */
 function SocialChannelCard({ item, i, fadeUp }) {
   const ref = useRef(null);
+  const rectRef = useRef(null);
   const [hovered, setHovered] = useState(false);
 
+  const handleMouseEnter = () => {
+    setHovered(true);
+    if (ref.current) {
+      rectRef.current = ref.current.getBoundingClientRect();
+    }
+  };
+
   const handleMouseMove = (e) => {
-    const rect = ref.current?.getBoundingClientRect();
+    if (!rectRef.current && ref.current) {
+      rectRef.current = ref.current.getBoundingClientRect();
+    }
+    const rect = rectRef.current;
     if (!rect) return;
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     ref.current.style.setProperty('--mouse-x', `${x}%`);
     ref.current.style.setProperty('--mouse-y', `${y}%`);
+  };
+
+  const handleMouseLeave = () => {
+    setHovered(false);
+    rectRef.current = null;
   };
 
   return (
@@ -489,8 +483,8 @@ function SocialChannelCard({ item, i, fadeUp }) {
       rel="noopener noreferrer"
       whileHover={{ y: -5, boxShadow: '0 24px 50px -10px rgba(15,23,42,0.08)' }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       onMouseMove={handleMouseMove}
       className={`group p-6 rounded-[2rem] bg-white border border-slate-100 relative overflow-hidden transition-all duration-300 ${item.hoverColor}`}
     >
@@ -558,13 +552,23 @@ export default function ContactPage() {
   // Voice preloading no longer needed — using ElevenLabs API
 
   const handleChange = (e) => {
-    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    let value = e.target.value;
+    if (e.target.name === 'phone') {
+      value = value.replace(/\D/g, '').slice(0, 10);
+    }
+    setForm(prev => ({ ...prev, [e.target.name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.objective) { setErrorMsg('Please select your objective.'); return; }
     if (form.objective === 'Career Inquiry' && !form.position) { setErrorMsg('Please select the position you are applying for.'); return; }
+
+    const phoneDigits = form.phone.replace(/\D/g, '');
+    if (phoneDigits.length !== 10) {
+      setErrorMsg('Please enter a valid 10-digit phone number.');
+      return;
+    }
 
     // No silent utterance needed — ElevenLabs uses Audio API, not SpeechSynthesis
 
@@ -583,6 +587,9 @@ export default function ContactPage() {
       const name = form.name;
       setSubmittedName(name);
       setFormState('success');
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('eus_lead_submitted', 'true');
+      }
       setForm({ name: '', phone: '', email: '', objective: '', position: '', message: '' });
 
       setShowCelebration(true);
@@ -819,9 +826,9 @@ export default function ContactPage() {
                 <iframe
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2988.3826013811286!2d73.74371297393837!3d18.618266666185157!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2bb00424ee25d%3A0x591d30ed72160c8f!2sElite%20Unique%20Services!5e1!3m2!1sen!2sin!4v1780557910866!5m2!1sen!2sin"
                   width="100%" height="100%"
-                  style={{ border: 0, filter: 'grayscale(100%) contrast(1.1) opacity(0.8)' }}
+                  style={{ border: 0 }}
                   allowFullScreen="" loading="lazy"
-                  className="group-hover:filter-none transition-all duration-1000"
+                  className="grayscale opacity-80 contrast-[1.1] group-hover:grayscale-0 group-hover:opacity-100 group-hover:contrast-100 transition-all duration-1000"
                 />
                 <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-md p-3 sm:p-4 rounded-2xl border border-slate-100 z-20 flex items-center justify-between shadow-lg gap-2">
                   <div className="min-w-0">
@@ -890,7 +897,7 @@ export default function ContactPage() {
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <AnimatedInput label="Phone" name="phone" type="tel" value={form.phone}
-                            onChange={handleChange} required placeholder="+91 XXXXX XXXXX" />
+                            onChange={handleChange} maxLength={10} required placeholder="e.g. 9876543210" />
                           <AnimatedInput label="Email" name="email" type="email" value={form.email}
                             onChange={handleChange} required placeholder="rahulupadhyay@email.com" />
                         </div>

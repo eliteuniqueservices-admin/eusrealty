@@ -98,7 +98,11 @@ export default function ProjectDetailClient({ property, richData }) {
   }, []);
 
   const handleInputChange = (e) => {
-    setLeadForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    let value = e.target.value;
+    if (e.target.name === "phone") {
+      value = value.replace(/\D/g, "").slice(0, 10);
+    }
+    setLeadForm(prev => ({ ...prev, [e.target.name]: value }));
   };
 
   const handleOpenLeadModal = (source) => {
@@ -113,8 +117,9 @@ export default function ProjectDetailClient({ property, richData }) {
 
   const handleLeadSubmit = async (e) => {
     e.preventDefault();
-    if (!leadForm.name.trim() || leadForm.phone.replace(/\D/g, "").length < 10) {
-      alert("Please enter a valid name and phone number.");
+    const phoneDigits = leadForm.phone.replace(/\D/g, "");
+    if (!leadForm.name.trim() || phoneDigits.length !== 10) {
+      alert("Please enter a valid name and 10-digit phone number.");
       return;
     }
 
@@ -147,6 +152,9 @@ export default function ProjectDetailClient({ property, richData }) {
       if (!res.ok) throw new Error("Lead submission failed");
 
       setSubmitState("success");
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('eus_lead_submitted', 'true');
+      }
       setLeadForm({ name: "", phone: "", email: "" });
       
       // Auto close after 3 seconds
@@ -912,7 +920,8 @@ export default function ProjectDetailClient({ property, richData }) {
                   value={leadForm.phone} 
                   onChange={handleInputChange} 
                   required
-                  placeholder="+91 Phone Number"
+                  placeholder="e.g. 9876543210"
+                  maxLength={10}
                   className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 outline-none text-sm font-semibold focus:ring-2 focus:ring-amber-500/20 focus:bg-white"
                 />
               </div>
@@ -999,7 +1008,8 @@ export default function ProjectDetailClient({ property, richData }) {
                   value={leadForm.phone} 
                   onChange={handleInputChange} 
                   required
-                  placeholder="+91 Phone Number"
+                  placeholder="e.g. 9876543210"
+                  maxLength={10}
                   className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 outline-none text-sm font-semibold focus:ring-2 focus:ring-amber-500/20 focus:bg-white"
                 />
               </div>
