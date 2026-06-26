@@ -239,8 +239,9 @@ export function getRichDataForProperty(property = {}) {
     },
     comparisonProjects: [
       { name: "Godrej Woodsville", price: "1.2 Cr - 1.65 Cr", area: "780 - 1050 sqft", possession: "Dec 2026", reraStatus: "Verified", rating: "4.7" },
-      { name: "Supreme Estia", price: "2.35 Cr - 3.2 Cr", area: "1450 - 1980 sqft", possession: "Immediate", reraStatus: "Verified", rating: "4.8" }
-    ],
+      { name: "Supreme Estia", price: "2.35 Cr - 3.2 Cr", area: "1450 - 1980 sqft", possession: "Immediate", reraStatus: "Verified", rating: "4.8" },
+      { name: "VTP Cygnus", price: "1.45 Cr - 1.95 Cr", area: "850 - 1150 sqft", possession: "Jun 2027", reraStatus: "Verified", rating: "4.6" }
+    ].filter(p => !name.toLowerCase().includes(p.name.toLowerCase()) && !p.name.toLowerCase().includes(name.toLowerCase())).slice(0, 2),
     faqs: [
       { q: `What is the MahaRERA number for ${name}?`, a: `${name} is RERA verified with registration number ${rera}.` },
       { q: `When is the possession of ${name}?`, a: `The developer has slated the possession timeline for ${pos}.` },

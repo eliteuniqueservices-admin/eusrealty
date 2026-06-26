@@ -24,7 +24,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { slugify } from "@/lib/propertyUrls";
+import { getPropertySlug } from "@/lib/propertyUrls";
 
 const MotionLink = motion.create(Link);
 
@@ -135,7 +135,7 @@ export default function PropertyCard({
   const router = useRouter();
 
   const isMongoId = id && /^[a-f\d]{24}$/i.test(id);
-  const slug = isMongoId ? slugify(`${title} ${location} pune`) : id;
+  const slug = isMongoId ? getPropertySlug({ name: title, location }) : id;
   const cardLink = `/properties/${slug}`;
 
   const handleCardClick = (e) => {

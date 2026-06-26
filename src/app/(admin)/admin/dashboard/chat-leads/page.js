@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,12 +16,23 @@ import {
 } from 'lucide-react';
 import ExportModal from '@/components/admin/ExportModal';
 
+const TEMPLATES = {
+  welcome: `Hi {{name}}! This is EUS Realty. We found some premium projects in {{preferredLocation}} that perfectly match your budget of {{budget}}. Direct builder listings with 0% brokerage. Let us know when we can connect!`,
+  site_visit: `Hello {{name}}! EUS Realty is arranging private developer walkthroughs in {{preferredLocation}} this weekend. Since you are considering properties in the {{budget}} range, we highly recommend these options. Let us know if we can book a slot for you.`,
+  roi_tool: `Hi {{name}}! Check out our latest ROI & high-yield investment dashboard for {{preferredLocation}}. Standard rental yields here are outstanding, and with EUS 0% Brokerage, you save lakhs upfront. Reply to get a customized ROI report!`,
+  custom: `Hi {{name}}! `
+};
+
 function ChatLeadsPageContent() {
   const [sessions, setSessions] = useState([]);
   const [totalSessions, setTotalSessions] = useState(0);
   const [leads, setLeads] = useState([]);
   const [totalLeads, setTotalLeads] = useState(0);
   const [exportOpen, setExportOpen] = useState(false);
+  
+  // Tab states
+  const [activeTab, setActiveTab] = useState('leads'); // 'leads' or 'broadcast'
+  const [allLeads, setAllLeads] = useState([]);
   
   // Filter/Pagination States
   const [search, setSearch] = useState('');
@@ -38,6 +49,15 @@ function ChatLeadsPageContent() {
   const [savingLead, setSavingLead] = useState(false);
   const [deletingLead, setDeletingLead] = useState(false);
   
+  // Campaign planning states
+  const [campaignLocation, setCampaignLocation] = useState('ALL');
+  const [campaignBudget, setCampaignBudget] = useState('ALL');
+  const [campaignQuality, setCampaignQuality] = useState('ALL');
+  const [campaignStatus, setCampaignStatus] = useState('ALL');
+  const [campaignTemplate, setCampaignTemplate] = useState('welcome');
+  const [customTemplateText, setCustomTemplateText] = useState(TEMPLATES.welcome);
+  const [selectedCampaignLeadIds, setSelectedCampaignLeadIds] = useState(new Set());
+
   // Edited Lead details state
   const [editForm, setEditForm] = useState({
     name: '',
@@ -84,6 +104,9 @@ function ChatLeadsPageContent() {
           hotLeads: hot,
           escalated: esc,
         });
+
+        // Cache all leads for broadcast segmentation
+        setAllLeads(leadsData.leads || []);
       }
     } catch (err) {
       console.error('Failed to load stats:', err);
@@ -257,6 +280,150 @@ function ChatLeadsPageContent() {
       setDeletingLead(false);
     }
   };
+  
+  // ── WhatsApp Campaigns Planner Logic ──
+
+  const filteredCampaignLeads = useMemo(() => {
+    return allLeads.filter(lead => {
+      // 1. Location filter
+      if (campaignLocation !== 'ALL') {
+        const leadLoc = (lead.preferredLocation || '').toLowerCase();
+        if (!leadLoc.includes(campaignLocation.toLowerCase())) return false;
+      }
+      
+      // 2. Budget filter
+      if (campaignBudget !== 'ALL') {
+        const leadBgt = (lead.budget || '').toLowerCase();
+        if (campaignBudget === 'under-80') {
+          const lakhMatch = leadBgt.match(/(\d+)\s*lakh/);
+          if (lakhMatch) {
+            if (parseInt(lakhMatch[1]) > 80) return false;
+          } else if (leadBgt.includes('cr')) {
+            return false;
+          }
+        } else if (campaignBudget === '80-1.5') {
+          const crMatch = leadBgt.match(/(\d+(\.\d+)?)\s*cr/);
+          const lakhMatch = leadBgt.match(/(\d+)\s*lakh/);
+          if (crMatch) {
+            const crVal = parseFloat(crMatch[1]);
+            if (crVal > 1.5) return false;
+          } else if (lakhMatch) {
+            if (parseInt(lakhMatch[1]) < 80) return false;
+          }
+        } else if (campaignBudget === 'above-1.5') {
+          const crMatch = leadBgt.match(/(\d+(\.\d+)?)\s*cr/);
+          if (crMatch) {
+            const crVal = parseFloat(crMatch[1]);
+            if (crVal < 1.5) return false;
+          } else {
+            return false;
+          }
+        }
+      }
+
+      // 3. Quality filter
+      if (campaignQuality !== 'ALL') {
+        if (lead.leadQuality !== campaignQuality) return false;
+      }
+
+      // 4. Status filter
+      if (campaignStatus !== 'ALL') {
+        if (lead.status !== campaignStatus) return false;
+      }
+
+      return true;
+    });
+  }, [allLeads, campaignLocation, campaignBudget, campaignQuality, campaignStatus]);
+
+  const campaignPreviewMessage = useMemo(() => {
+    const firstLead = filteredCampaignLeads[0] || {
+      name: 'Client Name',
+      preferredLocation: 'Hinjewadi',
+      budget: '80 Lakhs',
+      propertyType: '2BHK Apartment'
+    };
+    return customTemplateText
+      .replace(/\{\{name\}\}/gi, firstLead.name || '')
+      .replace(/\{\{preferredLocation\}\}/gi, firstLead.preferredLocation || 'Pune')
+      .replace(/\{\{budget\}\}/gi, firstLead.budget || 'your budget')
+      .replace(/\{\{propertyType\}\}/gi, firstLead.propertyType || 'Apartment');
+  }, [filteredCampaignLeads, customTemplateText]);
+
+  // Auto-select all matched leads when filters change
+  useEffect(() => {
+    setSelectedCampaignLeadIds(new Set(filteredCampaignLeads.map(l => l._id)));
+  }, [filteredCampaignLeads]);
+
+  const toggleSelectCampaignLead = (id) => {
+    setSelectedCampaignLeadIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAllCampaignLeads = () => {
+    if (selectedCampaignLeadIds.size === filteredCampaignLeads.length) {
+      setSelectedCampaignLeadIds(new Set());
+    } else {
+      setSelectedCampaignLeadIds(new Set(filteredCampaignLeads.map(l => l._id)));
+    }
+  };
+
+  const handleTemplateChange = (val) => {
+    setCampaignTemplate(val);
+    if (TEMPLATES[val]) {
+      setCustomTemplateText(TEMPLATES[val]);
+    }
+  };
+
+  const exportCampaignCSV = () => {
+    const activeLeads = filteredCampaignLeads.filter(l => selectedCampaignLeadIds.has(l._id));
+    if (activeLeads.length === 0) {
+      alert("No leads selected to export.");
+      return;
+    }
+
+    const headers = ["Phone", "Name", "Location", "Budget", "Message"];
+    const rows = activeLeads.map(l => {
+      let cleanPhone = (l.phone || '').replace(/\D/g, '');
+      if (cleanPhone.length === 10) {
+        cleanPhone = '91' + cleanPhone;
+      }
+      
+      const parsedMessage = customTemplateText
+        .replace(/\{\{name\}\}/gi, l.name || '')
+        .replace(/\{\{preferredLocation\}\}/gi, l.preferredLocation || 'Pune')
+        .replace(/\{\{budget\}\}/gi, l.budget || 'your budget')
+        .replace(/\{\{propertyType\}\}/gi, l.propertyType || 'Apartment');
+
+      return [
+        cleanPhone,
+        l.name || '',
+        l.preferredLocation || 'Pune',
+        l.budget || '',
+        parsedMessage
+      ];
+    });
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(val => `"${val.replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `whatsapp_broadcast_${campaignLocation.toLowerCase()}_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 max-w-[1600px] mx-auto">
@@ -328,31 +495,538 @@ function ChatLeadsPageContent() {
         </Card>
       </div>
 
-      {/* Main Grid: Left List, Right Detail/Chat */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        {/* Left Column: Leads List */}
-        <div className="lg:col-span-7 space-y-6">
-          <Card className="shadow-sm border-slate-200/60 rounded-[2rem] overflow-hidden flex flex-col bg-white">
-            <div className="p-6 md:p-8 border-b border-slate-100 space-y-4">
-              <CardTitle className="text-xl font-black text-slate-900">Qualified Leads List</CardTitle>
-              
-              {/* Filter Row */}
-              <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-                <div className="flex flex-col md:flex-row gap-4 flex-1">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
-                    <Input 
-                      placeholder="Search name, phone, email..." 
-                      value={search}
-                      onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                      className="pl-9 h-11 rounded-xl border-slate-200 focus-visible:ring-cyan-500 focus-visible:border-cyan-500 font-medium"
-                    />
+      {/* Tab Navigation */}
+      <div className="flex border-b border-slate-200">
+        <button
+          onClick={() => setActiveTab('leads')}
+          className={`flex items-center gap-2 px-6 py-3 font-bold text-sm transition-all border-b-2 -mb-[2px] ${
+            activeTab === 'leads' 
+              ? 'border-cyan-600 text-cyan-600' 
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Users size={16} /> Qualified Leads Manager
+        </button>
+        <button
+          onClick={() => setActiveTab('broadcast')}
+          className={`flex items-center gap-2 px-6 py-3 font-bold text-sm transition-all border-b-2 -mb-[2px] ${
+            activeTab === 'broadcast' 
+              ? 'border-cyan-600 text-cyan-600' 
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <MessageSquare size={16} /> 📢 WhatsApp Broadcast Campaigns
+        </button>
+      </div>
+
+      {activeTab === 'leads' ? (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* Left Column: Leads List */}
+          <div className="lg:col-span-7 space-y-6">
+            <Card className="shadow-sm border-slate-200/60 rounded-[2rem] overflow-hidden flex flex-col bg-white">
+              <div className="p-6 md:p-8 border-b border-slate-100 space-y-4">
+                <CardTitle className="text-xl font-black text-slate-900">Qualified Leads List</CardTitle>
+                
+                {/* Filter Row */}
+                <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+                  <div className="flex flex-col md:flex-row gap-4 flex-1">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
+                      <Input 
+                        placeholder="Search name, phone, email..." 
+                        value={search}
+                        onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                        className="pl-9 h-11 rounded-xl border-slate-200 focus-visible:ring-cyan-500 focus-visible:border-cyan-500 font-medium"
+                      />
+                    </div>
+                    
+                    <div className="w-full md:w-40">
+                      <Select value={quality} onValueChange={(val) => { setQuality(val); setPage(1); }}>
+                        <SelectTrigger className="h-11 rounded-xl border-slate-200 font-bold text-slate-700">
+                          <SelectValue placeholder="Quality" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ALL">All Quality</SelectItem>
+                          <SelectItem value="Hot">🔥 Hot</SelectItem>
+                          <SelectItem value="Warm">🟡 Warm</SelectItem>
+                          <SelectItem value="Cold">❄️ Cold</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="w-full md:w-44">
+                      <Select value={status} onValueChange={(val) => { setStatus(val); setPage(1); }}>
+                        <SelectTrigger className="h-11 rounded-xl border-slate-200 font-bold text-slate-700">
+                          <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ALL">All Status</SelectItem>
+                          <SelectItem value="New">New</SelectItem>
+                          <SelectItem value="Contacted">Contacted</SelectItem>
+                          <SelectItem value="Interested">Interested</SelectItem>
+                          <SelectItem value="Escalated">Escalated</SelectItem>
+                          <SelectItem value="Converted">Converted</SelectItem>
+                          <SelectItem value="Lost">Lost</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
+
+                  <Button 
+                    onClick={() => setExportOpen(true)}
+                    variant="outline"
+                    className="h-11 border-slate-200 text-slate-700 font-bold rounded-xl gap-2 hover:bg-slate-50"
+                  >
+                    <Download size={16} /> Export Excel
+                  </Button>
+                </div>
+              </div>
+
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader className="bg-slate-50/50">
+                      <TableRow className="border-slate-100">
+                        <TableHead className="font-bold text-slate-700 pl-6">Client</TableHead>
+                        <TableHead className="font-bold text-slate-700">Interest</TableHead>
+                        <TableHead className="font-bold text-slate-700 text-center">Score</TableHead>
+                        <TableHead className="font-bold text-slate-700 text-center">Status</TableHead>
+                        <TableHead className="font-bold text-slate-700 text-right pr-6">Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {leads.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-16 text-slate-500 font-medium">
+                            No leads matching your filters.
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        leads.map((lead) => (
+                          <TableRow 
+                            key={lead._id} 
+                            onClick={() => selectLead(lead)}
+                            className={`cursor-pointer hover:bg-slate-50/80 transition-colors group ${selectedSession?._id === lead._id ? 'bg-cyan-50/30' : ''}`}
+                          >
+                            <TableCell className="pl-6 py-4">
+                              <div>
+                                <p className="font-bold text-slate-900 group-hover:text-cyan-600 transition-colors">{lead.name}</p>
+                                <p className="text-xs text-slate-500 mt-0.5">{lead.phone}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell className="py-4">
+                              <div className="text-xs font-semibold text-slate-700">
+                                {lead.objective ? <span className="block text-slate-900 font-bold mb-0.5">🎯 {lead.objective}</span> : null}
+                                {lead.preferredLocation ? <span>📍 {lead.preferredLocation} </span> : null}
+                                {lead.budget ? <span>💵 {lead.budget}</span> : null}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-center py-4">
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold ${
+                                lead.leadQuality === 'Hot' ? 'bg-red-50 text-red-700 border border-red-100' :
+                                lead.leadQuality === 'Warm' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                                'bg-blue-50 text-blue-700 border border-blue-100'
+                              }`}>
+                                {lead.leadQuality === 'Hot' ? '🔥' : lead.leadQuality === 'Warm' ? '🟡' : '❄️'} {lead.leadScore}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-center py-4">
+                              <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
+                                lead.status === 'New' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
+                                lead.status === 'Converted' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                                lead.status === 'Escalated' ? 'bg-red-50 text-red-700 border border-red-200 animate-pulse' :
+                                lead.status === 'Lost' ? 'bg-slate-100 text-slate-600' :
+                                'bg-purple-50 text-purple-700 border border-purple-200'
+                              }`}>
+                                {lead.status}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right pr-6 py-4 text-xs text-slate-500 font-medium">
+                              {new Date(lead.updatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between p-6 border-t border-slate-100 bg-slate-50/50">
+                    <Button 
+                      variant="outline" 
+                      disabled={page === 1} 
+                      onClick={() => setPage(prev => prev - 1)}
+                      className="rounded-xl border-slate-200 hover:bg-slate-100 font-bold"
+                    >
+                      Previous
+                    </Button>
+                    <span className="text-sm text-slate-500 font-bold">
+                      Page {page} of {totalPages}
+                    </span>
+                    <Button 
+                      variant="outline" 
+                      disabled={page === totalPages} 
+                      onClick={() => setPage(prev => prev + 1)}
+                      className="rounded-xl border-slate-200 hover:bg-slate-100 font-bold"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column: Chat & Edit Pipeline */}
+          <div className="lg:col-span-5 space-y-6">
+            {!selectedSession ? (
+              <Card className="shadow-sm border-slate-200/60 rounded-[2rem] p-12 text-center bg-white h-[600px] flex flex-col items-center justify-center">
+                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-slate-100">
+                  <Users size={28} className="text-slate-400" />
+                </div>
+                <h3 className="text-lg font-black text-slate-800">No Lead Selected</h3>
+                <p className="text-slate-500 text-sm mt-2 max-w-xs mx-auto">
+                  Click any lead in the table on the left to view their conversation history, scoring details, and manage pipeline status.
+                </p>
+              </Card>
+            ) : (
+              <div className="space-y-6">
+                
+                {/* Client Profile and Update Form */}
+                <Card className="shadow-sm border-slate-200/60 rounded-[2rem] overflow-hidden bg-white">
+                  <CardHeader className="border-b border-slate-100 pb-5">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="text-xl font-black text-slate-900">{editForm.name || 'Chat Lead'}</CardTitle>
+                        <CardDescription className="text-xs font-semibold text-slate-500 mt-1 flex items-center gap-1.5">
+                          <Clock size={12} /> Last active: {new Date(selectedSession.updatedAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })}
+                        </CardDescription>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Badge variant={selectedSession.leadQuality === 'Hot' ? 'destructive' : selectedSession.leadQuality === 'Warm' ? 'warning' : 'default'} className="font-bold rounded-lg px-2.5 py-1">
+                          {selectedSession.leadQuality} ({selectedSession.leadScore}/100)
+                        </Badge>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg h-8 w-8"
+                          onClick={handleDeleteLead}
+                          disabled={deletingLead}
+                          title="Delete Lead"
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
                   
-                  <div className="w-full md:w-40">
-                    <Select value={quality} onValueChange={(val) => { setQuality(val); setPage(1); }}>
-                      <SelectTrigger className="h-11 rounded-xl border-slate-200 font-bold text-slate-700">
+                  <CardContent className="p-6">
+                    <form onSubmit={handleUpdateLead} className="space-y-5">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="name" className="text-xs font-bold text-slate-600">Client Name</Label>
+                          <Input 
+                            id="name"
+                            value={editForm.name}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                            className="h-10 rounded-lg border-slate-200"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="phone" className="text-xs font-bold text-slate-650">Phone</Label>
+                          <Input 
+                            id="phone"
+                            maxLength={10}
+                            value={editForm.phone}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value.replace(/\D/g, '').slice(0, 10) }))}
+                            className="h-10 rounded-lg border-slate-200"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="email" className="text-xs font-bold text-slate-600">Email Address</Label>
+                        <Input 
+                          id="email"
+                          value={editForm.email}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
+                          className="h-10 rounded-lg border-slate-200"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="budget" className="text-xs font-bold text-slate-600">Budget</Label>
+                          <Input 
+                            id="budget"
+                            placeholder="e.g. 80 Lakhs - 1.2 Cr"
+                            value={editForm.budget}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, budget: e.target.value }))}
+                            className="h-10 rounded-lg border-slate-200"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="location" className="text-xs font-bold text-slate-600">Preferred Location</Label>
+                          <Input 
+                            id="location"
+                            placeholder="e.g. Baner, Pune"
+                            value={editForm.preferredLocation}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, preferredLocation: e.target.value }))}
+                            className="h-10 rounded-lg border-slate-200"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="propType" className="text-xs font-bold text-slate-600">Property Type</Label>
+                          <Input 
+                            id="propType"
+                            placeholder="e.g. 2BHK Apartment"
+                            value={editForm.propertyType}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, propertyType: e.target.value }))}
+                            className="h-10 rounded-lg border-slate-200"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="possession" className="text-xs font-bold text-slate-600">Possession</Label>
+                          <Input 
+                            id="possession"
+                            placeholder="e.g. Ready / 1 Year"
+                            value={editForm.possession}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, possession: e.target.value }))}
+                            className="h-10 rounded-lg border-slate-200"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="objective" className="text-xs font-bold text-slate-600">Objective</Label>
+                          <Input 
+                            id="objective"
+                            value={editForm.objective}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, objective: e.target.value }))}
+                            className="h-10 rounded-lg border-slate-200"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="position" className="text-xs font-bold text-slate-600">Position</Label>
+                          <Input 
+                            id="position"
+                            value={editForm.position}
+                            onChange={(e) => setEditForm(prev => ({ ...prev, position: e.target.value }))}
+                            className="h-10 rounded-lg border-slate-200"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs font-bold text-slate-600">Lead Quality</Label>
+                          <Select 
+                            value={editForm.leadQuality} 
+                            onValueChange={(val) => setEditForm(prev => ({ ...prev, leadQuality: val }))}
+                          >
+                            <SelectTrigger className="h-10 rounded-lg border-slate-200 font-bold">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Hot">🔥 Hot</SelectItem>
+                              <SelectItem value="Warm">🟡 Warm</SelectItem>
+                              <SelectItem value="Cold">❄️ Cold</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label className="text-xs font-bold text-slate-600">Status</Label>
+                          <Select 
+                            value={editForm.status} 
+                            onValueChange={(val) => setEditForm(prev => ({ ...prev, status: val }))}
+                          >
+                            <SelectTrigger className="h-10 rounded-lg border-slate-200 font-bold">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="New">New</SelectItem>
+                              <SelectItem value="Contacted">Contacted</SelectItem>
+                              <SelectItem value="Interested">Interested</SelectItem>
+                              <SelectItem value="Escalated">Escalated</SelectItem>
+                              <SelectItem value="Converted">Converted</SelectItem>
+                              <SelectItem value="Lost">Lost</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      {/* Site Visit / Callback Quick Info */}
+                      {(selectedSession.siteVisitRequested || selectedSession.callbackRequested) && (
+                        <div className="p-3.5 bg-rose-50 border border-rose-100 rounded-2xl flex flex-wrap gap-3">
+                          {selectedSession.siteVisitRequested && (
+                            <Badge variant="destructive" className="font-bold flex gap-1 items-center px-2 py-0.5 rounded-lg">
+                              🏠 Site Visit Requested
+                            </Badge>
+                          )}
+                          {selectedSession.callbackRequested && (
+                            <Badge variant="warning" className="font-bold flex gap-1 items-center px-2 py-0.5 rounded-lg text-amber-800 bg-amber-100 border-amber-200">
+                              📞 Callback Requested
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Notes history */}
+                      {selectedSession.notes && selectedSession.notes.length > 0 && (
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold text-slate-600">Admin Notes History</Label>
+                          <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 max-h-32 overflow-y-auto space-y-2">
+                            {selectedSession.notes.map((note, idx) => (
+                              <div key={idx} className="text-xs border-b border-slate-200/60 pb-1.5 last:border-0 last:pb-0">
+                                <p className="font-bold text-slate-700">{note.addedBy} • <span className="text-[10px] font-medium text-slate-400">{new Date(note.addedAt).toLocaleDateString()}</span></p>
+                                <p className="text-slate-600 mt-0.5 font-medium">{note.text}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Add note text */}
+                      <div className="space-y-1.5">
+                        <Label htmlFor="note" className="text-xs font-bold text-slate-600">Add Admin Note</Label>
+                        <Input 
+                          id="note"
+                          placeholder="Type admin note or callback summary..."
+                          value={noteText}
+                          onChange={(e) => setNoteText(e.target.value)}
+                          className="h-10 rounded-lg border-slate-200"
+                        />
+                      </div>
+
+                      <Button 
+                        type="submit" 
+                        disabled={savingLead}
+                        className="w-full h-11 bg-cyan-600 hover:bg-cyan-700 font-bold rounded-xl gap-2 shadow-lg shadow-cyan-600/10"
+                      >
+                        <Save size={16} /> {savingLead ? 'Saving...' : 'Update Lead Data & Notes'}
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+
+                {/* Chat Session Viewer */}
+                {selectedSession.sessionId && (
+                  <Card className="shadow-sm border-slate-200/60 rounded-[2rem] overflow-hidden bg-white">
+                    <CardHeader className="border-b border-slate-100 bg-slate-50/50 py-4">
+                      <CardTitle className="text-base font-black text-slate-800 flex items-center gap-2">
+                        <MessageSquare size={18} className="text-cyan-600" /> AI Conversation Log
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      {loadingChat ? (
+                        <div className="py-12 text-center text-sm font-semibold text-slate-400 animate-pulse">
+                          Loading dialogue transcript...
+                        </div>
+                      ) : chatHistory.length === 0 ? (
+                        <div className="py-12 text-center text-xs font-bold text-slate-400">
+                          No messages found for this chat session.
+                        </div>
+                      ) : (
+                        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                          {chatHistory.map((msg, index) => {
+                            const isUser = msg.role === 'user';
+                            return (
+                              <div 
+                                key={index}
+                                className={`flex items-start gap-3 max-w-[85%] ${isUser ? 'ml-auto flex-row-reverse' : 'mr-auto'}`}
+                              >
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border ${
+                                  isUser 
+                                    ? 'bg-slate-100 border-slate-200 text-slate-600' 
+                                    : 'bg-cyan-50 border-cyan-100 text-cyan-600'
+                                }`}>
+                                  {isUser ? <User size={14} /> : <Bot size={14} />}
+                                </div>
+                                <div className={`p-3 rounded-2xl text-sm leading-relaxed ${
+                                  isUser 
+                                    ? 'bg-slate-100 border border-slate-200/60 text-slate-800 rounded-tr-none' 
+                                    : 'bg-cyan-50/70 border border-cyan-100/60 text-slate-800 rounded-tl-none font-medium'
+                                }`}>
+                                  <p className="whitespace-pre-line">{msg.content}</p>
+                                  <span className="block text-[9px] text-slate-400 text-right mt-1.5 font-medium">
+                                    {new Date(msg.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
+              </div>
+            )}
+          </div>
+
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in duration-300">
+          
+          {/* Left Column: Filter Controls and List of Matching Leads */}
+          <div className="lg:col-span-7 space-y-6">
+            <Card className="shadow-sm border-slate-200/60 rounded-[2rem] overflow-hidden bg-white">
+              <CardHeader className="border-b border-slate-100 pb-5">
+                <CardTitle className="text-xl font-black text-slate-900">Broadcast Lead Segmenter</CardTitle>
+                <CardDescription className="text-xs font-semibold text-slate-500">
+                  Select location, budget tier, and quality filters to target your broadcast list.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6 space-y-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {/* Location Filter */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-slate-600">Preferred Location</Label>
+                    <Select value={campaignLocation} onValueChange={setCampaignLocation}>
+                      <SelectTrigger className="h-10 rounded-lg border-slate-200 font-semibold text-slate-700">
+                        <SelectValue placeholder="Location" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ALL">All Locations</SelectItem>
+                        <SelectItem value="Hinjewadi">Hinjewadi</SelectItem>
+                        <SelectItem value="Tathawade">Tathawade</SelectItem>
+                        <SelectItem value="Wakad">Wakad</SelectItem>
+                        <SelectItem value="Baner">Baner</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Budget Filter */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-slate-600">Budget Tier</Label>
+                    <Select value={campaignBudget} onValueChange={setCampaignBudget}>
+                      <SelectTrigger className="h-10 rounded-lg border-slate-200 font-semibold text-slate-700">
+                        <SelectValue placeholder="Budget Tier" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ALL">All Budgets</SelectItem>
+                        <SelectItem value="under-80">Under 80L</SelectItem>
+                        <SelectItem value="80-1.5">80L - 1.5Cr</SelectItem>
+                        <SelectItem value="above-1.5">Above 1.5Cr</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Lead Quality */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-slate-600">Quality Scoring</Label>
+                    <Select value={campaignQuality} onValueChange={setCampaignQuality}>
+                      <SelectTrigger className="h-10 rounded-lg border-slate-200 font-semibold text-slate-700">
                         <SelectValue placeholder="Quality" />
                       </SelectTrigger>
                       <SelectContent>
@@ -364,9 +1038,11 @@ function ChatLeadsPageContent() {
                     </Select>
                   </div>
 
-                  <div className="w-full md:w-44">
-                    <Select value={status} onValueChange={(val) => { setStatus(val); setPage(1); }}>
-                      <SelectTrigger className="h-11 rounded-xl border-slate-200 font-bold text-slate-700">
+                  {/* Lead Status */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold text-slate-600">Pipeline Status</Label>
+                    <Select value={campaignStatus} onValueChange={setCampaignStatus}>
+                      <SelectTrigger className="h-10 rounded-lg border-slate-200 font-semibold text-slate-700">
                         <SelectValue placeholder="Status" />
                       </SelectTrigger>
                       <SelectContent>
@@ -382,408 +1058,172 @@ function ChatLeadsPageContent() {
                   </div>
                 </div>
 
-                <Button 
-                  onClick={() => setExportOpen(true)}
-                  variant="outline"
-                  className="h-11 border-slate-200 text-slate-700 font-bold rounded-xl gap-2 hover:bg-slate-50"
-                >
-                  <Download size={16} /> Export Excel
-                </Button>
-              </div>
-            </div>
+                <div className="p-3.5 bg-cyan-50 border border-cyan-100 rounded-2xl flex justify-between items-center text-xs font-bold text-cyan-800">
+                  <span>Match Count for Segment: {filteredCampaignLeads.length} Leads</span>
+                  <span className="text-cyan-600 bg-cyan-100/50 px-2 py-0.5 rounded-lg">{selectedCampaignLeadIds.size} Selected</span>
+                </div>
+              </CardContent>
+            </Card>
 
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader className="bg-slate-50/50">
-                    <TableRow className="border-slate-100">
-                      <TableHead className="font-bold text-slate-700 pl-6">Client</TableHead>
-                      <TableHead className="font-bold text-slate-700">Interest</TableHead>
-                      <TableHead className="font-bold text-slate-700 text-center">Score</TableHead>
-                      <TableHead className="font-bold text-slate-700 text-center">Status</TableHead>
-                      <TableHead className="font-bold text-slate-700 text-right pr-6">Date</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {leads.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center py-16 text-slate-500 font-medium">
-                          No leads matching your filters.
-                        </TableCell>
+            <Card className="shadow-sm border-slate-200/60 rounded-[2rem] overflow-hidden bg-white">
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader className="bg-slate-50/50">
+                      <TableRow className="border-slate-100">
+                        <TableHead className="w-12 pl-6 py-4">
+                          <input 
+                            type="checkbox"
+                            className="rounded border-slate-300 text-cyan-600 focus:ring-cyan-500 h-4 w-4 accent-cyan-600 cursor-pointer animate-none"
+                            checked={filteredCampaignLeads.length > 0 && selectedCampaignLeadIds.size === filteredCampaignLeads.length}
+                            onChange={toggleSelectAllCampaignLeads}
+                          />
+                        </TableHead>
+                        <TableHead className="font-bold text-slate-700">Client Info</TableHead>
+                        <TableHead className="font-bold text-slate-700">Segment Profile</TableHead>
+                        <TableHead className="font-bold text-slate-700 text-center">Quality</TableHead>
+                        <TableHead className="font-bold text-slate-700 text-center">Status</TableHead>
                       </TableRow>
-                    ) : (
-                      leads.map((lead) => (
-                        <TableRow 
-                          key={lead._id} 
-                          onClick={() => selectLead(lead)}
-                          className={`cursor-pointer hover:bg-slate-50/80 transition-colors group ${selectedSession?._id === lead._id ? 'bg-cyan-50/30' : ''}`}
-                        >
-                          <TableCell className="pl-6 py-4">
-                            <div>
-                              <p className="font-bold text-slate-900 group-hover:text-cyan-600 transition-colors">{lead.name}</p>
-                              <p className="text-xs text-slate-500 mt-0.5">{lead.phone}</p>
-                            </div>
-                          </TableCell>
-                          <TableCell className="py-4">
-                            <div className="text-xs font-semibold text-slate-700">
-                              {lead.objective ? <span className="block text-slate-900 font-bold mb-0.5">🎯 {lead.objective}</span> : null}
-                              {lead.preferredLocation ? <span>📍 {lead.preferredLocation} </span> : null}
-                              {lead.budget ? <span>💵 {lead.budget}</span> : null}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center py-4">
-                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold ${
-                              lead.leadQuality === 'Hot' ? 'bg-red-50 text-red-700 border border-red-100' :
-                              lead.leadQuality === 'Warm' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
-                              'bg-blue-50 text-blue-700 border border-blue-100'
-                            }`}>
-                              {lead.leadQuality === 'Hot' ? '🔥' : lead.leadQuality === 'Warm' ? '🟡' : '❄️'} {lead.leadScore}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-center py-4">
-                            <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
-                              lead.status === 'New' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
-                              lead.status === 'Converted' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                              lead.status === 'Escalated' ? 'bg-red-50 text-red-700 border border-red-200 animate-pulse' :
-                              lead.status === 'Lost' ? 'bg-slate-100 text-slate-600' :
-                              'bg-purple-50 text-purple-700 border border-purple-200'
-                            }`}>
-                              {lead.status}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right pr-6 py-4 text-xs text-slate-500 font-medium">
-                            {new Date(lead.updatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                    </TableHeader>
+                    <TableBody>
+                      {filteredCampaignLeads.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-12 text-slate-500 font-medium">
+                            No matching leads in cache.
                           </TableCell>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between p-6 border-t border-slate-100 bg-slate-50/50">
-                  <Button 
-                    variant="outline" 
-                    disabled={page === 1} 
-                    onClick={() => setPage(prev => prev - 1)}
-                    className="rounded-xl border-slate-200 hover:bg-slate-100 font-bold"
-                  >
-                    Previous
-                  </Button>
-                  <span className="text-sm text-slate-500 font-bold">
-                    Page {page} of {totalPages}
-                  </span>
-                  <Button 
-                    variant="outline" 
-                    disabled={page === totalPages} 
-                    onClick={() => setPage(prev => prev + 1)}
-                    className="rounded-xl border-slate-200 hover:bg-slate-100 font-bold"
-                  >
-                    Next
-                  </Button>
+                      ) : (
+                        filteredCampaignLeads.map((lead) => (
+                          <TableRow 
+                            key={lead._id}
+                            className={`hover:bg-slate-50/80 transition-colors cursor-pointer ${selectedCampaignLeadIds.has(lead._id) ? 'bg-cyan-50/20' : ''}`}
+                            onClick={() => toggleSelectCampaignLead(lead._id)}
+                          >
+                            <TableCell className="pl-6 py-4" onClick={(e) => e.stopPropagation()}>
+                              <input 
+                                type="checkbox"
+                                className="rounded border-slate-300 text-cyan-600 focus:ring-cyan-500 h-4 w-4 accent-cyan-600 cursor-pointer animate-none"
+                                checked={selectedCampaignLeadIds.has(lead._id)}
+                                onChange={() => toggleSelectCampaignLead(lead._id)}
+                              />
+                            </TableCell>
+                            <TableCell className="py-4">
+                              <div>
+                                <p className="font-bold text-slate-900">{lead.name}</p>
+                                <p className="text-xs text-slate-500 mt-0.5">{lead.phone}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell className="py-4">
+                              <div className="text-xs font-semibold text-slate-600">
+                                <span className="block">📍 {lead.preferredLocation || 'N/A'}</span>
+                                <span className="block mt-0.5">💵 {lead.budget || 'N/A'}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-center py-4">
+                              <Badge variant={lead.leadQuality === 'Hot' ? 'destructive' : lead.leadQuality === 'Warm' ? 'warning' : 'default'} className="font-bold rounded-lg text-[10px]">
+                                {lead.leadQuality}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-center py-4">
+                              <span className="text-xs font-bold text-slate-650">{lead.status}</span>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Column: Chat & Edit Pipeline */}
-        <div className="lg:col-span-5 space-y-6">
-          {!selectedSession ? (
-            <Card className="shadow-sm border-slate-200/60 rounded-[2rem] p-12 text-center bg-white h-[600px] flex flex-col items-center justify-center">
-              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-slate-100">
-                <Users size={28} className="text-slate-400" />
-              </div>
-              <h3 className="text-lg font-black text-slate-800">No Lead Selected</h3>
-              <p className="text-slate-500 text-sm mt-2 max-w-xs mx-auto">
-                Click any lead in the table on the left to view their conversation history, scoring details, and manage pipeline status.
-              </p>
+              </CardContent>
             </Card>
-          ) : (
-            <div className="space-y-6">
-              
-              {/* Client Profile and Update Form */}
-              <Card className="shadow-sm border-slate-200/60 rounded-[2rem] overflow-hidden bg-white">
-                <CardHeader className="border-b border-slate-100 pb-5">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-xl font-black text-slate-900">{editForm.name || 'Chat Lead'}</CardTitle>
-                      <CardDescription className="text-xs font-semibold text-slate-500 mt-1 flex items-center gap-1.5">
-                        <Clock size={12} /> Last active: {new Date(selectedSession.updatedAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })}
-                      </CardDescription>
+          </div>
+
+          {/* Right Column: Template Select & Live WhatsApp Preview Mockup */}
+          <div className="lg:col-span-5 space-y-6">
+            <Card className="shadow-sm border-slate-200/60 rounded-[2rem] overflow-hidden bg-white">
+              <CardHeader className="border-b border-slate-100 pb-5">
+                <CardTitle className="text-lg font-black text-slate-900">Campaign Messaging</CardTitle>
+                <CardDescription className="text-xs font-semibold text-slate-500">
+                  Select a template and edit variables before generating the broadcast CSV.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6 space-y-4">
+                {/* Template Selector */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-slate-600">Select Broadcast Template</Label>
+                  <Select value={campaignTemplate} onValueChange={handleTemplateChange}>
+                    <SelectTrigger className="h-10 rounded-lg border-slate-200 font-semibold text-slate-700">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="welcome">Welcome & Property Options</SelectItem>
+                      <SelectItem value="site_visit">Weekend Site Visit Request</SelectItem>
+                      <SelectItem value="roi_tool">ROI Tool Highlight</SelectItem>
+                      <SelectItem value="custom">Custom Template (Write your own)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Text editor */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-xs font-bold text-slate-600">Template Composer</Label>
+                    <span className="text-[10px] text-cyan-600 font-bold">{"Use: {{name}}, {{preferredLocation}}, {{budget}}"}</span>
+                  </div>
+                  <textarea
+                    rows={6}
+                    value={customTemplateText}
+                    onChange={(e) => setCustomTemplateText(e.target.value)}
+                    className="w-full rounded-xl border border-slate-205 p-3 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 bg-slate-50/50"
+                    placeholder="Write your custom campaign message here..."
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Simulated Live Preview Mockup */}
+            <Card className="shadow-sm border-slate-200/60 rounded-[2rem] overflow-hidden bg-white">
+              <CardHeader className="border-b border-slate-100 bg-slate-50/50 py-3.5">
+                <CardTitle className="text-xs font-extrabold uppercase tracking-wider text-slate-650 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Live Client Preview Mockup
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 bg-slate-900 flex justify-center">
+                {/* Simulated Phone container */}
+                <div className="w-full max-w-[340px] bg-[#e5ddd5] rounded-[2rem] border-4 border-slate-800 shadow-xl overflow-hidden text-xs">
+                  {/* Phone Header */}
+                  <div className="bg-[#075e54] text-white p-3 flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-full bg-slate-205 flex items-center justify-center text-slate-700 font-black text-[10px]">
+                      EUS
                     </div>
-                    <div className="flex items-center gap-3">
-                      <Badge variant={selectedSession.leadQuality === 'Hot' ? 'destructive' : selectedSession.leadQuality === 'Warm' ? 'warning' : 'default'} className="font-bold rounded-lg px-2.5 py-1">
-                        {selectedSession.leadQuality} ({selectedSession.leadScore}/100)
-                      </Badge>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg h-8 w-8"
-                        onClick={handleDeleteLead}
-                        disabled={deletingLead}
-                        title="Delete Lead"
-                      >
-                        <Trash2 size={16} />
-                      </Button>
+                    <div>
+                      <p className="font-bold leading-tight">EUS Broadcast Bot</p>
+                      <p className="text-[9px] text-emerald-100 leading-none">Active Campaign Preview</p>
                     </div>
                   </div>
-                </CardHeader>
-                
-                <CardContent className="p-6">
-                  <form onSubmit={handleUpdateLead} className="space-y-5">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="name" className="text-xs font-bold text-slate-600">Client Name</Label>
-                        <Input 
-                          id="name"
-                          value={editForm.name}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-                          className="h-10 rounded-lg border-slate-200"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="phone" className="text-xs font-bold text-slate-600">Phone</Label>
-                        <Input 
-                          id="phone"
-                          maxLength={10}
-                          value={editForm.phone}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value.replace(/\D/g, '').slice(0, 10) }))}
-                          className="h-10 rounded-lg border-slate-200"
-                        />
-                      </div>
+                  {/* Chat Area */}
+                  <div className="p-4 space-y-3 min-h-[180px] bg-[#efeae2] bg-repeat bg-contain">
+                    <div className="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm text-[11px] leading-relaxed max-w-[90%] text-slate-800 border border-slate-200/50">
+                      {campaignPreviewMessage}
+                      <span className="block text-[8px] text-slate-400 text-right mt-1.5">
+                        {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
                     </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-                    <div className="space-y-1.5">
-                      <Label htmlFor="email" className="text-xs font-bold text-slate-600">Email Address</Label>
-                      <Input 
-                        id="email"
-                        value={editForm.email}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
-                        className="h-10 rounded-lg border-slate-200"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="budget" className="text-xs font-bold text-slate-600">Budget</Label>
-                        <Input 
-                          id="budget"
-                          placeholder="e.g. 80 Lakhs - 1.2 Cr"
-                          value={editForm.budget}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, budget: e.target.value }))}
-                          className="h-10 rounded-lg border-slate-200"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="location" className="text-xs font-bold text-slate-600">Preferred Location</Label>
-                        <Input 
-                          id="location"
-                          placeholder="e.g. Baner, Pune"
-                          value={editForm.preferredLocation}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, preferredLocation: e.target.value }))}
-                          className="h-10 rounded-lg border-slate-200"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="propType" className="text-xs font-bold text-slate-600">Property Type</Label>
-                        <Input 
-                          id="propType"
-                          placeholder="e.g. 2BHK Apartment"
-                          value={editForm.propertyType}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, propertyType: e.target.value }))}
-                          className="h-10 rounded-lg border-slate-200"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="possession" className="text-xs font-bold text-slate-600">Possession</Label>
-                        <Input 
-                          id="possession"
-                          placeholder="e.g. Ready / 1 Year"
-                          value={editForm.possession}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, possession: e.target.value }))}
-                          className="h-10 rounded-lg border-slate-200"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="objective" className="text-xs font-bold text-slate-600">Objective</Label>
-                        <Input 
-                          id="objective"
-                          value={editForm.objective}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, objective: e.target.value }))}
-                          className="h-10 rounded-lg border-slate-200"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="position" className="text-xs font-bold text-slate-600">Position</Label>
-                        <Input 
-                          id="position"
-                          value={editForm.position}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, position: e.target.value }))}
-                          className="h-10 rounded-lg border-slate-200"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-bold text-slate-600">Lead Quality</Label>
-                        <Select 
-                          value={editForm.leadQuality} 
-                          onValueChange={(val) => setEditForm(prev => ({ ...prev, leadQuality: val }))}
-                        >
-                          <SelectTrigger className="h-10 rounded-lg border-slate-200 font-bold">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Hot">🔥 Hot</SelectItem>
-                            <SelectItem value="Warm">🟡 Warm</SelectItem>
-                            <SelectItem value="Cold">❄️ Cold</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-bold text-slate-600">Status</Label>
-                        <Select 
-                          value={editForm.status} 
-                          onValueChange={(val) => setEditForm(prev => ({ ...prev, status: val }))}
-                        >
-                          <SelectTrigger className="h-10 rounded-lg border-slate-200 font-bold">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="New">New</SelectItem>
-                            <SelectItem value="Contacted">Contacted</SelectItem>
-                            <SelectItem value="Interested">Interested</SelectItem>
-                            <SelectItem value="Escalated">Escalated</SelectItem>
-                            <SelectItem value="Converted">Converted</SelectItem>
-                            <SelectItem value="Lost">Lost</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    {/* Site Visit / Callback Quick Info */}
-                    {(selectedSession.siteVisitRequested || selectedSession.callbackRequested) && (
-                      <div className="p-3.5 bg-rose-50 border border-rose-100 rounded-2xl flex flex-wrap gap-3">
-                        {selectedSession.siteVisitRequested && (
-                          <Badge variant="destructive" className="font-bold flex gap-1 items-center px-2 py-0.5 rounded-lg">
-                            🏠 Site Visit Requested
-                          </Badge>
-                        )}
-                        {selectedSession.callbackRequested && (
-                          <Badge variant="warning" className="font-bold flex gap-1 items-center px-2 py-0.5 rounded-lg text-amber-800 bg-amber-100 border-amber-200">
-                            📞 Callback Requested
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Notes history */}
-                    {selectedSession.notes && selectedSession.notes.length > 0 && (
-                      <div className="space-y-2">
-                        <Label className="text-xs font-bold text-slate-600">Admin Notes History</Label>
-                        <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 max-h-32 overflow-y-auto space-y-2">
-                          {selectedSession.notes.map((note, idx) => (
-                            <div key={idx} className="text-xs border-b border-slate-200/60 pb-1.5 last:border-0 last:pb-0">
-                              <p className="font-bold text-slate-700">{note.addedBy} • <span className="text-[10px] font-medium text-slate-400">{new Date(note.addedAt).toLocaleDateString()}</span></p>
-                              <p className="text-slate-600 mt-0.5 font-medium">{note.text}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Add note text */}
-                    <div className="space-y-1.5">
-                      <Label htmlFor="note" className="text-xs font-bold text-slate-600">Add Admin Note</Label>
-                      <Input 
-                        id="note"
-                        placeholder="Type admin note or callback summary..."
-                        value={noteText}
-                        onChange={(e) => setNoteText(e.target.value)}
-                        className="h-10 rounded-lg border-slate-200"
-                      />
-                    </div>
-
-                    <Button 
-                      type="submit" 
-                      disabled={savingLead}
-                      className="w-full h-11 bg-cyan-600 hover:bg-cyan-700 font-bold rounded-xl gap-2 shadow-lg shadow-cyan-600/10"
-                    >
-                      <Save size={16} /> {savingLead ? 'Saving...' : 'Update Lead Data & Notes'}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-
-              {/* Chat Session Viewer */}
-              {selectedSession.sessionId && (
-                <Card className="shadow-sm border-slate-200/60 rounded-[2rem] overflow-hidden bg-white">
-                  <CardHeader className="border-b border-slate-100 bg-slate-50/50 py-4">
-                    <CardTitle className="text-base font-black text-slate-800 flex items-center gap-2">
-                      <MessageSquare size={18} className="text-cyan-600" /> AI Conversation Log
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-4">
-                    {loadingChat ? (
-                      <div className="py-12 text-center text-sm font-semibold text-slate-400 animate-pulse">
-                        Loading dialogue transcript...
-                      </div>
-                    ) : chatHistory.length === 0 ? (
-                      <div className="py-12 text-center text-xs font-bold text-slate-400">
-                        No messages found for this chat session.
-                      </div>
-                    ) : (
-                      <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                        {chatHistory.map((msg, index) => {
-                          const isUser = msg.role === 'user';
-                          return (
-                            <div 
-                              key={index}
-                              className={`flex items-start gap-3 max-w-[85%] ${isUser ? 'ml-auto flex-row-reverse' : 'mr-auto'}`}
-                            >
-                              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border ${
-                                isUser 
-                                  ? 'bg-slate-100 border-slate-200 text-slate-600' 
-                                  : 'bg-cyan-50 border-cyan-100 text-cyan-600'
-                              }`}>
-                                {isUser ? <User size={14} /> : <Bot size={14} />}
-                              </div>
-                              <div className={`p-3 rounded-2xl text-sm leading-relaxed ${
-                                isUser 
-                                  ? 'bg-slate-100 border border-slate-200/60 text-slate-800 rounded-tr-none' 
-                                  : 'bg-cyan-50/70 border border-cyan-100/60 text-slate-800 rounded-tl-none font-medium'
-                              }`}>
-                                <p className="whitespace-pre-line">{msg.content}</p>
-                                <span className="block text-[9px] text-slate-400 text-right mt-1.5 font-medium">
-                                  {new Date(msg.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-
-            </div>
-          )}
+            {/* Campaign Action Button */}
+            <Button
+              onClick={exportCampaignCSV}
+              disabled={filteredCampaignLeads.length === 0 || selectedCampaignLeadIds.size === 0}
+              className="w-full py-6 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-cyan-600/10 text-sm"
+            >
+              <Download size={18} /> Export WhatsApp CSV ({selectedCampaignLeadIds.size} Leads)
+            </Button>
+          </div>
         </div>
-
-      </div>
+      )}
 
       <ExportModal 
         isOpen={exportOpen}

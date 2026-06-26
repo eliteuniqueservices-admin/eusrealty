@@ -186,7 +186,7 @@ export default function ProjectDetailClient({ property, richData }) {
     } else {
       base = `Hi! I would like to get the best pricing quote/payment plan for "${property.name}" in ${property.location}.`;
     }
-    return encodeURIComponent(`${base} URL: https://eusrealty.com/properties/${property.slug || property.id}`);
+    return encodeURIComponent(`${base} URL: https://eusrealty.co.in/properties/${property.slug || property.id}`);
   };
 
   // Nearby connectivity icon map

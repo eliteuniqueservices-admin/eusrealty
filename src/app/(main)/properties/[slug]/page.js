@@ -243,6 +243,14 @@ export default async function PropertyOrListingPage({ params }) {
     return notFound();
   }
 
+  // Serialize Mongoose document and enrich with client-friendly fields to fix boundary crash
+  property = {
+    ...JSON.parse(JSON.stringify(property)),
+    id: String(property._id),
+    slug: getPropertySlug(property),
+    price: property.configDetails?.[0]?.price || "On Request"
+  };
+
   const whatsappNumber = "917620733613";
   const getWhatsappMsg = (type) => {
     let base = "";
@@ -253,7 +261,7 @@ export default async function PropertyOrListingPage({ params }) {
     } else {
       base = `Hi! I would like to get the best pricing quote/payment plan for "${property.name}" in ${property.location}.`;
     }
-    return encodeURIComponent(`${base} URL: https://eusrealty.co.in/properties/${getPropertySlug(property)}`);
+    return encodeURIComponent(`${base} URL: https://eusrealty.co.in/properties/${property.slug}`);
   };
 
   // Enrich details with static lookup config

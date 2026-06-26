@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { speakCongratulation, cancelSpeech } from "@/lib/elevenLabsTTS";
+import { speakCongratulation, cancelSpeech, speakText } from "@/lib/elevenLabsTTS";
 import { 
   X, Send, CheckCheck, MessageCircle, User, Phone, 
-  ChevronRight, Sparkles, Mail, MapPin, Home, Clock
+  ChevronRight, Sparkles, Mail, MapPin, Home, Clock,
+  Mic, MicOff, Volume2, VolumeX
 } from "lucide-react";
 import PropertyCard from "./PropertyCard";
 
@@ -460,6 +461,67 @@ export default function WhatsAppChat() {
   };
 
   const [isEscalated, setIsEscalated] = useState(false);
+  const [isSpeechEnabled, setIsSpeechEnabled] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const rec = new SpeechRecognition();
+        rec.continuous = false;
+        rec.interimResults = false;
+        rec.lang = "en-IN";
+
+        rec.onstart = () => {
+          setIsListening(true);
+        };
+
+        rec.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          setMessage(prev => (prev ? prev + " " + transcript : transcript));
+        };
+
+        rec.onerror = (err) => {
+          console.warn("Speech recognition error:", err);
+          setIsListening(false);
+        };
+
+        rec.onend = () => {
+          setIsListening(false);
+        };
+
+        recognitionRef.current = rec;
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) {
+      cancelSpeech();
+      if (isListening && recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    }
+  }, [isOpen, isListening]);
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) {
+      alert("Voice recognition is not supported in this browser. Please try Chrome or Edge.");
+      return;
+    }
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      cancelSpeech(); // stop any reading before listening
+      try {
+        recognitionRef.current.start();
+      } catch (err) {
+        console.warn("Failed to start speech recognition:", err);
+      }
+    }
+  };
 
   const [messages, setMessages] = useState([
     {
@@ -691,6 +753,9 @@ export default function WhatsAppChat() {
         ...prev,
         { id: `agent-${Date.now()}`, sender: "agent", text, time: getNow(), waActionMsg: waMsg, tgActionMsg: tgMsg, chips },
       ]);
+      if (isSpeechEnabled) {
+        speakText(text);
+      }
     }, BOT_REPLY_DELAY_MS);
   };
 
@@ -760,6 +825,9 @@ export default function WhatsAppChat() {
             matches: data.matches || []
           },
         ]);
+        if (isSpeechEnabled) {
+          speakText(data.reply);
+        }
         return;
       }
       throw new Error("API call failed");
@@ -817,6 +885,9 @@ export default function WhatsAppChat() {
             matches: data.matches || []
           },
         ]);
+        if (isSpeechEnabled) {
+          speakText(data.reply);
+        }
         return;
       }
       throw new Error("API call failed");
@@ -1079,6 +1150,38 @@ export default function WhatsAppChat() {
       {/* ── Input bar ── */}
       <div className="flex-shrink-0 bg-white border-t border-gray-100 px-3 py-2.5 safe-area-inset-bottom">
         <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex gap-2 items-center">
+          {/* Speaker Toggle Button */}
+          <button
+            type="button"
+            onClick={() => {
+              const next = !isSpeechEnabled;
+              setIsSpeechEnabled(next);
+              if (!next) cancelSpeech();
+            }}
+            className={`p-2.5 rounded-2xl flex items-center justify-center transition-all flex-shrink-0 cursor-pointer ${
+              isSpeechEnabled 
+                ? "bg-indigo-50 border border-indigo-200 text-indigo-600 hover:bg-indigo-100" 
+                : "bg-gray-50 border border-gray-200 text-gray-400 hover:bg-gray-100"
+            }`}
+            title={isSpeechEnabled ? "Mute AI Voice" : "Enable AI Voice"}
+          >
+            {isSpeechEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />}
+          </button>
+
+          {/* Microphone Dictation Button */}
+          <button
+            type="button"
+            onClick={toggleListening}
+            className={`p-2.5 rounded-2xl flex items-center justify-center transition-all flex-shrink-0 cursor-pointer ${
+              isListening 
+                ? "bg-rose-50 border border-rose-200 text-rose-500 animate-pulse hover:bg-rose-100" 
+                : "bg-gray-50 border border-gray-200 text-gray-400 hover:bg-gray-100"
+            }`}
+            title={isListening ? "Stop Voice Typing" : "Dictate Message"}
+          >
+            {isListening ? <MicOff size={15} /> : <Mic size={15} />}
+          </button>
+
           <input
             ref={inputRef}
             type="text"

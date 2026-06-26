@@ -180,6 +180,88 @@ export async function speakCongratulation(name) {
 }
 
 /**
+ * Clean formatting symbols (markdown bold, italics, code blocks, excessive punctuation) 
+ * to provide a smooth, clean speech output.
+ */
+function cleanTextForSpeech(text) {
+  if (!text) return '';
+  return text
+    .replace(/\*\*([^*]+)\*\*/g, '$1') // Bold **text** -> text
+    .replace(/\*([^*]+)\*/g, '$1')    // Italics *text* -> text
+    .replace(/`([^`]+)`/g, '$1')       // Inline code `text` -> text
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Markdown link [text](url) -> text
+    .replace(/[:\-•*■✔]/g, ' ')        // Symbols/bullets -> space
+    .replace(/\n+/g, ' ')              // Newlines -> space
+    .replace(/\s+/g, ' ')              // Double spaces -> space
+    .trim();
+}
+
+/**
+ * Speak any generic text dynamically using the best browser voice.
+ */
+export async function speakText(text) {
+  if (typeof window === 'undefined' || !window.speechSynthesis) return;
+
+  try {
+    speechState.cancel();
+    speechState.active = true;
+
+    const cleaned = cleanTextForSpeech(text);
+    if (!cleaned) return;
+
+    const doSpeak = () => {
+      if (!speechState.active) return;
+      const voices = window.speechSynthesis.getVoices();
+      const chosenVoice = findBestVoice(voices);
+
+      const isNaturalVoice = chosenVoice?.name?.includes('Natural') || 
+                            chosenVoice?.name?.includes('Google');
+
+      const utter = new SpeechSynthesisUtterance(cleaned);
+
+      if (isNaturalVoice) {
+        utter.rate = 0.94;
+        utter.pitch = 1.0;
+      } else {
+        utter.rate = 0.90;
+        utter.pitch = 1.05;
+      }
+
+      utter.volume = 1;
+      utter.lang = chosenVoice?.lang || 'en-IN';
+      if (chosenVoice) utter.voice = chosenVoice;
+
+      utter.onend = () => {
+        speechState.active = false;
+      };
+
+      utter.onerror = () => {
+        speechState.active = false;
+      };
+
+      window.speechSynthesis.speak(utter);
+    };
+
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+      doSpeak();
+    } else {
+      const onVoicesLoaded = () => {
+        window.speechSynthesis.removeEventListener('voiceschanged', onVoicesLoaded);
+        doSpeak();
+      };
+      window.speechSynthesis.addEventListener('voiceschanged', onVoicesLoaded);
+      setTimeout(() => {
+        window.speechSynthesis.removeEventListener('voiceschanged', onVoicesLoaded);
+        doSpeak();
+      }, 1000);
+    }
+  } catch (err) {
+    console.error('Error in speakText:', err);
+  }
+}
+
+/**
  * Cancel any ongoing speech
  */
 export function cancelSpeech() {
@@ -187,3 +269,4 @@ export function cancelSpeech() {
 }
 
 export { speechState };
+
