@@ -916,11 +916,11 @@ export default function AboutClient() {
             className="absolute inset-0 w-full h-[130%] -top-[15%] opacity-50 select-none pointer-events-none"
           >
             <Image
-              src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1920&q=80"
+              src="/uploads/about_hero_skyscraper.png"
               alt="Premium Skyline"
               fill
               sizes="100vw"
-              className="object-cover grayscale"
+              className="object-cover"
               priority
             />
             {/* Cinematic Gradient Overlays */}

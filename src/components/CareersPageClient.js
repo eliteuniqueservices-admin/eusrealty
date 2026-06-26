@@ -498,13 +498,13 @@ export default function CareersPageClient({ initialJobPosts }) {
           {/* Parallax Skyline Background */}
           <motion.div
             style={{ y: yBackground }}
-            className="absolute inset-0 w-full h-[120%] -top-[10%] opacity-25 select-none pointer-events-none"
+            className="absolute inset-0 w-full h-[120%] -top-[10%] opacity-45 select-none pointer-events-none"
           >
             <Image
-              src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1920&q=80"
+              src="/uploads/careers_hero_office.png"
               alt="Premium Skyline Work Env"
               fill
-              className="object-cover grayscale"
+              className="object-cover"
               priority
             />
             {/* Cinematic Gradient Overlays */}
