@@ -291,7 +291,7 @@ export default function AdminShell({ children }) {
   useEffect(() => {
     if (status !== 'authenticated') return;
 
-    const TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
+    const TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
 
     const checkSessionIdle = () => {
       if (typeof window === 'undefined') return;

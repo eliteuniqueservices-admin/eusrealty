@@ -39,6 +39,7 @@ export const GET = auth(async function GET(req) {
       Escalated: 0,
       Converted: 0,
       Lost: 0,
+      'Waiting for Sales Consultant': 0,
     };
 
     allLeads.forEach(lead => {

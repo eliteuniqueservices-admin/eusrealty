@@ -33,6 +33,7 @@ const LeadSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   phone: { type: String, required: true, trim: true },
   email: { type: String, trim: true, lowercase: true, default: '' },
+  telegramUsername: { type: String, default: '' },
 
   // Property interest
   budget: { type: String, default: '' },
@@ -41,6 +42,12 @@ const LeadSchema = new mongoose.Schema({
   possession: { type: String, default: '' },
   objective: { type: String, default: '' },
   position: { type: String, default: '' },
+
+  // Handover & Context details
+  conversationSummary: { type: String, default: '' },
+  reasonForEscalation: { type: String, default: '' },
+  priority: { type: String, enum: ['Low', 'Medium', 'High', ''], default: '' },
+  requiredAction: { type: String, default: '' },
 
   // Lead intelligence
   leadScore: { type: Number, default: 0, min: 0, max: 100 },
@@ -51,7 +58,7 @@ const LeadSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['New', 'Contacted', 'Interested', 'Escalated', 'Converted', 'Lost'],
+    enum: ['New', 'Contacted', 'Interested', 'Escalated', 'Converted', 'Lost', 'Waiting for Sales Consultant'],
     default: 'New',
   },
 

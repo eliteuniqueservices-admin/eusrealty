@@ -4,6 +4,7 @@ const MessageSchema = new mongoose.Schema({
   role: { type: String, enum: ['user', 'model'], required: true },
   content: { type: String, required: true },
   timestamp: { type: Date, default: Date.now },
+  matches: { type: Array, default: [] }
 }, { _id: false });
 
 const LeadDataSchema = new mongoose.Schema({
@@ -36,6 +37,10 @@ const ChatSessionSchema = new mongoose.Schema({
   source: { type: String, default: 'chatbot' },
   userAgent: { type: String },
   leadId: { type: mongoose.Schema.Types.ObjectId, ref: 'Lead', default: null },
+  telegramMessageMappings: [{
+    chatId: { type: Number },
+    messageId: { type: Number }
+  }]
 }, { timestamps: true });
 
 export default mongoose.models.ChatSession || mongoose.model('ChatSession', ChatSessionSchema);

@@ -55,6 +55,9 @@ export const authConfig = {
       return true;
     },
   },
-  session: { strategy: "jwt" },
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 60, // 30 minutes in seconds
+  },
   secret: process.env.NEXTAUTH_SECRET || "this_is_a_fallback_secret_for_development",
 };

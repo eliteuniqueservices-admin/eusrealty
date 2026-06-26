@@ -8,6 +8,7 @@ import {
   X, Send, CheckCheck, MessageCircle, User, Phone, 
   ChevronRight, Sparkles, Mail, MapPin, Home, Clock
 } from "lucide-react";
+import PropertyCard from "./PropertyCard";
 
 /* ──────────────────────────────────────────────────────
    INTENTS: keyword → smart bot reply (Fallback Mode)
@@ -16,21 +17,21 @@ const INTENTS = [
   {
     id: "greet",
     keywords: ["hi", "hello", "hey", "namaste", "hii", "helo", "howdy", "good morning", "good evening", "good afternoon", "start"],
-    answer: "Hello! 😊 Great to connect with you. I'm Vision, your EusRealty AI assistant.\n\nI can help you explore properties, check prices, arrange site visits, or connect you with our team. What would you like to do?",
-    chips: ["🏢 Show me properties", "💰 What's the pricing?", "🗓️ Book a site visit", "📋 Request a callback"],
+    answer: "Namaste! 🙏 Welcome to EusRealty. I'm Vision, your Senior Property Advisor.\n\nOver my 25 years of helping families settle in Pune, I've learned that finding a home is about trust and long-term security. I am here to help you navigate our verified, zero-brokerage properties with absolute transparency.\n\nTell me, are you looking for your dream home or a high-yield investment?",
+    chips: ["🏠 Show me properties", "💰 What's the pricing?", "🗓️ Book site visit", "📋 Request callback"],
     waMsg: null,
   },
   {
     id: "thanks",
     keywords: ["thank", "thanks", "thankyou", "great", "awesome", "nice", "perfect", "wonderful", "brilliant", "good"],
-    answer: "You're very welcome! 🙏 I'm always here to help. Is there anything else you'd like to know about our properties or services?",
-    chips: ["🏢 View listings", "📋 Get a callback", "📞 Contact our team"],
+    answer: "It is my absolute pleasure! 🙏 I believe in offering genuine guidance first. Please feel free to ask me anything else about Pune's properties, configurations, or legal processes.",
+    chips: ["🏢 View listings", "📋 Get callback", "📞 Contact our team"],
     waMsg: null,
   },
   {
     id: "bye",
     keywords: ["bye", "goodbye", "see you", "later", "ok bye", "cya", "done"],
-    answer: "Goodbye! 👋 Have a wonderful day. Feel free to come back anytime — we're always here at EusRealty!\n\n📞 +91 7620733613",
+    answer: "Thank you for your valuable time today! 👋 Have a wonderful and blessed day ahead. Should you need any advice in the future, my desk is always open for you.\n\n📞 +91 7620733613",
     chips: null,
     waMsg: null,
   },
@@ -43,72 +44,80 @@ const INTENTS = [
   {
     id: "price",
     keywords: ["price", "cost", "rate", "budget", "affordable", "cheap", "expensive", "₹", "lakh", "crore", "how much", "pricing", "cost of"],
-    answer: "💰 Our properties are priced to suit every budget:\n\n🏠 2BHK Apartments: ₹85 Lakhs – ₹1.8 Cr\n🏡 3BHK Luxury: ₹1.8 Cr – ₹4.5 Cr\n🌴 Villas & Bungalows: ₹4.5 Cr – ₹8.9 Cr\n🏢 Commercial: ₹45 Lakhs onwards\n\nFlexible payment plans & builder subventions available!",
+    answer: "💰 Over my 25 years in the Pune real estate market, I've observed that standard pricing depends heavily on the locality and builder quality. Currently, our verified developer portfolio offers options for every profile:\n\n• **2 BHK Apartments**: ₹85 Lakhs – ₹1.8 Cr\n• **3 BHK Luxury Flats**: ₹1.8 Cr – ₹4.5 Cr\n• **Villas & Row Houses**: ₹4.5 Cr – ₹8.9 Cr\n• **Commercial Units**: ₹45 Lakhs onwards\n\nI can also assist you with builder payment plans and bank subvention options. What budget range are you comfortable with?",
     chips: ["📋 Get price sheet", "🏦 Home loan help", "🗓️ Book site visit"],
     waMsg: "Hi, please send the detailed pricing sheet and payment plans for your properties.",
   },
   {
     id: "projects",
     keywords: ["project", "property", "flat", "apartment", "villa", "house", "bhk", "studio", "listing", "new launch", "available", "show me", "properties"],
-    answer: "🏢 Here are our featured premium projects:\n\n⭐ Eus Heights — Tathawade (2 & 3 BHK)\n⭐ Skyline Villas — Balewadi (3 & 4 BHK)\n⭐ Juhu Oasis — Baner (Studio to 3 BHK)\n⭐ Green Valley — Hinjewadi (2 & 3 BHK)\n\nAll are RERA registered with 0% brokerage!",
+    answer: "🏢 We have hand-picked some of the finest RERA-registered projects directly from developers in Pune's major micro-markets:\n\n• **Eus Heights** — Tathawade (Excellent 2 & 3 BHK configuration)\n• **Skyline Villas** — Balewadi (Gated 3 & 4 BHK luxury residences)\n• **Juhu Oasis** — Baner (Premium spaces from Studio to 3 BHK)\n• **Green Valley** — Hinjewadi (IT corridor prime location)\n\nAll properties come with direct developer pricing and zero brokerage. Would you like details on a specific project?",
     chips: ["💰 Check prices", "🗓️ Book a visit", "📋 Get full catalog"],
     waMsg: "Hi, I'd like to explore your latest premium property listings and get the full catalog.",
   },
   {
     id: "brokerage",
     keywords: ["brokerage", "commission", "fee", "zero brokerage", "0%", "no charge", "middleman", "charges", "hidden"],
-    answer: "🤝 Absolutely — EusRealty is 100% zero brokerage!\n\nWe connect you directly with top builders & developers, cutting out the middleman entirely.\n\n💰 You save ₹2 – ₹10 Lakhs in commission fees that you'd otherwise pay to traditional agents.",
+    answer: "🤝 EusRealty is built on a strict **0% brokerage** foundation. \n\nHaving spent more than two decades in this business, I strongly believe buyers shouldn't pay brokers to find their homes. We connect you directly with builders, which saves you ₹2 Lakhs to ₹10 Lakhs in commission fees—funds that are better spent on your new home's interiors or registry.",
     chips: ["🏢 Explore projects", "📋 Talk to our team", "💰 View pricing"],
     waMsg: "Hi, I want to buy a property with 0% brokerage directly from the builder.",
   },
   {
     id: "contact",
     keywords: ["contact", "call", "email", "phone", "reach", "number", "address", "office", "support", "helpline", "speak"],
-    answer: "📞 Reach us anytime:\n\n📱 +91 7620733613\n📧 eliteuniqueservices@gmail.com\n📍 Corporate Office, Tathawade, Pune\n\n🕐 Available: Tue–Sun, 10 AM – 7 PM\n\nOr tap below to connect instantly on WhatsApp!",
-    chips: ["📋 Request a callback", "🗓️ Book site visit"],
+    answer: "📞 My team and I are at your service:\n\n📱 **Direct Line**: +91 7620733613\n📧 **Email**: eliteuniqueservices@gmail.com\n📍 **Office**: Corporate Desk, Tathawade, Pune\n\n🕐 Available: Tuesday to Sunday, 10 AM – 7 PM\n\nOr tap below to connect with us directly on WhatsApp!",
+    chips: ["📋 Request callback", "🗓️ Book site visit"],
     waMsg: "Hi, I'd like to speak with a senior real estate consultant from EusRealty.",
   },
   {
     id: "loan",
     keywords: ["loan", "emi", "finance", "bank", "mortgage", "home loan", "interest rate", "down payment", "subsidy", "pmay", "financing"],
-    answer: "🏦 We make home loans easy:\n\n✅ Tie-ups with 15+ banks & NBFCs\n✅ Pre-approved loans in 24 hours\n✅ EMI starting at just ₹55,000/month\n✅ PMAY subsidy up to ₹2.67 Lakhs\n✅ 90% financing on select projects\n\nWant a free eligibility check?",
-    chips: ["📋 Get loan assistance", "💰 See property prices", "🗓️ Book site visit"],
+    answer: "🏦 Navigating home finance can be overwhelming. Over the years, I've established strong relationships with 15+ major banks & NBFCs (including SBI, HDFC, ICICI) to provide support:\n\n• **Pre-approvals** within 24 hours\n• **Attractive interest rates** starting at current market lows\n• **PMAY subsidy benefits** up to ₹2.67 Lakhs\n• **Up to 90% financing** options on select projects\n\nWould you like me to connect you with our bank relationship officers for a free eligibility check?",
+    chips: ["📋 Get loan help", "💰 Property pricing", "🗓️ Book site visit"],
     waMsg: "Hi, I need help with home loan assistance, EMI calculation, and pre-approval.",
   },
   {
     id: "visit",
     keywords: ["visit", "site visit", "tour", "show flat", "schedule", "appointment", "demo", "book", "viewing", "come", "see"],
-    answer: "🗓️ We'd love to arrange a free site visit!\n\n✅ Available 7 days a week\n✅ Complimentary pickup & drop\n✅ Dedicated property consultant\n✅ Virtual 3D tours also available\n\nShare your preferred date on WhatsApp and we'll confirm within minutes!",
-    chips: ["📅 Schedule on WhatsApp", "📋 Request a callback"],
+    answer: "🗓️ I always say: *'A site visit is 80% of the decision.'* Seeing the structure, location, and ventilation first-hand is irreplaceable.\n\nWe would be honored to arrange a complimentary chauffeured site visit (with pickup and drop service) for you and your family, 7 days a week.\n\nWhich day fits your schedule best — this coming Saturday or Sunday?",
+    chips: ["📅 Schedule on WhatsApp", "📋 Request callback"],
     waMsg: "Hi, I'd like to schedule a free site visit. Please share available time slots.",
   },
   {
     id: "location",
     keywords: ["location", "area", "where", "pune", "hinjewadi", "baner", "balewadi", "tathawade", "wakad", "pimple", "sus", "kothrud", "nibm", "hadapsar", "near"],
-    answer: "📍 Properties in Pune's best micro-markets:\n\n🔵 IT Corridor: Hinjewadi, Wakad (₹85L+)\n🟢 Premium West: Baner, Balewadi, Sus (₹1.2Cr+)\n🟡 Value: Tathawade, Pimple Saudagar (₹75L+)\n🔴 South Pune: Hadapsar, NIBM (₹90L+)\n\nWhich area are you most interested in?",
-    chips: ["🏢 See Baner projects", "🏢 See Hinjewadi projects", "💰 Compare prices by area"],
+    answer: "📍 Pune has several excellent micro-markets that suit different needs. Based on my experience:\n\n• **IT Corridor (Hinjewadi, Wakad)**: Best for professionals seeking rental yields (6-8%) and short commutes. Options start at ₹85L.\n• **Premium West (Baner, Balewadi, Sus)**: Ideal for a premium lifestyle and families wanting proximity to top schools. Options start at ₹1.2 Cr.\n• **Value Zones (Tathawade, Punawale)**: Fastest growing infrastructure with maximum appreciation. Options start at ₹75L.\n\nWhich of these areas aligns best with your preferences?",
+    chips: ["🏢 See Baner projects", "🏢 See Hinjewadi projects", "💰 Compare prices"],
     waMsg: "Hi, I want to explore properties in a specific area of Pune. Please share options.",
   },
   {
     id: "invest",
     keywords: ["invest", "investment", "roi", "rental", "return", "commercial", "shop", "office space", "plot", "land", "yield", "appreciation"],
-    answer: "📈 Pune is one of India's top investment destinations!\n\n💹 8–12% annual price appreciation\n🏪 Commercial: 6–9% rental yield\n🏠 Residential: 4–6% rental income\n🚀 Pre-launch: 30–40% potential gain\n\nOur investment advisors can help you pick the highest ROI property!",
+    answer: "📈 Real estate in Pune is highly resilient. If your focus is wealth creation:\n\n• **Commercial spaces (Retail/Office)**: Deliver strong yields between **6% to 9%**.\n• **Residential properties**: Offer steady **4% to 6%** rental yield, combined with **8% to 12%** annual capital appreciation.\n• **Pre-launch opportunities**: Yield maximum capital appreciation (up to 30-40% from launch to completion).\n\nLet me know if you prefer regular rental income or capital growth so I can suggest options.",
     chips: ["📋 Get investment advice", "🏢 Commercial properties", "💰 Pre-launch projects"],
     waMsg: "Hi, I'm interested in real estate investment opportunities in Pune for maximum ROI.",
   },
   {
     id: "ready",
     keywords: ["ready to move", "possession", "delivery", "handover", "immediate", "move in", "occupancy"],
-    answer: "🏠 We have both ready-to-move and under-construction options!\n\n✅ Ready-to-move\n  • Immediate possession\n  • No GST payable\n  • What you see is what you get\n\n🏗️ Under-construction\n  • Lower entry price\n  • Higher appreciation potential\n  • Customisation options\n\nAll are RERA registered! 🔒",
-    chips: ["🏢 Show ready-to-move", "💰 Compare prices", "🗓️ Book a visit"],
+    answer: "🏠 Both ready-to-move and under-construction properties have distinct advantages:\n\n• **Ready-to-Move**: Immediate possession, zero delay risk, and **no GST payable** (saving you 5% upfront).\n• **Under-Construction**: Typically **15% to 20% cheaper** than ready homes, with flexible, slab-wise payment structures and higher capital appreciation potential.\n\nAre you looking to move in immediately, or is a 1 to 2-year possession timeline workable for you?",
+    chips: ["🏢 Show ready-to-move", "💰 Compare prices", "🗓️ Book site visit"],
     waMsg: "Hi, I'm looking for ready-to-move properties. Please share available options.",
   },
   {
     id: "legal",
     keywords: ["rera", "legal", "document", "agreement", "registration", "stamp duty", "safe", "trust", "verified", "fraud", "genuine"],
-    answer: "⚖️ 100% safe to invest with EusRealty!\n\n🛡️ All projects RERA registered & verified\n📄 Complete legal documentation support\n✍️ Sale agreement & stamp duty guidance\n🔍 Title search & due diligence help\n💯 Fully transparent transactions\n\nYour investment is in safe hands! 🔒",
-    chips: ["📋 Speak to legal team", "🏢 View verified projects"],
+    answer: "⚖️ In my 25 years in this industry, the implementation of MahaRERA in 2017 is the best thing that happened for buyer protection. We *only* deal with RERA-registered, legally verified projects.\n\nMy team will guide you through title deeds, encumbrance certificates, draft agreements, stamp duty benefits (such as the 1% concession for female co-applicants), and registration. Your investment is completely safe with us.\n\nWould you like details on the legal checklist?",
+    chips: ["📋 Speak to legal desk", "🏢 View verified projects"],
     waMsg: "Hi, I'd like to know about the legal process, documents required, and RERA verification.",
+  },
+  {
+    id: "telegram",
+    keywords: ["telegram", "tele", "tg"],
+    answer: "Perfect! I'll arrange for one of our senior real estate consultants to continue the conversation with you on Telegram.\n\nClick the button below to connect with us on Telegram, or share your Telegram username here and I'll notify our team.",
+    chips: ["📋 Request callback", "🗓️ Book site visit"],
+    waMsg: null,
+    tgMsg: "EUSRealty_Bot",
   },
 ];
 
@@ -402,13 +411,63 @@ export default function WhatsAppChat() {
   const getNow = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   const phoneNumber = "917620733613";
 
+  // Listen for focus/trigger from homepage AI search bar
+  useEffect(() => {
+    const handleTrigger = () => setIsOpen(true);
+    window.addEventListener("open-ai-search", handleTrigger);
+    return () => window.removeEventListener("open-ai-search", handleTrigger);
+  }, []);
+
+  const parseBold = (text = "") => {
+    // Matches both **bold** and *bold*
+    const parts = text.split(/(\*\*?[^*]+\*\*?)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return <strong key={i} className="font-extrabold text-indigo-600">{part.slice(2, -2)}</strong>;
+      }
+      if (part.startsWith("*") && part.endsWith("*")) {
+        return <strong key={i} className="font-extrabold text-indigo-650">{part.slice(1, -1)}</strong>;
+      }
+      return part;
+    });
+  };
+
+  const parseMarkdown = (text = "") => {
+    return text.split("\n").map((line, idx) => {
+      let trimmed = line.trim();
+      if (trimmed.startsWith("###")) {
+        return <h3 key={idx} className="text-[13px] font-bold text-indigo-650 mt-2.5 mb-1">{trimmed.replace("###", "").trim()}</h3>;
+      }
+      if (trimmed.startsWith("##")) {
+        return <h2 key={idx} className="text-sm font-extrabold text-indigo-800 mt-3 mb-1.5">{trimmed.replace("##", "").trim()}</h2>;
+      }
+      if (trimmed.startsWith("-") || trimmed.startsWith("* ")) {
+        const content = trimmed.substring(1).trim();
+        return (
+          <li key={idx} className="ml-3 list-disc text-gray-700 text-[13px] leading-relaxed pl-0.5 my-0.5">
+            {parseBold(content)}
+          </li>
+        );
+      }
+      return trimmed ? (
+        <div key={idx} className="text-[13px] text-gray-850 leading-relaxed my-1">
+          {parseBold(trimmed)}
+        </div>
+      ) : (
+        <div key={idx} className="h-1" />
+      );
+    });
+  };
+
+  const [isEscalated, setIsEscalated] = useState(false);
+
   const [messages, setMessages] = useState([
     {
       id: "welcome",
       sender: "agent",
-      text: "Hi there! 👋 I'm *Vision*, your EusRealty AI assistant.\n\nI help you explore Pune's finest zero-brokerage properties, arrange site visits, and connect you with our team. What can I help you with today?",
+      text: "Namaste! 🙏 I'm **Vision**, your Senior AI Property Advisor at EusRealty.\n\nWith over 25 years of experience in Pune's real estate market, I'm here to help you navigate your options, check verified RERA details, analyze investments, and find direct-builder deals with **0% brokerage**.\n\nTell me, are you looking for a premium home to live in, or a high-yield investment property?",
       time: getNow(),
-      chips: ["🏢 Show me properties", "💰 Pricing & budget", "🗓️ Book a site visit", "📋 Request a callback"],
+      chips: ["🏠 Looking for a home", "📈 Investment property", "🗓️ Book site visit", "📋 Request callback"],
     },
   ]);
 
@@ -433,18 +492,34 @@ export default function WhatsAppChat() {
     }
     setSessionId(sid);
 
-    // Load Chat History from LocalStorage
-    const saved = localStorage.getItem("eusrealty_chat_history");
-    if (saved) {
+    // Sync session and history from database
+    const syncSession = async () => {
+      if (!sid) return;
       try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setMessages(parsed);
+        const res = await fetch(`/api/chat?sessionId=${sid}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === 'Escalated' || data.status === 'Waiting for Sales Consultant') {
+            setIsEscalated(true);
+          }
+          if (data.messages && data.messages.length > 0) {
+            const mapped = data.messages.map((m, i) => ({
+              id: `msg-${i}-${Date.now()}`,
+              sender: m.role === 'user' ? 'user' : 'agent',
+              text: m.content,
+              time: m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : getNow(),
+              matches: m.matches || [],
+              tgActionMsg: m.tgActionMsg || null,
+              waActionMsg: m.waActionMsg || null
+            }));
+            setMessages(mapped);
+          }
         }
       } catch (err) {
-        console.error("Failed to load saved chat history:", err);
+        console.warn("Failed to sync session from DB on mount:", err);
       }
-    }
+    };
+    syncSession();
 
     return () => window.removeEventListener("resize", check);
   }, []);
@@ -484,6 +559,38 @@ export default function WhatsAppChat() {
       localStorage.setItem("eusrealty_chat_history", JSON.stringify(messages));
     }
   }, [messages]);
+
+  /* ── Background polling when chat is escalated ── */
+  useEffect(() => {
+    if (!isOpen || !isEscalated || !sessionId) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/chat?sessionId=${sessionId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.messages && data.messages.length > 0) {
+            if (data.messages.length > messages.length) {
+              const mapped = data.messages.map((m, i) => ({
+                id: `msg-${i}-${Date.now()}`,
+                sender: m.role === 'user' ? 'user' : 'agent',
+                text: m.content,
+                time: m.timestamp ? new Date(m.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : getNow(),
+                matches: m.matches || [],
+                tgActionMsg: m.tgActionMsg || null,
+                waActionMsg: m.waActionMsg || null
+              }));
+              setMessages(mapped);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to poll escalated chat updates:", err);
+      }
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [isOpen, isEscalated, sessionId, messages.length]);
 
   /* ── Lock body scroll when mobile chat is open ── */
   useEffect(() => {
@@ -576,13 +683,13 @@ export default function WhatsAppChat() {
   };
 
   /* ── Bot reply ── */
-  const botReply = (text, waMsg, chips) => {
+  const botReply = (text, waMsg, chips, tgMsg) => {
     setIsTyping(true);
     setTimeout(() => {
       setIsTyping(false);
       setMessages((prev) => [
         ...prev,
-        { id: `agent-${Date.now()}`, sender: "agent", text, time: getNow(), waActionMsg: waMsg, chips },
+        { id: `agent-${Date.now()}`, sender: "agent", text, time: getNow(), waActionMsg: waMsg, tgActionMsg: tgMsg, chips },
       ]);
     }, BOT_REPLY_DELAY_MS);
   };
@@ -637,6 +744,9 @@ export default function WhatsAppChat() {
       if (response.ok) {
         const data = await response.json();
         setIsTyping(false);
+        if (data.isEscalated || data.isHandoverRequested) {
+          setIsEscalated(true);
+        }
         setMessages((prev) => [
           ...prev,
           { 
@@ -644,8 +754,10 @@ export default function WhatsAppChat() {
             sender: "agent", 
             text: data.reply, 
             time: getNow(), 
-            waActionMsg: null, 
-            chips: data.chips || [] 
+            waActionMsg: null,
+            tgActionMsg: data.isTelegramHandover ? (data.telegramUsername || "EUSRealty_Bot") : null,
+            chips: data.chips || [],
+            matches: data.matches || []
           },
         ]);
         return;
@@ -657,7 +769,7 @@ export default function WhatsAppChat() {
       const match = getSmartReply(chip);
       if (match) {
         if (match.action === "show_lead_form") { showLeadForm(); return; }
-        botReply(match.answer, match.waMsg, match.chips);
+        botReply(match.answer, match.waMsg, match.chips, match.tgMsg);
       } else {
         botReply("Great choice! 😊 Let me connect you with our team on WhatsApp for that.", chip, null);
       }
@@ -689,6 +801,9 @@ export default function WhatsAppChat() {
       if (response.ok) {
         const data = await response.json();
         setIsTyping(false);
+        if (data.isEscalated || data.isHandoverRequested) {
+          setIsEscalated(true);
+        }
         setMessages((prev) => [
           ...prev,
           { 
@@ -696,8 +811,10 @@ export default function WhatsAppChat() {
             sender: "agent", 
             text: data.reply, 
             time: getNow(), 
-            waActionMsg: null, 
-            chips: data.chips || [] 
+            waActionMsg: null,
+            tgActionMsg: data.isTelegramHandover ? (data.telegramUsername || "EUSRealty_Bot") : null,
+            chips: data.chips || [],
+            matches: data.matches || []
           },
         ]);
         return;
@@ -710,7 +827,7 @@ export default function WhatsAppChat() {
       const match = getSmartReply(finalMsg);
       if (match) {
         if (match.action === "show_lead_form") { showLeadForm(); return; }
-        botReply(match.answer, match.waMsg, match.chips);
+        botReply(match.answer, match.waMsg, match.chips, match.tgMsg);
       } else {
         botReply(
           "That's a great question! 😊 I'm connecting you with one of our senior property consultants on WhatsApp who can give you a detailed answer.",
@@ -723,6 +840,13 @@ export default function WhatsAppChat() {
 
   const handleWaAction = (waMsg) => {
     window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(waMsg)}`, "_blank", "noopener,noreferrer");
+    setIsOpen(false);
+  };
+
+  const handleTgAction = (tgUsername) => {
+    const cleanUsername = tgUsername.replace(/^@/, "");
+    const url = cleanUsername ? `https://t.me/${cleanUsername}` : `https://t.me/EUSRealty_Bot`;
+    window.open(url, "_blank", "noopener,noreferrer");
     setIsOpen(false);
   };
 
@@ -750,7 +874,7 @@ export default function WhatsAppChat() {
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <h4 className="font-bold text-[13px] tracking-tight text-white">Vision</h4>
+              <h4 className="font-bold text-[13px] tracking-tight text-white">Vision ✦ AI Advisor</h4>
               <span className="flex items-center gap-0.5 bg-indigo-500/30 border border-indigo-400/30 px-1.5 py-0.5 rounded-full">
                 <Sparkles size={8} className="text-indigo-300" />
                 <span className="text-[9px] text-indigo-300 font-bold tracking-wider">AI</span>
@@ -772,7 +896,7 @@ export default function WhatsAppChat() {
                 <motion.p key="onl" initial={{ opacity: 0, y: 3 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -3 }} transition={{ duration: 0.18 }}
                   className="text-[11px] text-emerald-300 font-medium flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
-                  EusRealty AI · Online now
+                  EusRealty AI Advisor · Online now
                 </motion.p>
               )}
             </AnimatePresence>
@@ -840,7 +964,11 @@ export default function WhatsAppChat() {
                     : "bg-gradient-to-br from-indigo-600 to-blue-700 text-white rounded-tr-none border border-indigo-500/20"
                     }`}
                 >
-                  <p className="text-[13px] leading-relaxed whitespace-pre-line">{msg.text}</p>
+                  {msg.sender === "agent" ? (
+                    <div className="space-y-0.5">{parseMarkdown(msg.text)}</div>
+                  ) : (
+                    <p className="text-[13px] leading-relaxed whitespace-pre-line">{msg.text}</p>
+                  )}
 
                   {msg.waActionMsg && (
                     <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
@@ -849,6 +977,56 @@ export default function WhatsAppChat() {
                       <MessageCircle size={12} fill="currentColor" />
                       Continue on WhatsApp
                     </motion.button>
+                  )}
+
+                  {msg.tgActionMsg && (
+                    <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                      onClick={() => handleTgAction(msg.tgActionMsg)}
+                      className="mt-1 w-full py-1.5 px-3 bg-[#0088cc] hover:bg-[#0077b5] text-white text-[11px] font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer touch-manipulation">
+                      <Send size={12} className="rotate-45" />
+                      Continue on Telegram
+                    </motion.button>
+                  )}
+
+                  {/* Matching properties horizontal list/slider */}
+                  {msg.sender === "agent" && msg.matches && msg.matches.length > 0 && (
+                    <div className="mt-3.5 pt-3.5 border-t border-slate-100/80 w-full">
+                      <p className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 mb-2 flex items-center gap-1">
+                        <Sparkles size={11} className="text-amber-500 animate-pulse" />
+                        Matched Projects ({msg.matches.length})
+                      </p>
+                      <div 
+                        className="flex gap-3 overflow-x-auto pb-2 pt-1 snap-x scrollbar-thin scrollbar-thumb-indigo-100 max-w-[280px] sm:max-w-[310px] overscroll-contain"
+                        style={{
+                          msOverflowStyle: "auto",
+                          scrollbarWidth: "thin",
+                          WebkitOverflowScrolling: "touch",
+                        }}
+                      >
+                        {msg.matches.map((item, idx) => (
+                          <div 
+                            key={idx} 
+                            className="w-[230px] shrink-0 snap-start scale-[0.98] hover:scale-100 transition-all duration-300 relative"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                          >
+                            <PropertyCard
+                              id={item._id}
+                              title={item.name}
+                              location={item.location}
+                              price={item.price}
+                              bhk={item.bhk}
+                              baths={item.baths}
+                              area={item.area}
+                              image={item.image}
+                              badge={item.badge}
+                              rera={item.rera}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
 
                   <div className={`flex items-center gap-1 ${msg.sender === "agent" ? "justify-start" : "justify-end"}`}>
