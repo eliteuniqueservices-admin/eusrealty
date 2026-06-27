@@ -22,6 +22,8 @@ async function dbConnect() {
       bufferCommands: false,
       connectTimeoutMS: 5000,
       serverSelectionTimeoutMS: 5000,
+      maxPoolSize: 10,
+      minPoolSize: 2,
     };
 
     if (MONGODB_URI.includes('dummy_user')) {

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { 
     Plus, X, Pencil, Trash2, ChevronDown, 
     MapPin, Calendar, Building2, CheckSquare, 
-    Square, Eye, Search, Layers 
+    Square, Eye, Search, Layers, Upload, FileText, CheckCircle, AlertCircle
 } from 'lucide-react';
 
 export default function ManageProjects() {
@@ -21,6 +21,18 @@ export default function ManageProjects() {
 
     const [showModal, setShowModal] = useState(false);
     const [editingProject, setEditingProject] = useState(null);
+
+    // ── Bulk Import State ──
+    const [showBulkModal, setShowBulkModal] = useState(false);
+    const [bulkInput, setBulkInput] = useState('');
+    const [bulkFile, setBulkFile] = useState(null);
+    const [bulkStatus, setBulkStatus] = useState('idle'); // idle | loading | success | error
+    const [bulkResult, setBulkResult] = useState(null);
+    const [bulkError, setBulkError] = useState('');
+    const [bulkImages, setBulkImages] = useState([]); // gallery images shared across all imported properties
+    const [bulkBannerImage, setBulkBannerImage] = useState(''); // banner/hero image URL
+    const [bulkImgUploading, setBulkImgUploading] = useState(false);
+    const [bulkBannerUploading, setBulkBannerUploading] = useState(false);
 
     const [formData, setFormData] = useState({
         name: '', developer: '', location: '', possession: '', rera: '', status: '',
@@ -239,6 +251,70 @@ export default function ManageProjects() {
         }
     };
 
+    // ── Bulk Import Handler ──
+    const parseCsvToProperties = (csvText) => {
+        const lines = csvText.trim().split('\n').filter(Boolean);
+        if (lines.length < 2) throw new Error('CSV must have a header row and at least one data row.');
+        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"+$/g, ''));
+        return lines.slice(1).map(line => {
+            const values = line.split(',').map(v => v.trim().replace(/^"|"+$/g, ''));
+            const obj = {};
+            headers.forEach((h, i) => { obj[h] = values[i] || ''; });
+            // Map configDetails from flat CSV columns
+            if (obj.configType || obj.configPrice || obj.configCarpet) {
+                obj.configDetails = [{ type: obj.configType || '', price: obj.configPrice || '', carpet: obj.configCarpet || '' }];
+                delete obj.configType; delete obj.configPrice; delete obj.configCarpet;
+            }
+            return obj;
+        });
+    };
+
+    const handleBulkImport = async () => {
+        setBulkStatus('loading');
+        setBulkError('');
+        try {
+            let properties = [];
+            if (bulkFile) {
+                const text = await bulkFile.text();
+                properties = bulkFile.name.endsWith('.json') ? JSON.parse(text) : parseCsvToProperties(text);
+            } else if (bulkInput.trim()) {
+                properties = JSON.parse(bulkInput);
+            } else {
+                throw new Error('Please paste JSON data or upload a CSV/JSON file.');
+            }
+            // Attach bulk images & banner to every property if not already set
+            properties = properties.map(p => ({
+                ...p,
+                images: p.images?.length ? p.images : bulkImages,
+                bannerImage: p.bannerImage || bulkBannerImage || undefined,
+            }));
+            const res = await fetch('/api/properties/bulk', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ properties }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Import failed');
+            setBulkResult(data);
+            setBulkStatus('success');
+            fetchProjects();
+        } catch (err) {
+            setBulkError(err.message);
+            setBulkStatus('error');
+        }
+    };
+
+    const closeBulkModal = () => {
+        setShowBulkModal(false);
+        setBulkInput('');
+        setBulkFile(null);
+        setBulkStatus('idle');
+        setBulkResult(null);
+        setBulkError('');
+        setBulkImages([]);
+        setBulkBannerImage('');
+    };
+
     const handleAddLocation = () => {
         if (newLocation.trim() && !filteredLocations.includes(newLocation.trim())) {
             setFilteredLocations([...filteredLocations, newLocation.trim()]);
@@ -268,6 +344,13 @@ export default function ManageProjects() {
                 <Trash2 size={18} /> Delete ({selectedIds.length})
                 </button>
             )}
+
+            <button
+                onClick={() => setShowBulkModal(true)}
+                className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-5 py-2.5 rounded-xl font-bold hover:bg-emerald-100 transition border border-emerald-200 shadow-sm active:scale-95"
+            >
+                <Upload size={18} /> Bulk Import
+            </button>
 
             <button
                 onClick={openAddModal}
@@ -384,6 +467,189 @@ export default function ManageProjects() {
                     <div className="flex gap-3">
                         <button onClick={() => { setShowLocationAdd(false); setNewLocation(''); }} className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition">Cancel</button>
                         <button onClick={handleAddLocation} className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-md shadow-blue-600/20 hover:bg-blue-700 transition">Add</button>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {/* ── BULK IMPORT MODAL ── */}
+        {showBulkModal && (
+            <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <div className="flex items-center justify-between p-6 border-b border-slate-100">
+                        <div>
+                            <h2 className="text-xl font-black text-slate-900">Bulk Import Properties</h2>
+                            <p className="text-sm text-slate-500 mt-0.5">Upload a CSV/JSON file or paste JSON data directly</p>
+                        </div>
+                        <button onClick={closeBulkModal} className="p-2 hover:bg-slate-100 rounded-xl transition"><X size={20} /></button>
+                    </div>
+
+                    <div className="p-6 space-y-5">
+                        {bulkStatus === 'success' ? (
+                            <div className="flex flex-col items-center gap-4 py-8 text-center">
+                                <CheckCircle size={48} className="text-emerald-500" />
+                                <div>
+                                    <p className="text-xl font-black text-slate-900">Import Successful!</p>
+                                    <p className="text-slate-500 mt-1">{bulkResult?.inserted} properties have been added to the database.</p>
+                                </div>
+                                <button onClick={closeBulkModal} className="px-6 py-2.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition">Done</button>
+                            </div>
+                        ) : (
+                            <>
+                                {/* File Upload */}
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2"><Upload size={14} className="inline mr-1.5" />Upload CSV or JSON File</label>
+                                    <input
+                                        type="file"
+                                        accept=".csv,.json"
+                                        onChange={e => { setBulkFile(e.target.files[0]); setBulkInput(''); }}
+                                        className="w-full p-3 border-2 border-dashed border-slate-300 rounded-xl text-sm text-slate-600 hover:border-blue-400 transition cursor-pointer"
+                                    />
+                                    {bulkFile && <p className="mt-1.5 text-xs text-emerald-600 font-bold">✓ {bulkFile.name} selected</p>}
+                                </div>
+
+                                <div className="flex items-center gap-3">
+                                    <div className="flex-1 h-px bg-slate-200" />
+                                    <span className="text-xs font-bold text-slate-400">OR PASTE JSON</span>
+                                    <div className="flex-1 h-px bg-slate-200" />
+                                </div>
+
+                                {/* JSON Paste Area */}
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2"><FileText size={14} className="inline mr-1.5" />Paste JSON Array</label>
+                                    <textarea
+                                        rows={8}
+                                        placeholder={'[{"name":"My Property","location":"Baner, Pune","developer":"ABC Builders","status":"New Launch","configType":"2BHK","configPrice":"1.2 Cr","configCarpet":"950 sqft"}]'}
+                                        value={bulkInput}
+                                        onChange={e => { setBulkInput(e.target.value); setBulkFile(null); }}
+                                        className="w-full p-3 font-mono text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                    />
+                                </div>
+
+                                {/* CSV Format hint */}
+                                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                                    <p className="text-xs font-bold text-amber-800 mb-1">📋 CSV Column Format</p>
+                                    <p className="text-[11px] text-amber-700 font-mono">name, developer, location, status, possession, rera, configType, configPrice, configCarpet, amenities, description</p>
+                                    <p className="text-[10px] text-amber-600 mt-1">Tip: Leave image columns empty — use the uploaders below to apply images to all properties in this batch.</p>
+                                </div>
+
+                                {/* ── IMAGE UPLOADS ── */}
+                                <div className="border border-slate-200 rounded-xl overflow-hidden">
+                                    <div className="bg-slate-50 px-4 py-3 border-b border-slate-200">
+                                        <p className="text-sm font-bold text-slate-800">🖼️ Property Images</p>
+                                        <p className="text-xs text-slate-500 mt-0.5">These images will be applied to all imported properties in this batch.</p>
+                                    </div>
+                                    <div className="p-4 space-y-4">
+
+                                        {/* Banner / Hero Image */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-700 mb-1.5">Banner / Hero Image <span className="text-slate-400 font-normal">(used as main listing cover)</span></label>
+                                            <div className="flex items-center gap-3">
+                                                {bulkBannerImage && (
+                                                    <div className="relative w-24 h-16 rounded-lg overflow-hidden border border-slate-200 shrink-0">
+                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                        <img src={bulkBannerImage} alt="banner" className="w-full h-full object-cover" />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setBulkBannerImage('')}
+                                                            className="absolute top-0.5 right-0.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold"
+                                                        >✕</button>
+                                                    </div>
+                                                )}
+                                                <div className="flex-1">
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={async (e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (!file) return;
+                                                            setBulkBannerUploading(true);
+                                                            const fd = new FormData();
+                                                            fd.append('file', file);
+                                                            try {
+                                                                const res = await fetch('/api/upload', { method: 'POST', body: fd });
+                                                                if (res.ok) { const r = await res.json(); setBulkBannerImage(r.url); }
+                                                                else alert('Banner upload failed');
+                                                            } catch { alert('Upload error'); }
+                                                            finally { setBulkBannerUploading(false); }
+                                                        }}
+                                                        className="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                                                    />
+                                                    {bulkBannerUploading && <p className="text-xs text-blue-500 mt-1 font-bold">Uploading...</p>}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Gallery Images */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-700 mb-1.5">Gallery Images <span className="text-slate-400 font-normal">(multiple, shown in property detail)</span></label>
+                                            {bulkImages.length > 0 && (
+                                                <div className="flex flex-wrap gap-2 mb-2">
+                                                    {bulkImages.map((url, i) => (
+                                                        <div key={i} className="relative w-16 h-12 rounded-lg overflow-hidden border border-slate-200">
+                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                            <img src={url} alt={`img-${i}`} className="w-full h-full object-cover" />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setBulkImages(prev => prev.filter((_, idx) => idx !== i))}
+                                                                className="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-[9px] font-bold"
+                                                            >✕</button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                multiple
+                                                onChange={async (e) => {
+                                                    const files = Array.from(e.target.files || []);
+                                                    if (!files.length) return;
+                                                    setBulkImgUploading(true);
+                                                    const urls = [];
+                                                    for (const file of files) {
+                                                        const fd = new FormData();
+                                                        fd.append('file', file);
+                                                        try {
+                                                            const res = await fetch('/api/upload', { method: 'POST', body: fd });
+                                                            if (res.ok) { const r = await res.json(); urls.push(r.url); }
+                                                        } catch { /* skip failed */ }
+                                                    }
+                                                    setBulkImages(prev => [...prev, ...urls]);
+                                                    setBulkImgUploading(false);
+                                                    e.target.value = '';
+                                                }}
+                                                className="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer"
+                                            />
+                                            {bulkImgUploading && <p className="text-xs text-emerald-500 mt-1 font-bold">Uploading images...</p>}
+                                            {bulkImages.length > 0 && <p className="text-xs text-slate-500 mt-1">{bulkImages.length} image{bulkImages.length > 1 ? 's' : ''} ready</p>}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {bulkError && (
+                                    <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl p-3">
+                                        <AlertCircle size={16} className="text-red-500 mt-0.5 shrink-0" />
+                                        <p className="text-sm text-red-600 font-medium">{bulkError}</p>
+                                    </div>
+                                )}
+
+                                <div className="flex gap-3 pt-2">
+                                    <button onClick={closeBulkModal} className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition">Cancel</button>
+                                    <button
+                                        onClick={handleBulkImport}
+                                        disabled={bulkStatus === 'loading'}
+                                        className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition shadow-md disabled:opacity-60 flex items-center justify-center gap-2"
+                                    >
+                                        {bulkStatus === 'loading' ? (
+                                            <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Importing...</>
+                                        ) : (
+                                            <><Upload size={16} /> Import Properties</>
+                                        )}
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

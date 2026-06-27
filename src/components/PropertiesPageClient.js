@@ -409,7 +409,7 @@ export default function PropertiesPageClient({ initialProperties, customTitle, c
                 {viewMode === "grid" ? (
                   /* --- GRID VIEW CARD --- */
                   <div className="group relative bg-white border border-slate-100 rounded-[2rem] p-3 hover:shadow-[0_30px_60px_-15px_rgba(15,23,42,0.1)] transition-all duration-500">
-                    <div className="rounded-[1.5rem] overflow-hidden h-full">
+                    <div className="rounded-[1.5rem] overflow-hidden">
                       <>
                         <PropertyCard {...prop} />
                         <PropertyCardSeoStrip property={prop} />

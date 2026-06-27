@@ -195,15 +195,15 @@ export default function Footer() {
 
       <div className="max-w-[90rem] mx-auto px-6 sm:px-12 relative z-10">
         <Reveal>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-16 mb-20">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-12 mb-20">
 
-            {/* ── COLUMN 1: BRANDING & SOCIAL (Span 4) ── */}
-            <div className="lg:col-span-4 space-y-8 lg:pr-8">
+            {/* ── COLUMN 1: BRANDING & SOCIAL (Span 3) ── */}
+            <div className="lg:col-span-3 space-y-8 lg:pr-4">
               <div>
                 <h2 className="text-3xl font-black tracking-tighter mb-4 flex items-center gap-1 font-outfit">
                   EUS<span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-500">REALTY</span>
                 </h2>
-                <p className="text-slate-400 font-light leading-relaxed text-sm">
+                <p className="text-slate-400 font-light leading-relaxed text-[13px]">
                   Your trusted authorized Strategic Partner for West Pune. Revolutionizing real estate through direct builder-to-buyer connections, 100% verified legal clarity, and transparent advisory.
                 </p>
               </div>
@@ -253,8 +253,36 @@ export default function Footer() {
               </ul>
             </div>
 
-            {/* ── COLUMN 3: CORPORATE CONTACTS (Span 3) ── */}
-            <div className="lg:col-span-3">
+            {/* ── COLUMN 3: TOP SEARCHES (Span 2) ── */}
+            <div className="lg:col-span-2">
+              <h4 className="text-[11px] font-black text-amber-500 mb-6 uppercase tracking-[0.2em] font-outfit">
+                Top Searches
+              </h4>
+              <ul className="space-y-3.5 font-semibold">
+                {[
+                  { name: 'Flats in Baner', href: '/properties/location/baner' },
+                  { name: 'Flats in Wakad', href: '/properties/location/wakad' },
+                  { name: 'Flats in Hinjewadi', href: '/properties/location/hinjawadi' },
+                  { name: 'Godrej Properties', href: '/builders/godrej-properties-pune' },
+                  { name: 'Lodha Group Pune', href: '/builders/lodha-group-pune' },
+                  { name: 'VTP Realty Pune', href: '/builders/vtp-realty-pune' },
+                  { name: 'Kohinoor Group', href: '/builders/kohinoor-group-pune' }
+                ].map((item) => (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      className="text-slate-400 hover:text-amber-400 text-[13px] flex items-center gap-2 transition-all duration-300 group"
+                    >
+                      <ArrowRight size={12} className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-amber-500" />
+                      <span className="group-hover:translate-x-0.5 transition-transform">{item.name}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* ── COLUMN 4: HEADQUARTERS (Span 2) ── */}
+            <div className="lg:col-span-2">
               <h4 className="text-xs font-black text-amber-500 mb-6 uppercase tracking-[0.2em] font-outfit">
                 Headquarters
               </h4>
@@ -320,14 +348,14 @@ export default function Footer() {
               </ul>
             </div>
 
-            {/* ── COLUMN 4: NEWSLETTER / TRUST (Span 3) ── */}
-            <div className="lg:col-span-3">
-              <div className="bg-white/[0.02] p-8 rounded-[2rem] border border-white/[0.06] shadow-xl relative overflow-hidden h-full flex flex-col justify-between">
+            {/* ── COLUMN 5: NEWSLETTER / TRUST (Span 3) ── */}
+            <div className="lg:col-span-3 self-start">
+              <div className="bg-white/[0.02] p-6 rounded-[2rem] border border-white/[0.06] shadow-xl relative overflow-hidden flex flex-col gap-2">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 blur-xl rounded-full" />
 
                 <div>
-                  <h4 className="text-base font-black text-slate-100 mb-2 tracking-wide font-outfit">Stay Vetted</h4>
-                  <p className="text-xs text-slate-400 mb-6 font-light leading-relaxed">Join our private list to receive early pre-launch property notifications in West Pune.</p>
+                  <h4 className="text-base font-black text-slate-100 mb-1.5 tracking-wide font-outfit">Stay Vetted</h4>
+                  <p className="text-[11px] text-slate-400 mb-4 font-light leading-relaxed">Join our private list to receive early pre-launch property notifications in West Pune.</p>
                 </div>
 
                 {isSubscribed ? (
@@ -337,18 +365,18 @@ export default function Footer() {
                     <p className="text-[10px] text-slate-400 font-light mt-1">Check your inbox for exclusive updates.</p>
                   </div>
                 ) : (
-                  <form className="flex flex-col gap-3" onSubmit={handleSubscribe}>
+                  <form className="flex flex-col gap-2.5" onSubmit={handleSubscribe}>
                     <input
                       type="email"
                       value={emailInput}
                       onChange={(e) => setEmailInput(e.target.value)}
                       placeholder="Email Address"
                       required
-                      className="w-full bg-slate-950 border border-white/5 px-4 py-3.5 rounded-xl text-xs text-white outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20 transition-all placeholder:text-slate-700 font-medium"
+                      className="w-full bg-slate-950 border border-white/5 px-4 py-3 rounded-xl text-xs text-white outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20 transition-all placeholder:text-slate-700 font-medium"
                     />
                     <button
                       type="submit"
-                      className="relative overflow-hidden w-full bg-amber-500 text-slate-950 font-black py-3.5 rounded-xl text-xs uppercase tracking-widest shadow-lg transition-transform active:scale-[0.97] group/sub"
+                      className="relative overflow-hidden w-full bg-amber-500 text-slate-950 font-black py-3 rounded-xl text-[11px] uppercase tracking-widest shadow-lg transition-transform active:scale-[0.97] group/sub"
                     >
                       <span className="absolute inset-0 bg-white origin-bottom scale-y-0 group-hover/sub:scale-y-100 transition-transform duration-300 ease-out" />
                       <span className="relative z-10 flex items-center justify-center gap-2 group-hover/sub:text-slate-950 transition-colors">
@@ -376,6 +404,7 @@ export default function Footer() {
                 alt="MahaRERA QR Code"
                 width={72}
                 height={72}
+                loading="eager"
                 className="rounded-md object-contain"
               />
               {/* Scan Line Laser */}

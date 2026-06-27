@@ -62,8 +62,68 @@ export async function POST(req) {
         subject: "Welcome to EUS Realty Exclusive Properties",
         html: emailHtml,
       });
+
+      // Send Email Notification to Admin
+      const adminEmails = [process.env.NOTIFY_EMAIL_1, process.env.NOTIFY_EMAIL_2].filter(Boolean).join(', ');
+      if (adminEmails) {
+        const subscriberEmailHtml = `
+          <!DOCTYPE html>
+          <html>
+            <head><meta charset="utf-8" /></head>
+            <body style="font-family: Arial, sans-serif; background: #f8f9fa; padding: 20px;">
+              <div style="max-width: 600px; margin: 0 auto; background: #ffffff; padding: 40px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                <h2 style="color: #f59e0b; margin-top: 0;">📧 New Newsletter Subscriber</h2>
+                <p style="color: #334155; font-size: 16px;">A user has subscribed to the EUS Realty newsletter.</p>
+                <p style="color: #334155; font-size: 16px;"><strong>Subscriber Email:</strong> <a href="mailto:${email}">${email}</a></p>
+                <br/>
+                <p style="color: #94a3b8; font-size: 12px;">Received on ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST</p>
+              </div>
+            </body>
+          </html>
+        `;
+        await transporter.sendMail({
+          from: `"EUS Realty Alerts" <${process.env.GMAIL_USER}>`,
+          to: adminEmails,
+          subject: `📧 New Newsletter Subscriber: ${email}`,
+          html: subscriberEmailHtml,
+        }).catch(err => console.error('Admin subscriber email notification failed:', err));
+      }
     } catch (mailErr) {
       console.error('Welcome email failed:', mailErr);
+    }
+
+    // Send Telegram Notification to Admin
+    try {
+      const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
+      const telegramChatId = process.env.TELEGRAM_CHAT_ID;
+      const telegramSalesChatId = process.env.TELEGRAM_SALES_CHAT_ID;
+
+      if (telegramBotToken) {
+        const chatIds = [telegramChatId, telegramSalesChatId].filter(Boolean);
+        if (chatIds.length > 0) {
+          const telegramUrl = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
+          const telegramMessage = 
+            `📧 <b>New Newsletter Subscription</b>\n\n` +
+            `👤 <b>Email:</b> ${email}\n` +
+            `📊 <b>Source:</b> Footer Newsletter`;
+
+          for (const chatId of chatIds) {
+            fetch(telegramUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                chat_id: chatId,
+                text: telegramMessage,
+                parse_mode: 'HTML'
+              })
+            }).catch((err) => {
+              console.error(`Telegram notification failed for subscriber chat ID ${chatId}:`, err);
+            });
+          }
+        }
+      }
+    } catch (tgErr) {
+      console.error('Telegram subscriber notification error:', tgErr);
     }
 
     return NextResponse.json({ message: 'Subscribed successfully!' }, { status: 201 });

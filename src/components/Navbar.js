@@ -6,7 +6,9 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { Phone, ShieldCheck, Instagram, Linkedin, Facebook, Youtube, X, ArrowUpRight, Sparkles, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import LogoAnimation from './LogoAnimation';
+import dynamic from 'next/dynamic';
+
+const LogoAnimation = dynamic(() => import('./LogoAnimation'), { ssr: false });
 
 // ─── Nav links config ──────────────────────────────────────────
 const NAV_LINKS = [

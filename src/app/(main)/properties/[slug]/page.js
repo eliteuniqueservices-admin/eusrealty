@@ -251,45 +251,6 @@ export default async function PropertyOrListingPage({ params }) {
     price: property.configDetails?.[0]?.price || "On Request"
   };
 
-  const whatsappNumber = "917620733613";
-  const getWhatsappMsg = (type) => {
-    let base = "";
-    if (type === "general") {
-      base = `Hi! I'm interested in "${property.name}" located in ${property.location}. Can you share more details?`;
-    } else if (type === "sitevisit") {
-      base = `Hello! I would like to schedule a site visit to "${property.name}" in ${property.location}. Please tell me available slots.`;
-    } else {
-      base = `Hi! I would like to get the best pricing quote/payment plan for "${property.name}" in ${property.location}.`;
-    }
-    return encodeURIComponent(`${base} URL: https://eusrealty.co.in/properties/${property.slug}`);
-  };
-
-  // Enrich details with static lookup config
-  const richData = getRichDataForProperty(property);
-
-  const image = property.images && property.images.length > 0 
-    ? property.images[0] 
-    : "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80";
-
-  const config = property.configDetails && property.configDetails.length > 0 
-    ? property.configDetails[0] 
-    : { carpet: '1200 sqft', price: 'On Request', type: '3 BHK' };
-
-  // Simulated social proof viewers
-  const liveViewers = (property.name.charCodeAt(0) % 5) + 3;
-
-  // Compute average rate per sqft for quick metrics card
-  let numericPrice = 0;
-  if (config.price.toLowerCase().includes('cr')) {
-    numericPrice = parseFloat(config.price) * 10000000;
-  } else if (config.price.toLowerCase().includes('l')) {
-    numericPrice = parseFloat(config.price) * 100000;
-  }
-  const numericCarpet = parseInt(config.carpet.replace(/[^0-9]/g, "")) || 0;
-  const calculatedRate = numericCarpet > 0 && numericPrice > 0
-    ? `₹${Math.round(numericPrice / numericCarpet).toLocaleString('en-IN')}/sq.ft`
-    : "On Request";
-
   // Fetch similar projects in the same locality
   let similarProperties = [];
   try {
@@ -338,7 +299,17 @@ export default async function PropertyOrListingPage({ params }) {
   }
 
   // Schema LD JSON structures
-  const jsonLd = {
+  const image = property.images && property.images.length > 0 
+    ? property.images[0] 
+    : "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80";
+
+  const config = property.configDetails && property.configDetails.length > 0 
+    ? property.configDetails[0] 
+    : { carpet: '1200 sqft', price: 'On Request', type: '3 BHK' };
+
+  const richData = getRichDataForProperty(property);
+
+  const mainSchema = {
     "@context": "https://schema.org",
     "@type": "RealEstateListing",
     "name": `${property.name} in ${property.location}`,
@@ -381,239 +352,53 @@ export default async function PropertyOrListingPage({ params }) {
     }
   };
 
-  const formattedLocalityUrl = `/localities/${property.location.split(",")[0].trim().toLowerCase().replace(/\s+/g, "-")}`;
-  const formattedBuilderUrl = `/builders/${property.developer ? property.developer.toLowerCase().replace(/\s+/g, "-").replace("-properties", "") + "-pune" : "premium-builder"}`;
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": `What is the price of ${property.name}?`,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": `The price for ${property.name} starts from ${config.price}. For the most accurate and up-to-date pricing, payment plans, and offers, please contact EUS Realty.`
+        }
+      },
+      {
+        "@type": "Question",
+        "name": `Where is ${property.name} located?`,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": `${property.name} is a premium real estate project located in ${property.location}, Pune, Maharashtra.`
+        }
+      },
+      {
+        "@type": "Question",
+        "name": `Is ${property.name} RERA registered?`,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": `Yes, ${property.name} is RERA registered with the MahaRERA registration number: ${property.rera || "Verified"}.`
+        }
+      },
+      {
+        "@type": "Question",
+        "name": `What are the configurations available at ${property.name}?`,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": `The project offers premium configurations including ${config.type}. Reach out to us for detailed floor plans and availability.`
+        }
+      }
+    ]
+  };
+
+  const jsonLd = [mainSchema, faqSchema];
 
   return (
-    <div className="bg-[#F8F9FA] min-h-screen pb-32">
-      {/* Schema Injection */}
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-
-      {/* Hero Layout */}
-      <div className="relative w-full h-[50vh] md:h-[65vh] bg-slate-900">
-        <Image 
-          src={image}
-          alt={property.name}
-          fill
-          className="object-cover opacity-70"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/40" />
-        
-        <div className="absolute bottom-0 left-0 w-full p-6 md:p-12">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div className="text-white w-full">
-              <div className="bg-slate-900/60 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 mb-6 inline-block">
-                <Breadcrumbs theme="dark" items={[
-                  { label: "Pune", href: "/pune-real-estate" },
-                  { label: property.location.split(",")[0], href: formattedLocalityUrl },
-                  { label: property.name, href: `/properties/${getPropertySlug(property)}` }
-                ]} />
-              </div>
-              
-              <div className="flex items-center gap-3 mb-4">
-                <span className="px-3 py-1 bg-amber-500 text-slate-950 text-xs font-black uppercase tracking-widest rounded-full">
-                  {property.status || 'Premium Project'}
-                </span>
-                <span className="flex items-center gap-1.5 px-3 py-1 bg-red-500/80 backdrop-blur-md text-white text-xs font-bold rounded-full border border-red-400/50 shadow-lg animate-pulse">
-                  <Flame size={14} /> {liveViewers} active buyers looking now
-                </span>
-              </div>
-              <h1 className="text-4xl md:text-6xl font-black mb-3 tracking-tight leading-tight">
-                {property.name}
-              </h1>
-              <div className="flex items-center gap-2 text-slate-200 font-medium text-lg">
-                <MapPin size={20} className="text-amber-400" />
-                <Link href={formattedLocalityUrl} className="hover:underline">{property.location}, Pune</Link>
-              </div>
-            </div>
-
-            <div className="hidden md:flex items-center gap-3">
-              <a 
-                href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Check out this property: https://eusrealty.co.in/properties/${getPropertySlug(property)}`)}`}
-                target="_blank" rel="noopener noreferrer"
-                className="w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-full text-white transition-all shadow-lg"
-                title="Share via WhatsApp"
-              >
-                <Share2 size={20} />
-              </a>
-              <a 
-                href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Hi! I want details about ${property.name} in ${property.location}.`)}`}
-                target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 px-6 py-3 bg-[#25D366] hover:bg-[#20ba59] text-white font-bold rounded-xl transition-all shadow-lg shadow-green-500/20"
-              >
-                <MessageCircle size={20} /> Request Details
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          
-          {/* Main Details Panel */}
-          <div className="lg:col-span-2 space-y-10">
-            {/* Top Specs Strip */}
-            <div className="flex flex-wrap gap-6 bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm justify-between">
-              <div>
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Developer</p>
-                <Link href={formattedBuilderUrl} className="text-lg font-black text-slate-900 hover:text-amber-600 flex items-center gap-1.5">
-                  <Building2 size={16} /> {property.developer || 'Premium Developer'}
-                </Link>
-              </div>
-              <div className="w-[1px] bg-slate-200 hidden sm:block"></div>
-              <div>
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">RERA Number</p>
-                <p className="text-lg font-black text-emerald-600 flex items-center gap-1">
-                  <ShieldCheck size={18} /> {property.rera || 'Verified'}
-                </p>
-              </div>
-              <div className="w-[1px] bg-slate-200 hidden sm:block"></div>
-              <div>
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Possession</p>
-                <p className="text-lg font-black text-slate-900 flex items-center gap-1">
-                  <Calendar size={18} className="text-amber-500" /> {property.possession || 'Ready to Move'}
-                </p>
-              </div>
-            </div>
-
-            {/* Quick Metrics Panel */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-6 bg-white border border-slate-200 rounded-[2rem] shadow-sm">
-              <div className="text-center sm:text-left">
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Sq.Ft Rate</span>
-                <span className="text-base font-black text-slate-900">{calculatedRate}</span>
-              </div>
-              <div className="text-center sm:text-left border-l border-slate-100 pl-4">
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Land Parcel</span>
-                <span className="text-base font-black text-slate-900">{property.landParcel || "4.5 Acres"}</span>
-              </div>
-              <div className="text-center sm:text-left border-l border-slate-100 pl-4">
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Open Spaces</span>
-                <span className="text-base font-black text-slate-900">{property.openSpace || "65% Green"}</span>
-              </div>
-              <div className="text-center sm:text-left border-l border-slate-100 pl-4">
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Total Floors</span>
-                <span className="text-base font-black text-slate-900">{property.totalFloors || "24 Floors"}</span>
-              </div>
-            </div>
-
-            {/* About / Description */}
-            <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm">
-              <h2 className="text-2xl font-black text-slate-900 mb-4">About the Project</h2>
-              <p className="text-slate-600 leading-relaxed text-base font-light">
-                {property.description || "An exclusive collection of premium residences designed for those who appreciate the finer things in life. Featuring state-of-the-art amenities, breathtaking views, and uncompromising quality."}
-              </p>
-              <div className="mt-8 flex items-center gap-3 bg-amber-50 p-4 rounded-xl border border-amber-100">
-                <Zap size={24} className="text-amber-500 shrink-0" />
-                <p className="text-sm font-bold text-slate-800">0% Brokerage & Direct Builder Pricing available exclusively through EUS Realty advisors.</p>
-              </div>
-            </div>
-
-            {/* Project Details Interactive Area */}
-            <ProjectDetailClient property={property} richData={richData} />
-            
-            {/* Similar projects in local area */}
-            {similarProperties.length > 0 && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                  <Layers size={22} className="text-amber-500" />
-                  Similar Projects in {property.location.split(",")[0].trim()}
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  {similarProperties.map((sim, i) => (
-                    <PropertyCard key={sim.id} {...sim} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Deep Internal Linking bottom block */}
-            <div className="bg-slate-900 text-white rounded-[2rem] p-8 space-y-6">
-              <h3 className="text-lg font-black tracking-tight text-amber-400 border-b border-white/10 pb-3">Pune Real Estate Internal Links</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 text-xs text-slate-400">
-                <div className="space-y-2">
-                  <span className="text-white font-bold block mb-1">Localities</span>
-                  <Link href="/localities/baner" className="hover:text-amber-400 block hover:underline">Baner Real Estate Guide</Link>
-                  <Link href="/localities/wakad" className="hover:text-amber-400 block hover:underline">Wakad Real Estate Guide</Link>
-                  <Link href="/localities/hinjawadi" className="hover:text-amber-400 block hover:underline">Hinjawadi IT Corridor</Link>
-                  <Link href="/localities/tathawade" className="hover:text-amber-400 block hover:underline">Tathawade Area Guide</Link>
-                </div>
-                <div className="space-y-2">
-                  <span className="text-white font-bold block mb-1">Top Developers</span>
-                  <Link href="/builders/godrej-properties-pune" className="hover:text-amber-400 block hover:underline">Godrej Projects Pune</Link>
-                  <Link href="/builders/kolte-patil-pune" className="hover:text-amber-400 block hover:underline">Kolte Patil Projects</Link>
-                  <Link href="/builders/vtp-realty-pune" className="hover:text-amber-400 block hover:underline">VTP Realty Projects</Link>
-                </div>
-                <div className="space-y-2">
-                  <span className="text-white font-bold block mb-1">Calculators</span>
-                  <Link href="/calculator/emi" className="hover:text-amber-400 block hover:underline">Home Loan EMI Calculator</Link>
-                  <Link href="/calculator/affordability" className="hover:text-amber-400 block hover:underline">Home Affordability Calc</Link>
-                  <Link href="/calculator/valuation" className="hover:text-amber-400 block hover:underline">Property Valuation Index</Link>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          {/* Sticky Sidebar Info Card */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-28 bg-white p-6 md:p-8 rounded-[2rem] border border-slate-200 shadow-[0_20px_40px_-15px_rgba(15,23,42,0.05)]">
-              <div className="text-center mb-8">
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">Starting From</p>
-                <p className="text-4xl md:text-5xl font-black text-slate-900">₹{config.price}</p>
-                <p className="text-xs text-slate-500 mt-2 font-medium bg-slate-100 py-1.5 px-3 rounded-full inline-block">Direct Developer Price • 0% Brokerage</p>
-              </div>
-
-              <div className="space-y-4">
-                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-xs space-y-3 font-semibold text-slate-600">
-                  <div className="flex justify-between items-center">
-                    <span>MahaRERA:</span>
-                    <span className="text-slate-900 font-black uppercase text-[10px] bg-slate-200/60 px-2 py-0.5 rounded">{property.rera || "Verified"}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Locality Hub:</span>
-                    <Link href={formattedLocalityUrl} className="text-amber-600 font-black hover:underline">{property.location.split(",")[0].trim()}</Link>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Developer Profile:</span>
-                    <Link href={formattedBuilderUrl} className="text-slate-900 font-black hover:underline">{property.developer || "Verified"}</Link>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Updated Date:</span>
-                    <span className="text-slate-900 font-bold">{property.updatedAt ? new Date(property.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : "Jun 20, 2026"}</span>
-                  </div>
-                </div>
-
-                <a 
-                  href={`https://wa.me/${whatsappNumber}?text=${getWhatsappMsg("general")}`}
-                  target="_blank" rel="noopener noreferrer"
-                  className="w-full py-4 bg-[#25D366] hover:bg-[#20ba59] text-white font-black rounded-2xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-green-500/20 active:scale-95 text-sm"
-                >
-                  <MessageCircle size={20} /> Chat on WhatsApp
-                </a>
-                
-                <a 
-                  href={`https://wa.me/${whatsappNumber}?text=${getWhatsappMsg("sitevisit")}`}
-                  target="_blank" rel="noopener noreferrer"
-                  className="w-full py-4 bg-slate-950 hover:bg-slate-800 text-white font-bold rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95 text-sm"
-                >
-                  Schedule Free Site Visit
-                </a>
-              </div>
-
-              <div className="mt-8 pt-8 border-t border-slate-100 text-center">
-                <div className="w-16 h-16 mx-auto bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-4">
-                  <ShieldCheck size={28} />
-                </div>
-                <h4 className="text-lg font-black text-slate-900 mb-2">EUS Strategic Advisor</h4>
-                <p className="text-xs text-slate-500 font-medium">We are MahaRERA registered advisor strategic partner (Registration: <strong className="text-slate-900 font-bold">A041262501741</strong>).</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <SmartLeadPopup type="property" contextName={property.name} />
-    </div>
+    <ProjectDetailClient
+      property={property}
+      richData={richData}
+      similarProperties={similarProperties}
+      jsonLd={jsonLd}
+    />
   );
 }

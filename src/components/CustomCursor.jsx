@@ -48,6 +48,12 @@ export default function CustomCursor() {
     let touchTimer;
     let isTouchMode = false;
 
+    // Abort setting up expensive listeners if device primarily uses touch
+    if (window.matchMedia('(pointer: coarse)').matches) {
+      updateIsMobile(true);
+      return;
+    }
+
     // Detect direct touch input (tap/swipe) and fallback to native browser behaviors
     const handleTouchStart = () => {
       isTouchMode = true;

@@ -874,6 +874,7 @@ function FollowUpCRMContent() {
                   <TableHeader className="bg-slate-50/50">
                     <TableRow className="border-slate-100">
                       <TableHead className="font-bold text-slate-700 pl-6">Client</TableHead>
+                      <TableHead className="font-bold text-slate-700">Received On</TableHead>
                       <TableHead className="font-bold text-slate-700">Next Follow-up</TableHead>
                       <TableHead className="font-bold text-slate-700 text-center">Quality</TableHead>
                       <TableHead className="font-bold text-slate-700 text-center">Status</TableHead>
@@ -908,6 +909,16 @@ function FollowUpCRMContent() {
                               <div>
                                 <p className="font-bold text-slate-900 group-hover:text-violet-600 transition-colors">{lead.name}</p>
                                 <p className="text-xs text-slate-500 mt-0.5">{lead.phone}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell className="py-4">
+                              <div className="flex flex-col gap-0.5">
+                                <span className="text-xs font-bold text-slate-700">
+                                  {lead.createdAt ? new Date(lead.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                                </span>
+                                <span className="text-[11px] text-slate-400 font-medium">
+                                  {lead.createdAt ? new Date(lead.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : ''}
+                                </span>
                               </div>
                             </TableCell>
                             <TableCell className="py-4">
@@ -1010,8 +1021,15 @@ function FollowUpCRMContent() {
                   <div className="flex justify-between items-start">
                     <div>
                       <CardTitle className="text-xl font-black text-slate-900">{editForm.name || 'Lead'}</CardTitle>
-                      <CardDescription className="text-xs font-semibold text-slate-500 mt-1 flex items-center gap-1.5">
-                        <Clock size={12} /> Last contact: {timeAgo(selectedLead.lastContactedAt || selectedLead.updatedAt)}
+                      <CardDescription className="text-xs font-semibold text-slate-500 mt-1 flex flex-col gap-0.5">
+                        <span className="flex items-center gap-1.5">
+                          <Clock size={12} /> Last contact: {timeAgo(selectedLead.lastContactedAt || selectedLead.updatedAt)}
+                        </span>
+                        {selectedLead.createdAt && (
+                          <span className="flex items-center gap-1.5 text-slate-400">
+                            <Clock size={12} /> Received: {new Date(selectedLead.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} at {new Date(selectedLead.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                          </span>
+                        )}
                       </CardDescription>
                     </div>
                     <div className="flex items-center gap-2">

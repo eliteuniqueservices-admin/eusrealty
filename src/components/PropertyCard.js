@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
+import { useFavorites } from "@/context/FavoritesContext";
 import {
   motion,
   useMotionValue,
@@ -61,7 +62,7 @@ function AnimatedCounter({ value, duration = 1.4, suffix = "" }) {
 }
 
 const PARTICLE_SEEDS = Object.freeze(
-  Array.from({ length: 12 }, (_, i) => ({
+  Array.from({ length: 6 }, (_, i) => ({
     id: i,
     x: 10 + Math.random() * 80,
     delay: Math.random() * 0.6,
@@ -130,9 +131,10 @@ export default function PropertyCard({
   const displayBeds = beds || bhk;
   const cardRef = useRef(null);
   const [hovered, setHovered] = useState(false);
-  const [liked, setLiked] = useState(false);
   const [particles, setParticles] = useState(false);
   const router = useRouter();
+  const { toggleFavorite, isFavorited } = useFavorites();
+  const liked = isFavorited(id);
 
   const isMongoId = id && /^[a-f\d]{24}$/i.test(id);
   const slug = isMongoId ? getPropertySlug({ name: title, location }) : id;
@@ -145,57 +147,20 @@ export default function PropertyCard({
     router.push(cardLink);
   };
 
-  /* ── 3-D Magnetic Tilt via Framer Motion Values ── */
-  const rawX = useMotionValue(0);
-  const rawY = useMotionValue(0);
-  const rotateX = useSpring(useTransform(rawY, [-0.5, 0.5], [14, -14]), {
-    stiffness: 200,
-    damping: 22,
-  });
-  const rotateY = useSpring(useTransform(rawX, [-0.5, 0.5], [-14, 14]), {
-    stiffness: 200,
-    damping: 22,
-  });
-
-  /* ── Shine / Specular highlight position ── */
-  const shineX = useSpring(useTransform(rawX, [-0.5, 0.5], [-50, 150]), {
-    stiffness: 180,
-    damping: 20,
-  });
-  const shineY = useSpring(useTransform(rawY, [-0.5, 0.5], [-50, 150]), {
-    stiffness: 180,
-    damping: 20,
-  });
-
-  const rectRef = useRef(null);
+  // Hover-lift animation only — no 3D tilt.
 
   const handleMouseEnter = () => {
     setHovered(true);
-    if (cardRef.current) {
-      rectRef.current = cardRef.current.getBoundingClientRect();
-    }
-  };
-
-  const handleMouseMove = (e) => {
-    if (!rectRef.current && cardRef.current) {
-      rectRef.current = cardRef.current.getBoundingClientRect();
-    }
-    const rect = rectRef.current;
-    if (!rect) return;
-    rawX.set((e.clientX - rect.left) / rect.width - 0.5);
-    rawY.set((e.clientY - rect.top) / rect.height - 0.5);
   };
 
   const handleMouseLeave = () => {
-    rawX.set(0);
-    rawY.set(0);
     setHovered(false);
-    rectRef.current = null;
   };
 
   const handleLike = (e) => {
     e.stopPropagation();
-    setLiked((p) => !p);
+    const property = { id, title, location, price, image };
+    toggleFavorite(property);
     if (!liked) {
       setParticles(true);
       setTimeout(() => setParticles(false), 1500);
@@ -203,55 +168,30 @@ export default function PropertyCard({
   };
 
   return (
-    <div style={{ perspective: "1200px" }} className="relative h-full">
-      {/* ── OUTER GLOW RING (animates on hover) ── */}
-      <motion.div
-        animate={hovered ? { opacity: 1, scale: 1.03 } : { opacity: 0, scale: 1 }}
-        transition={{ duration: 0.4 }}
-        className="absolute inset-0 rounded-[2rem] pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse at 50% 0%, rgba(251,191,36,0.35) 0%, transparent 70%)",
-          filter: "blur(20px)",
-          zIndex: -1,
-        }}
-      />
-
-      {/* ── CARD WRAPPER (3D tilt host) ── */}
+    <div className="relative [content-visibility:auto]">
+      {/* ── CARD WRAPPER (Professional Hover) ── */}
       <motion.div
         ref={cardRef}
-        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-        onMouseMove={handleMouseMove}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onClick={handleCardClick}
         className="relative flex flex-col bg-white rounded-[2rem] overflow-hidden border border-slate-100/80 h-full cursor-pointer select-none"
-        whileHover={{ boxShadow: "0 40px 80px -20px rgba(15,23,42,0.2), 0 0 0 1px rgba(251,191,36,0.2)" }}
-        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+        whileHover={{ 
+          y: -8,
+          boxShadow: "0 20px 40px -10px rgba(15,23,42,0.1), 0 0 0 1px rgba(251,191,36,0.1)" 
+        }}
+        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
       >
-        {/* ── SPECULAR SHINE LAYER ── */}
-        <motion.div
-          style={{
-            background: useTransform(
-              [shineX, shineY],
-              ([sx, sy]) =>
-                `radial-gradient(circle at ${sx}% ${sy}%, rgba(255,255,255,0.18) 0%, transparent 55%)`
-            ),
-            pointerEvents: "none",
-            zIndex: 40,
-          }}
-          className="absolute inset-0 rounded-[2rem]"
-        />
 
         {/* ════════════════════════════════════════
             IMAGE AREA
         ════════════════════════════════════════ */}
-        <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-slate-100 flex-shrink-0">
+        <div className="relative h-64 min-h-[16rem] sm:h-72 sm:min-h-[18rem] w-full overflow-hidden bg-slate-100 flex-shrink-0">
           {/* Property image with parallax-zoom */}
           <motion.div
             animate={hovered ? { scale: 1.1 } : { scale: 1 }}
             transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full h-full relative"
+            className="absolute inset-0"
           >
             <Image
               src={
