@@ -169,16 +169,16 @@ export default function HeroContactForm() {
               {step === 3 && (
                 <div className="space-y-4 flex-1">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Full Name</label>
-                    <input type="text" name="name" value={form.name} onChange={handleChange} required placeholder="Rahul Upadhyay" className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-amber-500/40 text-sm font-medium" />
+                    <label htmlFor="hero-name" className="text-xs font-bold text-slate-700 uppercase tracking-wide">Full Name</label>
+                    <input id="hero-name" type="text" name="name" value={form.name} onChange={handleChange} required placeholder="Rahul Upadhyay" className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-amber-500/40 text-sm font-medium" />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Phone Number</label>
-                    <input type="tel" name="phone" value={form.phone} onChange={handleChange} required placeholder="9876543210" maxLength={10} className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-amber-500/40 text-sm font-medium" />
+                    <label htmlFor="hero-phone" className="text-xs font-bold text-slate-700 uppercase tracking-wide">Phone Number</label>
+                    <input id="hero-phone" type="tel" name="phone" value={form.phone} onChange={handleChange} required placeholder="9876543210" maxLength={10} className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-amber-500/40 text-sm font-medium" />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Email (Optional)</label>
-                    <input type="email" name="email" value={form.email} onChange={handleChange} placeholder="name@email.com" className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-amber-500/40 text-sm font-medium" />
+                    <label htmlFor="hero-email" className="text-xs font-bold text-slate-700 uppercase tracking-wide">Email (Optional)</label>
+                    <input id="hero-email" type="email" name="email" value={form.email} onChange={handleChange} placeholder="name@email.com" className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 outline-none focus:ring-2 focus:ring-amber-500/40 text-sm font-medium" />
                   </div>
                 </div>
               )}

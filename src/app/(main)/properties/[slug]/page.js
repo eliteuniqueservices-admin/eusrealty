@@ -309,6 +309,10 @@ export default async function PropertyOrListingPage({ params }) {
 
   const richData = getRichDataForProperty(property);
 
+  // Parse numeric values from configurations for structured SEO schema
+  const carpetVal = config.carpet ? parseFloat(config.carpet.replace(/[^\d.]/g, '')) : null;
+  const bhkVal = config.type ? parseFloat(config.type.replace(/[^\d.]/g, '')) : null;
+
   const mainSchema = {
     "@context": "https://schema.org",
     "@type": "RealEstateListing",
@@ -348,7 +352,18 @@ export default async function PropertyOrListingPage({ params }) {
         "bestRating": "5",
         "worstRating": "1",
         "ratingCount": (50 + (property.name.charCodeAt(1) % 100)).toString()
-      }
+      },
+      ...(carpetVal && !isNaN(carpetVal) ? {
+        "floorSize": {
+          "@type": "QuantitativeValue",
+          "value": carpetVal,
+          "unitCode": "FTK"
+        }
+      } : {}),
+      ...(bhkVal && !isNaN(bhkVal) ? {
+        "numberOfRooms": bhkVal,
+        "numberOfBathroomsTotal": bhkVal
+      } : {})
     }
   };
 

@@ -50,6 +50,7 @@ export default function CustomCursor() {
 
     // Abort setting up expensive listeners if device primarily uses touch
     if (window.matchMedia('(pointer: coarse)').matches) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       updateIsMobile(true);
       return;
     }

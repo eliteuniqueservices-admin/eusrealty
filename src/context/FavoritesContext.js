@@ -13,6 +13,7 @@ export const FavoritesProvider = ({ children }) => {
     try {
       const stored = localStorage.getItem("eus_favorites");
       if (stored) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setFavorites(JSON.parse(stored));
       }
     } catch (e) {

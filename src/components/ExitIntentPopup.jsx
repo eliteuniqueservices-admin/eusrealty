@@ -164,12 +164,13 @@ export default function ExitIntentPopup() {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Mobile Number</label>
+                    <label htmlFor="exit-phone" className="text-xs font-bold text-slate-700 uppercase tracking-wider">Mobile Number</label>
                     <div className="flex relative">
                       <span className="flex items-center px-3 bg-slate-100 border border-r-0 border-slate-200 rounded-l-xl text-sm font-bold text-slate-600">+91</span>
                       <div className="relative flex-1">
                         <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                         <input 
+                          id="exit-phone"
                           type="tel" 
                           maxLength={10}
                           value={phone}
@@ -182,9 +183,10 @@ export default function ExitIntentPopup() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Email ID</label>
+                    <label htmlFor="exit-email" className="text-xs font-bold text-slate-700 uppercase tracking-wider">Email ID</label>
                     <div className="relative">
                       <input 
+                        id="exit-email"
                         type="email" 
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}

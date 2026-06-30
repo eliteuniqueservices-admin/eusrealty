@@ -232,10 +232,10 @@ function LeadFormCard({ phoneNumber, onSubmitted, sessionId }) {
       <p className="text-[11px] text-gray-500 mb-1">Fill in details for direct builder catalog & callback ⚡</p>
       
       <div className="flex flex-col gap-1">
-        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Full Name *</label>
+        <label htmlFor="chat-name" className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Full Name *</label>
         <div className="relative">
           <User size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input type="text" value={name} onChange={(e) => { setName(e.target.value); setErrors(p => ({ ...p, name: "" })); }}
+          <input id="chat-name" type="text" value={name} onChange={(e) => { setName(e.target.value); setErrors(p => ({ ...p, name: "" })); }}
             placeholder="Your full name"
             className={`w-full pl-7 pr-3 py-2 text-[12px] rounded-lg border bg-gray-50 outline-none font-medium text-gray-800 placeholder:text-gray-400 transition-all ${errors.name ? "border-red-400 ring-1 ring-red-400/30" : "border-gray-200 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/30"}`}
           />
@@ -244,12 +244,12 @@ function LeadFormCard({ phoneNumber, onSubmitted, sessionId }) {
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Mobile Number *</label>
+        <label htmlFor="chat-phone" className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Mobile Number *</label>
         <div className="flex">
           <span className="flex items-center px-2.5 bg-gray-100 border border-r-0 border-gray-200 rounded-l-lg text-[11px] font-bold text-gray-600">+91</span>
           <div className="relative flex-1">
             <Phone size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input type="tel" value={phone} maxLength={10} onChange={(e) => { setPhone(e.target.value.replace(/\D/g, "")); setErrors(p => ({ ...p, phone: "" })); }}
+            <input id="chat-phone" type="tel" value={phone} maxLength={10} onChange={(e) => { setPhone(e.target.value.replace(/\D/g, "")); setErrors(p => ({ ...p, phone: "" })); }}
               placeholder="10-digit number"
               className={`w-full pl-7 pr-3 py-2 text-[12px] rounded-r-lg border bg-gray-50 outline-none font-medium text-gray-800 placeholder:text-gray-400 transition-all ${errors.phone ? "border-red-400 ring-1 ring-red-400/30" : "border-gray-200 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/30"}`}
             />
@@ -259,10 +259,10 @@ function LeadFormCard({ phoneNumber, onSubmitted, sessionId }) {
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Email Address</label>
+        <label htmlFor="chat-email" className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Email Address</label>
         <div className="relative">
           <Mail size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+          <input id="chat-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
             placeholder="Your email (optional)"
             className="w-full pl-7 pr-3 py-2 text-[12px] rounded-lg border border-gray-200 bg-gray-50 outline-none font-medium text-gray-800 placeholder:text-gray-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/30 transition-all"
           />
@@ -270,8 +270,8 @@ function LeadFormCard({ phoneNumber, onSubmitted, sessionId }) {
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">I&apos;m looking for</label>
-        <select value={interest} onChange={(e) => setInterest(e.target.value)}
+        <label htmlFor="chat-interest" className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">I&apos;m looking for</label>
+        <select id="chat-interest" value={interest} onChange={(e) => setInterest(e.target.value)}
           className="w-full px-3 py-2 text-[12px] rounded-lg border border-gray-200 bg-gray-50 outline-none focus:border-indigo-400 font-medium text-gray-700 cursor-pointer">
           <option>Residential Property</option>
           <option>Commercial Property</option>
@@ -282,10 +282,10 @@ function LeadFormCard({ phoneNumber, onSubmitted, sessionId }) {
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Your Budget</label>
+        <label htmlFor="chat-budget" className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Your Budget</label>
         <div className="relative">
           <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[12px] font-bold text-gray-400">₹</span>
-          <input type="text" value={budget} onChange={(e) => setBudget(e.target.value)}
+          <input id="chat-budget" type="text" value={budget} onChange={(e) => setBudget(e.target.value)}
             placeholder="e.g. 80L - 1.2 Cr"
             className="w-full pl-7 pr-3 py-2 text-[12px] rounded-lg border border-gray-200 bg-gray-50 outline-none font-medium text-gray-800 placeholder:text-gray-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/30 transition-all"
           />
@@ -293,10 +293,10 @@ function LeadFormCard({ phoneNumber, onSubmitted, sessionId }) {
       </div>
 
       <div className="flex flex-col gap-1">
-        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Preferred Location</label>
+        <label htmlFor="chat-location" className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Preferred Location</label>
         <div className="relative">
           <MapPin size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input type="text" value={location} onChange={(e) => setLocation(e.target.value)}
+          <input id="chat-location" type="text" value={location} onChange={(e) => setLocation(e.target.value)}
             placeholder="e.g. Baner, Tathawade"
             className="w-full pl-7 pr-3 py-2 text-[12px] rounded-lg border border-gray-200 bg-gray-50 outline-none font-medium text-gray-800 placeholder:text-gray-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/30 transition-all"
           />
@@ -305,10 +305,10 @@ function LeadFormCard({ phoneNumber, onSubmitted, sessionId }) {
 
       <div className="grid grid-cols-2 gap-2">
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Type</label>
+          <label htmlFor="chat-type" className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Type</label>
           <div className="relative">
             <Home size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input type="text" value={propertyType} onChange={(e) => setPropertyType(e.target.value)}
+            <input id="chat-type" type="text" value={propertyType} onChange={(e) => setPropertyType(e.target.value)}
               placeholder="e.g. 2BHK"
               className="w-full pl-7 pr-3 py-2 text-[12px] rounded-lg border border-gray-200 bg-gray-50 outline-none font-medium text-gray-800 placeholder:text-gray-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/30 transition-all"
             />
@@ -316,10 +316,10 @@ function LeadFormCard({ phoneNumber, onSubmitted, sessionId }) {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Possession</label>
+          <label htmlFor="chat-possession" className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Possession</label>
           <div className="relative">
             <Clock size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input type="text" value={possession} onChange={(e) => setPossession(e.target.value)}
+            <input id="chat-possession" type="text" value={possession} onChange={(e) => setPossession(e.target.value)}
               placeholder="e.g. Ready / 1 Yr"
               className="w-full pl-7 pr-3 py-2 text-[12px] rounded-lg border border-gray-200 bg-gray-50 outline-none font-medium text-gray-800 placeholder:text-gray-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/30 transition-all"
             />

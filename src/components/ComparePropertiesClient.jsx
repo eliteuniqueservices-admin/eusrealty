@@ -306,10 +306,12 @@ export default function ComparePropertiesClient({ inventory = [] }) {
                         {/* Top Media & Dropdown Selector */}
                         <div className="relative">
                           <div className="relative h-44 w-full">
-                            <img 
+                            <Image 
                               src={prop.image} 
                               alt={prop.name} 
-                              className="object-cover w-full h-full brightness-90 rounded-t-[2rem]"
+                              fill
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                              className="object-cover brightness-90 rounded-t-[2rem]"
                             />
                             {/* Suitability score tag */}
                             <div className="absolute bottom-4 left-4 bg-[#030305]/90 border border-amber-500/20 backdrop-blur px-3 py-1.5 rounded-xl flex items-center gap-1.5">

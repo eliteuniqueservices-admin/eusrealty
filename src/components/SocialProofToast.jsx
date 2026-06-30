@@ -12,6 +12,20 @@ const times = ['just now', '2 mins ago', '5 mins ago', '12 mins ago', '20 mins a
 export default function SocialProofToast() {
   const [toast, setToast] = useState(null);
 
+  const showRandomToast = () => {
+    const name = names[Math.floor(Math.random() * names.length)];
+    const action = actions[Math.floor(Math.random() * actions.length)];
+    const property = properties[Math.floor(Math.random() * properties.length)];
+    const time = times[Math.floor(Math.random() * times.length)];
+
+    setToast({ name, action, property, time });
+
+    // Hide toast after 6 seconds
+    setTimeout(() => {
+      setToast(null);
+    }, 6000);
+  };
+
   useEffect(() => {
     // Show first toast after 5 seconds
     const initialTimer = setTimeout(() => showRandomToast(), 5000);
@@ -26,20 +40,6 @@ export default function SocialProofToast() {
       clearInterval(interval);
     };
   }, []);
-
-  const showRandomToast = () => {
-    const name = names[Math.floor(Math.random() * names.length)];
-    const action = actions[Math.floor(Math.random() * actions.length)];
-    const property = properties[Math.floor(Math.random() * properties.length)];
-    const time = times[Math.floor(Math.random() * times.length)];
-
-    setToast({ name, action, property, time });
-
-    // Hide toast after 6 seconds
-    setTimeout(() => {
-      setToast(null);
-    }, 6000);
-  };
 
   return (
     <AnimatePresence>

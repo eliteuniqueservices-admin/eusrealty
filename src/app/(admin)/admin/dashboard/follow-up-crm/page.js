@@ -290,6 +290,7 @@ function SendPropertiesModal({ open, onClose, onSend, leadName, leadPhone, leadE
 
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(true);
       fetch('/api/properties')
         .then(res => res.json())

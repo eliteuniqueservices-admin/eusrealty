@@ -27,7 +27,7 @@ export default function FloatingShortlistBar() {
       setForm({ name: '', phone: '' });
     }
     prevCountRef.current = current;
-  }, [favorites.length, isLoaded]);
+  }, [favorites.length, isLoaded, isHidden]);
 
   if (!isLoaded || favorites.length === 0 || isHidden) return null;
 
@@ -218,7 +218,7 @@ export default function FloatingShortlistBar() {
                       <CheckCircle className="w-7 h-7 text-green-400" />
                     </div>
                     <div>
-                      <p className="text-white font-bold text-sm">You're all set!</p>
+                      <p className="text-white font-bold text-sm">You&apos;re all set!</p>
                       <p className="text-slate-400 text-xs mt-1">Our expert will call you within 30 minutes.</p>
                     </div>
                   </motion.div>
@@ -234,6 +234,7 @@ export default function FloatingShortlistBar() {
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
                         <input
                           type="text"
+                          aria-label="Your Name"
                           placeholder="Your Name"
                           value={form.name}
                           onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
@@ -248,6 +249,7 @@ export default function FloatingShortlistBar() {
                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
                         <input
                           type="tel"
+                          aria-label="10-digit Mobile Number"
                           placeholder="10-digit Mobile No."
                           value={form.phone}
                           maxLength={10}

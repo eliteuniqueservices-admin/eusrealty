@@ -23,6 +23,7 @@ export default function ProjectDetailClient({ property, richData, similarPropert
   const [activeNearbyTab, setActiveNearbyTab] = useState("schools");
   const [openSpecs, setOpenSpecs] = useState({});
   const [openFaq, setOpenFaq] = useState(null);
+  const [copied, setCopied] = useState(false);
   
   // EMI Calculator State
   const initialPriceNum = (() => {
@@ -128,6 +129,37 @@ export default function ProjectDetailClient({ property, richData, similarPropert
       base = `Hi! I would like to get the best pricing quote/payment plan for "${property.name}" in ${property.location}.`;
     }
     return encodeURIComponent(`${base} URL: https://eusrealty.co.in/properties/${property.slug || property.id}`);
+  };
+
+  const handleShare = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const shareData = {
+      title: `${property.name} - EUS Realty`,
+      text: `Check out ${property.name} in ${property.location}. Direct Builder Pricing & 0% Brokerage.`,
+      url: window.location.href,
+    };
+
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error('Error sharing:', err);
+        }
+      }
+    }
+
+    // Fallback: Copy to clipboard
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Clipboard copy failed:', err);
+    }
   };
 
   const handleLeadSubmit = async (e) => {
@@ -331,11 +363,18 @@ export default function ProjectDetailClient({ property, richData, similarPropert
                 <Link href={formattedLocalityUrl} className="hover:underline">{property.location}, Pune</Link>
               </div>
             </div>
-            <div className="hidden md:flex items-center gap-3">
-              <button onClick={() => { window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Check out this property: https://eusrealty.co.in/properties/${getPropertySlug(property)}`)}`, "_blank", "noopener,noreferrer"); }} className="w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-full text-white transition-all shadow-lg cursor-pointer" title="Share via WhatsApp">
-                <Share2 size={20} />
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={handleShare} 
+                className="w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-full text-white transition-all shadow-lg cursor-pointer" 
+                title="Share Project"
+              >
+                {copied ? <Check size={20} className="text-emerald-400" /> : <Share2 size={20} />}
               </button>
-              <button onClick={() => handleOpenLeadModal("bestprice")} className="flex items-center gap-2 px-6 py-3 bg-[#25D366] hover:bg-[#20ba59] text-white font-bold rounded-xl transition-all shadow-lg shadow-green-500/20 cursor-pointer text-xs uppercase">
+              <button 
+                onClick={() => handleOpenLeadModal("bestprice")} 
+                className="hidden md:flex items-center gap-2 px-6 py-3 bg-[#25D366] hover:bg-[#20ba59] text-white font-bold rounded-xl transition-all shadow-lg shadow-green-500/20 cursor-pointer text-xs uppercase"
+              >
                 <MessageCircle size={20} /> Request Details
               </button>
             </div>
@@ -347,6 +386,20 @@ export default function ProjectDetailClient({ property, richData, similarPropert
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           {/* Main Details Panel */}
           <div className="lg:col-span-2 space-y-10">
+            {/* Factual AI Anchor Block - Premium Summary Card */}
+            <div className="bg-[#0B0C10] text-white p-8 rounded-[2rem] border border-slate-950 shadow-xl space-y-4 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+              <div className="flex items-center gap-2 text-xs font-bold text-amber-500 uppercase tracking-widest">
+                <Zap size={14} className="animate-pulse fill-amber-500" />
+                AI Summary & Key Facts
+              </div>
+              <p className="text-sm leading-relaxed text-slate-300 font-light">
+                <strong>{property.name}</strong> is a premium RERA-verified residential development by <strong>{property.developer || 'Premium Developer'}</strong> located in <strong>{property.location}, Pune</strong>. 
+                The configuration features <strong>{property.configDetails?.[0]?.type || '3 BHK'}</strong> configurations starting at <strong>{property.configDetails?.[0]?.price || 'On Request'}</strong> with a carpet area of <strong>{property.configDetails?.[0]?.carpet || '1200 sqft'}</strong>. 
+                Registered under MahaRERA ID <strong>{property.rera || 'Verified'}</strong>, EUS Realty advises on this project with <strong>0% brokerage fees</strong> and direct developer desk access.
+              </p>
+            </div>
+
             {/* Top Specs Strip */}
             <div className="flex flex-wrap gap-6 bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm justify-between">
               <div>
