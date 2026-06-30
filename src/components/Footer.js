@@ -431,7 +431,9 @@ export default function Footer() {
               <div className="text-[10px] text-slate-600 mt-1 font-light tracking-wide">
                 Developed by{' '}
                 <a
-                  href="mailto:rahulmohanupadhyay@gmail.com"
+                  href="https://rahul-upadhyay-profile.vercel.app/"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="hover:text-amber-500 transition-colors duration-300 font-semibold underline underline-offset-2 decoration-slate-700 hover:decoration-amber-500"
                 >
                   Rahul Upadhyay

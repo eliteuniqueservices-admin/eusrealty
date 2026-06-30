@@ -16,22 +16,6 @@ import { useRef, useState, useEffect } from 'react';
    TEAM DATA
 ───────────────────────────────────────────── */
 const teamMembers = [
-  // {
-  //   name: 'Rahul Upadhyay',
-  //   role: 'Visionary / Founder',
-  //   badge: '30+ Yrs Legacy',
-  //   tagline: 'The Quiet Empire Builder',
-  //   img: 'https://randomuser.me/api/portraits/men/52.jpg',
-  //   intro:
-  //     `With over three decades of deep-rooted presence in Pune&apos;s real estate landscape, Rahul Upadhyay is the cornerstone of EUS Realty. He built his reputation through ethical advisory, zero-commission integrity, and a developer network that spans every major project in West Pune. His philosophy is simple: put the client first, always.`,
-  //   expertise: ['Luxury Projects', 'Developer Relations', 'Market Foresight', 'Strategic Advisory'],
-  //   accolade: '10,000+ Families Guided',
-  //   wa: '917620733613',
-  //   linkedin: 'https://linkedin.com',
-  //   email: 'amarpal@eusrealty.com',
-  //   color: 'from-amber-500/20 via-yellow-600/10 to-transparent',
-  //   glowColor: 'rgba(251,191,36,0.25)',
-  // },
   {
     name: 'Kunal Verma',
     role: 'Director',
@@ -93,6 +77,7 @@ const teamMembers = [
     wa: '9112229827',
     linkedin: 'https://www.linkedin.com/in/rahulmohanupadhyay/',
     email: 'rahulmohanupadhyay@gmail.com',
+    portfolio: 'https://rahul-upadhyay-profile.vercel.app/',
     color: 'from-violet-500/20 via-purple-600/10 to-transparent',
     glowColor: 'rgba(139,92,246,0.2)',
   },
@@ -137,6 +122,16 @@ function GmailIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
       <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 010 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z" />
+    </svg>
+  );
+}
+
+function GlobeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="2" y1="12" x2="22" y2="12"></line>
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
     </svg>
   );
 }
@@ -438,6 +433,7 @@ function TeamCard({ member, index }) {
                     { href: `https://wa.me/${member.wa}`, icon: <WhatsAppIcon />, label: 'WhatsApp', color: 'emerald' },
                     { href: member.linkedin, icon: <LinkedInIcon />, label: 'LinkedIn', color: 'blue', external: true },
                     { href: `mailto:${member.email}`, icon: <GmailIcon />, label: 'Email', color: 'rose' },
+                    ...(member.portfolio ? [{ href: member.portfolio, icon: <GlobeIcon />, label: 'Profile', color: 'violet', external: true }] : [])
                   ].map(({ href, icon, label, color, external }) => (
                     <motion.a
                       key={label}
@@ -450,18 +446,18 @@ function TeamCard({ member, index }) {
                       transition={{ type: 'spring', stiffness: 400, damping: 15 }}
                       className={`w-8 h-8 rounded-lg flex items-center justify-center`}
                       style={{
-                        background: `rgba(var(--${color}-rgb, 52, 211, 153), 0.06)`,
-                        border: `1px solid rgba(var(--${color}-rgb, 52, 211, 153), 0.18)`,
-                        color: color === 'emerald' ? '#34d399' : color === 'blue' ? '#60a5fa' : '#fb7185',
+                        background: `rgba(var(--${color}-rgb, ${color === 'violet' ? '139, 92, 246' : '52, 211, 153'}), 0.06)`,
+                        border: `1px solid rgba(var(--${color}-rgb, ${color === 'violet' ? '139, 92, 246' : '52, 211, 153'}), 0.18)`,
+                        color: color === 'emerald' ? '#34d399' : color === 'blue' ? '#60a5fa' : color === 'violet' ? '#8b5cf6' : '#fb7185',
                         transition: 'background 0.2s, border-color 0.2s',
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = color === 'emerald' ? '#10b981' : color === 'blue' ? '#3b82f6' : '#f43f5e';
+                        e.currentTarget.style.background = color === 'emerald' ? '#10b981' : color === 'blue' ? '#3b82f6' : color === 'violet' ? '#8b5cf6' : '#f43f5e';
                         e.currentTarget.style.color = '#030305';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.background = `rgba(var(--${color}-rgb, 52,211,153), 0.06)`;
-                        e.currentTarget.style.color = color === 'emerald' ? '#34d399' : color === 'blue' ? '#60a5fa' : '#fb7185';
+                        e.currentTarget.style.background = `rgba(var(--${color}-rgb, ${color === 'violet' ? '139, 92, 246' : '52, 211, 153'}), 0.06)`;
+                        e.currentTarget.style.color = color === 'emerald' ? '#34d399' : color === 'blue' ? '#60a5fa' : color === 'violet' ? '#8b5cf6' : '#fb7185';
                       }}
                     >
                       {icon}
