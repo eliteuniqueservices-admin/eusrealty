@@ -3,17 +3,41 @@ import {
   Building2, TrendingUp, Award, Users, Home as HomeIcon,
   Zap, Phone, CheckCircle2, BarChart3, Sparkles, Clock
 } from 'lucide-react';
-import PropertyCard from '@/components/PropertyCard';
 import Reveal from '@/components/Reveal';
 import Link from 'next/link';
 import dbConnect from '@/lib/mongodb';
 import Property from '@/models/Property';
-import HeroClient from '@/components/HeroClient';
-import StatsCounter from '@/components/StatsCounter';
-import MarqueeBanner from '@/components/MarqueeBanner';
-import HeroSuccessStories from '@/components/HeroSuccessStories';
-import HeroSearchBar from '@/components/HeroSearchBar';
 import dynamic from 'next/dynamic';
+
+const PropertyCard = dynamic(() => import('@/components/PropertyCard'), {
+  ssr: true,
+  loading: () => <div className="h-96 bg-white border border-slate-100 rounded-[2rem] animate-pulse" />
+});
+
+const HeroClient = dynamic(() => import('@/components/HeroClient'), {
+  ssr: true,
+  loading: () => <div className="h-28 animate-pulse bg-slate-50 border border-slate-100 rounded-full" />
+});
+
+const StatsCounter = dynamic(() => import('@/components/StatsCounter'), {
+  ssr: true,
+  loading: () => <div className="h-8 w-20 bg-slate-50 animate-pulse rounded-md" />
+});
+
+const MarqueeBanner = dynamic(() => import('@/components/MarqueeBanner'), {
+  ssr: true,
+  loading: () => <div className="h-20 w-full bg-slate-900/10 animate-pulse" />
+});
+
+const HeroSuccessStories = dynamic(() => import('@/components/HeroSuccessStories'), {
+  ssr: true,
+  loading: () => <div className="h-10 w-full max-w-sm bg-slate-50 animate-pulse rounded-full" />
+});
+
+const HeroSearchBar = dynamic(() => import('@/components/HeroSearchBar'), {
+  ssr: true,
+  loading: () => <div className="h-16 w-full max-w-2xl bg-white border border-slate-100 animate-pulse rounded-full shadow-card" />
+});
 
 // Below-the-fold components — lazy loaded to reduce initial bundle
 const DarkProjectCard = dynamic(() => import('@/components/DarkProjectCard'), { ssr: true });
@@ -390,8 +414,8 @@ export default async function Home() {
                     area={areaParsed}
                     image={imageVal}
                     badge={p.status || "Signature"}
-                    roi={p.roi || "14.2"}
-                    views={p.views || "2.8k"}
+                    roi={p.roi}
+                    views={p.views}
                     isNew={p.isNew || p.status === 'Pre-Launch' || p.status === 'New Launch'}
                     priority={i < 3}
                   />

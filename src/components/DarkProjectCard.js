@@ -128,6 +128,20 @@ export default function DarkProjectCard({ project, index }) {
           {/* Vignette Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-[#030305]/90 via-transparent to-black/30 pointer-events-none" />
 
+          {/* Sliding door shadow overlays (opening on hover) */}
+          <motion.div
+            initial={{ x: 0 }}
+            animate={hovered ? { x: "-100%" } : { x: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute top-0 bottom-0 left-0 w-1/2 bg-gradient-to-r from-black/60 to-black/20 z-10 pointer-events-none"
+          />
+          <motion.div
+            initial={{ x: 0 }}
+            animate={hovered ? { x: "100%" } : { x: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute top-0 bottom-0 right-0 w-1/2 bg-gradient-to-l from-black/60 to-black/20 z-10 pointer-events-none"
+          />
+
           {/* Floating Verification Badge */}
           <div className="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md border border-white/10 rounded-full pl-1.5 pr-3 py-1 flex items-center gap-1.5 shadow-lg">
             <ShieldCheck size={12} className="text-emerald-400" />

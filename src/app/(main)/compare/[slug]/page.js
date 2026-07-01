@@ -46,8 +46,25 @@ export default async function ComparisonPage({ params }) {
   return (
     <main className="min-h-screen bg-slate-950 text-white font-sans pt-24 pb-20">
       {/* Header Banner */}
-      <section className="relative py-16 px-4 md:px-8 bg-gradient-to-b from-slate-950 to-slate-900 border-b border-slate-900 overflow-hidden text-center">
-        <div className="absolute inset-0 bg-slate-900/10 [background-size:20px_20px] bg-[radial-gradient(#ffffff_1px,transparent_1px)] opacity-5 pointer-events-none" />
+      <section className="relative py-16 px-4 md:px-8 bg-slate-950 border-b border-slate-900 overflow-hidden text-center">
+        {/* Immersive background decoration */}
+        <div className="absolute inset-0 pointer-events-none">
+          {/* Fine-grain dot matrix grid texture */}
+          <div
+            className="absolute inset-0 opacity-[0.08]"
+            style={{
+              backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.3) 1.2px, transparent 1.2px)',
+              backgroundSize: '24px 24px',
+            }}
+          />
+          {/* Subtle glowing color gradients (Indigo, Purple, Cyan) */}
+          <div className="absolute top-0 right-1/4 w-[700px] h-[500px] bg-gradient-radial from-indigo-500/20 via-purple-500/5 to-transparent rounded-full blur-[130px] -translate-y-1/4 pointer-events-none" />
+          
+          {/* Floating dynamic orbs with drift animations */}
+          <div className="hero-orb absolute top-1/4 left-[12%] w-64 h-64 bg-indigo-500/20 animate-drift" style={{ animationDelay: '0s' }} />
+          <div className="hero-orb absolute top-1/3 right-[10%] w-72 h-72 bg-purple-500/15 animate-drift" style={{ animationDelay: '-5s' }} />
+          <div className="hero-orb absolute bottom-1/4 left-1/3 w-56 h-56 bg-cyan-500/15 animate-drift" style={{ animationDelay: '-10s' }} />
+        </div>
         
         <div className="relative z-10 max-w-5xl mx-auto flex flex-col items-center">
           <Reveal>

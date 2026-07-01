@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import { useFavorites } from "@/context/FavoritesContext";
 import {
   motion,
@@ -115,8 +115,8 @@ export default function PropertyCard({
   area,
   image,
   badge = "Premium",
-  roi = "14.2",
-  views = "2.4k",
+  roi,
+  views,
   isNew = false,
   id,
   type,
@@ -128,6 +128,35 @@ export default function PropertyCard({
   sqFtRate,
   priority = false,
 }) {
+  const displayViews = useMemo(() => {
+    if (views && views !== "2.4k" && views !== "2.8k") return views;
+    const seed = String(id || title || "");
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+      hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const minVal = 15;
+    const maxVal = 95;
+    const range = maxVal - minVal;
+    const val = minVal + (Math.abs(hash) % (range + 1));
+    return `${(val / 10).toFixed(1)}k`;
+  }, [views, id, title]);
+
+  const displayRoi = useMemo(() => {
+    if (roi && roi !== "14.2") return roi;
+    const seed = String(id || title || "");
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+      hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    hash = hash + 42; // offset to not correlate directly with views
+    const minVal = 105;
+    const maxVal = 195;
+    const range = maxVal - minVal;
+    const val = minVal + (Math.abs(hash) % (range + 1));
+    return `${(val / 10).toFixed(1)}`;
+  }, [roi, id, title]);
+
   const displayBeds = beds || bhk;
   const cardRef = useRef(null);
   const [hovered, setHovered] = useState(false);
@@ -191,7 +220,7 @@ export default function PropertyCard({
           <motion.div
             animate={hovered ? { scale: 1.1 } : { scale: 1 }}
             transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute inset-0"
+            className="absolute inset-0 w-full h-full"
           >
             <Image
               src={
@@ -211,6 +240,20 @@ export default function PropertyCard({
             animate={hovered ? { opacity: 1 } : { opacity: 0.4 }}
             transition={{ duration: 0.5 }}
             className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-900/20 to-transparent"
+          />
+
+          {/* Sliding door shadow overlays (opening on hover) */}
+          <motion.div
+            initial={{ x: 0 }}
+            animate={hovered ? { x: "-100%" } : { x: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute top-0 bottom-0 left-0 w-1/2 bg-gradient-to-r from-slate-950/60 to-slate-950/20 z-10 pointer-events-none"
+          />
+          <motion.div
+            initial={{ x: 0 }}
+            animate={hovered ? { x: "100%" } : { x: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute top-0 bottom-0 right-0 w-1/2 bg-gradient-to-l from-slate-950/60 to-slate-950/20 z-10 pointer-events-none"
           />
 
           {/* ── BADGES TOP-LEFT ── */}
@@ -305,11 +348,11 @@ export default function PropertyCard({
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5 text-white/80 text-xs font-semibold bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1 border border-white/10">
                 <Eye size={11} />
-                {views} views
+                {displayViews} views
               </div>
               <div className="flex items-center gap-1.5 text-emerald-300 text-xs font-semibold bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1 border border-white/10">
                 <TrendingUp size={11} />
-                {roi}% ROI
+                {displayRoi}% ROI
               </div>
             </div>
             <div className="flex items-center gap-1.5 text-white/80 text-xs font-semibold bg-white/10 backdrop-blur-sm rounded-full px-2.5 py-1 border border-white/10">

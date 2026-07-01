@@ -116,26 +116,48 @@ export default function PropertiesPageClient({ initialProperties, customTitle, c
     <div className="bg-[#F8F9FA] min-h-screen pb-32 font-sans selection:bg-amber-500 selection:text-white relative text-slate-900">
 
       {/* --- HERO HEADER --- */}
-      <div className="bg-white border-b border-slate-200/60 pt-24 pb-16 relative overflow-hidden">
-        {/* Luxury subtle background glow */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-slate-100 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 z-0" />
+      <div className="bg-slate-950 text-white border-b border-slate-900 pt-28 pb-20 relative overflow-hidden">
+        {/* Immersive background decoration */}
+        <div className="absolute inset-0 pointer-events-none">
+          {/* Fine-grain dot matrix grid texture */}
+          <div
+            className="absolute inset-0 opacity-[0.08]"
+            style={{
+              backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.3) 1.2px, transparent 1.2px)',
+              backgroundSize: '24px 24px',
+            }}
+          />
+          {/* Subtle glowing color gradients (Indigo, Purple, Cyan) */}
+          <div className="absolute top-0 right-1/4 w-[700px] h-[500px] bg-gradient-radial from-indigo-500/20 via-purple-500/5 to-transparent rounded-full blur-[130px] -translate-y-1/4 pointer-events-none" />
+          
+          {/* Floating dynamic orbs with drift animations */}
+          <div className="hero-orb absolute top-1/4 left-[12%] w-64 h-64 bg-indigo-500/20 animate-drift" style={{ animationDelay: '0s' }} />
+          <div className="hero-orb absolute top-1/3 right-[10%] w-72 h-72 bg-purple-500/15 animate-drift" style={{ animationDelay: '-5s' }} />
+          <div className="hero-orb absolute bottom-1/4 left-1/3 w-56 h-56 bg-cyan-500/15 animate-drift" style={{ animationDelay: '-10s' }} />
+        </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
           <Reveal>
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-10">
               <div className="space-y-5">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-800 rounded-full text-xs font-bold uppercase tracking-widest mb-2 shadow-sm">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 text-amber-400 rounded-full text-xs font-bold uppercase tracking-widest mb-2 shadow-lg">
                   <Star size={14} className="fill-amber-400 text-amber-400" /> Authorized Strategic Partner
                 </div>
-                <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-slate-950 tracking-tight leading-[1.05]">
-                  {customTitle ? customTitle : "Flats for Sale in Pune"}
+                <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.05]">
+                  {customTitle ? customTitle : (
+                    <span>
+                      Flats for Sale in <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600">Pune</span>
+                    </span>
+                  )}
                 </h1>
                 <div className="space-y-4 max-w-2xl">
-                  <div className="flex flex-wrap items-center gap-3 text-slate-500 font-bold text-sm">
-                    <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full">Last Updated: Jun 20, 2026</span>
-                    <span className="px-3 py-1 bg-slate-100 text-slate-800 rounded-full">Showing 1 - 30 of 53756</span>
+                  <div className="flex flex-wrap items-center gap-3 text-slate-400 font-bold text-sm">
+                    <span className="px-3 py-1 bg-white/5 border border-white/10 text-slate-300 rounded-full">Last Updated: Jun 20, 2026</span>
+                    <span className="px-3 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-full">
+                      Showing {filteredProperties.length > 0 ? `1 - ${filteredProperties.length}` : '0'} of {filteredProperties.length}
+                    </span>
                   </div>
-                  <p className="text-slate-600 text-base md:text-lg font-light leading-relaxed">
+                  <p className="text-slate-400 text-base md:text-lg font-light leading-relaxed">
                     {customDescription ? customDescription : (
                       "Explore verified flats, houses, villas, and new projects across Pune. Discover premium 2 BHK and 3 BHK luxury residences, resale homes, owner properties, and upcoming developer launches. Find RERA-approved properties in Pune's popular localities with EUS Realty's zero brokerage buying advisory."
                     )}
@@ -145,7 +167,7 @@ export default function PropertiesPageClient({ initialProperties, customTitle, c
 
               {/* Main Search Input */}
               <div className="relative w-full md:w-[400px] group">
-                <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-amber-500 transition-colors duration-300">
+                <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-slate-500 group-focus-within:text-amber-500 transition-colors duration-300">
                   <Search size={20} />
                 </div>
                 <input
@@ -153,7 +175,7 @@ export default function PropertiesPageClient({ initialProperties, customTitle, c
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search project or location..."
-                  className="w-full pl-14 pr-5 py-4 sm:py-5 rounded-2xl md:rounded-full bg-slate-50/50 border border-slate-200 focus:bg-white focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all duration-300 shadow-sm text-slate-900 font-medium placeholder:font-normal placeholder:text-slate-400 tracking-wide"
+                  className="w-full pl-14 pr-5 py-4 sm:py-5 rounded-2xl md:rounded-full bg-white/5 border border-white/10 focus:bg-white/10 focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 outline-none transition-all duration-300 shadow-xl text-white font-medium placeholder:font-normal placeholder:text-slate-500 tracking-wide"
                 />
               </div>
             </div>

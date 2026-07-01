@@ -569,6 +569,7 @@ export default async function LocalityPage({ params }) {
                         src={adv.img}
                         alt={adv.name}
                         fill
+                        sizes="48px"
                         className="object-cover"
                       />
                     </div>
